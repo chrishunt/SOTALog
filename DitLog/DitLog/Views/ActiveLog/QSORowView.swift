@@ -11,33 +11,23 @@ struct QSORowView: View {
 
             Text(qso.callsign)
                 .font(.body.monospaced().bold())
-                .frame(minWidth: 80, alignment: .leading)
+                .frame(minWidth: 100, alignment: .leading)
 
-            if let freq = qso.frequency {
-                Text(String(format: "%.3f", freq))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
+            Text(qso.band)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
 
             Spacer()
 
-            HStack(spacing: 4) {
-                Text(qso.rstSent)
-                    .font(.caption.monospacedDigit())
-                Text(qso.rstReceived)
-                    .font(.caption.monospacedDigit())
-            }
-            .foregroundStyle(.secondary)
-
-            if let ref = qso.potaRef {
-                Text(ref)
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
+            if qso.potaRef != nil {
+                Image(systemName: "tree")
+                    .font(.caption)
+                    .foregroundStyle(.green)
             }
 
-            if let ref = qso.sotaRef {
-                Text(ref)
-                    .font(.caption2)
+            if qso.sotaRef != nil {
+                Image(systemName: "mountain.2")
+                    .font(.caption)
                     .foregroundStyle(.blue)
             }
         }
