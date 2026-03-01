@@ -42,7 +42,7 @@ struct LogListView: View {
                     }
                 }
             }
-            .navigationTitle("SOTA Log")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Log.self) { log in
                 ActiveLogView(database: database, log: log)
             }

@@ -13,7 +13,7 @@ struct SpotsView: View {
                     ProgressView("Loading spots...")
                 } else if viewModel.spots.isEmpty {
                     ContentUnavailableView(
-                        "No CW Spots",
+                        "No Spots",
                         systemImage: "antenna.radiowaves.left.and.right",
                         description: Text("Pull to refresh or wait for CW activators.")
                     )
@@ -47,7 +47,7 @@ struct SpotsView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("CW Spots")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .automatic) {
                     Picker("Source", selection: $viewModel.sourceFilter) {
