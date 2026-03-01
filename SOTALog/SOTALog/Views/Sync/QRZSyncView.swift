@@ -80,19 +80,19 @@ struct QRZSyncView: View {
 
                 // Download
                 Section("Download from QRZ") {
-                    Button {
-                        Task { await viewModel.downloadNew() }
-                    } label: {
-                        if viewModel.isDownloading {
-                            HStack {
-                                ProgressView()
-                                Text(viewModel.downloadProgress.map { "Downloading... \($0)" } ?? "Downloading...")
-                            }
-                        } else {
+                    if viewModel.isDownloading {
+                        HStack {
+                            ProgressView()
+                            Text(viewModel.downloadProgress ?? "Downloading...")
+                        }
+                    } else {
+                        Button {
+                            Task { await viewModel.downloadNew() }
+                        } label: {
                             Label("Check for new QSOs", systemImage: "arrow.down.circle")
                         }
+                        .disabled(viewModel.isUploading)
                     }
-                    .disabled(viewModel.isDownloading || viewModel.isUploading)
 
                     Button(role: .destructive) {
                         Task { await viewModel.resetSync() }

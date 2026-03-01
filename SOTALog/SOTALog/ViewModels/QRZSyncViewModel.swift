@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-@Observable
+@MainActor @Observable
 final class QRZSyncViewModel {
     private let database: AppDatabase
     private let qsoRepo: QSORepository
@@ -155,7 +155,7 @@ final class QRZSyncViewModel {
         guard let apiKey = KeychainService.load(key: .qrzAPIKey) else { return }
 
         isDownloading = true
-        downloadProgress = nil
+        downloadProgress = "Checking..."
         errorMessage = nil
         successMessage = nil
 
@@ -164,79 +164,38 @@ final class QRZSyncViewModel {
             var totalNew = 0
             var totalUpdated = 0
             var totalChecked = 0
-            var maxLogId = afterLogId
+            var previousMaxLogId: Int64 = -1
 
-            while true {
+            for _ in 0..<200 {
                 let result = try await QRZLogbookService.downloadQSOs(apiKey: apiKey, afterLogId: afterLogId)
                 let records = ADIFFormatter.decode(result.adif)
 
-                for fields in records {
-                    totalChecked += 1
-                    downloadProgress = "\(totalChecked) checked, \(totalNew) new, \(totalUpdated) updated"
+                let pageResult = try await qsoRepo.importPage(records)
+                totalChecked += result.count
+                totalNew += pageResult.newCount
+                totalUpdated += pageResult.updatedCount
 
-                    guard let qrzLogIdStr = fields["APP_QRZ_LOGID"],
-                          let qrzLogId = Int64(qrzLogIdStr) else { continue }
-
-                    maxLogId = max(maxLogId, qrzLogId)
-
-                    guard var incoming = ADIFFormatter.qsoFromFields(fields) else { continue }
-                    incoming.syncedToQRZ = true
-                    incoming.qrzLogId = qrzLogId
-
-                    // Tier 1: Exact match by qrzLogId
-                    if var existing = try await qsoRepo.fetchByQRZLogId(qrzLogId) {
-                        existing.callsign = incoming.callsign
-                        existing.date = incoming.date
-                        existing.timeOn = incoming.timeOn
-                        existing.frequency = incoming.frequency
-                        existing.band = incoming.band
-                        existing.mode = incoming.mode
-                        existing.rstSent = incoming.rstSent
-                        existing.rstReceived = incoming.rstReceived
-                        existing.name = incoming.name
-                        existing.qth = incoming.qth
-                        existing.grid = incoming.grid
-                        existing.sotaRef = incoming.sotaRef
-                        existing.potaRef = incoming.potaRef
-                        existing.notes = incoming.notes
-                        existing.syncedToQRZ = true
-                        try await qsoRepo.save(&existing)
-                        totalUpdated += 1
-                        continue
-                    }
-
-                    // Tier 2: Semantic match (callsign + band + date + timeOn ±5 min)
-                    if var matched = try await qsoRepo.findSemanticMatch(
-                        callsign: incoming.callsign,
-                        band: incoming.band,
-                        date: incoming.date,
-                        timeOn: incoming.timeOn
-                    ) {
-                        matched.qrzLogId = qrzLogId
-                        matched.frequency = incoming.frequency ?? matched.frequency
-                        matched.name = incoming.name ?? matched.name
-                        matched.qth = incoming.qth ?? matched.qth
-                        matched.grid = incoming.grid ?? matched.grid
-                        matched.sotaRef = incoming.sotaRef ?? matched.sotaRef
-                        matched.potaRef = incoming.potaRef ?? matched.potaRef
-                        matched.notes = incoming.notes ?? matched.notes
-                        matched.syncedToQRZ = true
-                        try await qsoRepo.save(&matched)
-                        totalUpdated += 1
-                        continue
-                    }
-
-                    // Tier 3: No match — insert unattached
-                    try await qsoRepo.save(&incoming)
-                    totalNew += 1
+                // Update progress
+                if totalNew + totalUpdated > 0 {
+                    downloadProgress = "Checking... \(totalChecked) QSOs, \(totalNew + totalUpdated) new"
+                } else {
+                    downloadProgress = "Checking... \(totalChecked) QSOs"
                 }
+                await Task.yield()
 
                 if result.count < 250 { break }
-                afterLogId = maxLogId
+
+                // Advance cursor using per-record APP_QRZLOG_LOGID (now properly parsed)
+                if pageResult.maxLogId == 0 || pageResult.maxLogId == previousMaxLogId { break }
+                previousMaxLogId = pageResult.maxLogId
+                afterLogId = pageResult.maxLogId + 1
             }
 
             // Persist cursor only after full success
-            try await qsoRepo.saveLastSyncedQRZLogId(maxLogId)
+            let finalCursor = max(previousMaxLogId, afterLogId)
+            if finalCursor > 0 {
+                try await qsoRepo.saveLastSyncedQRZLogId(finalCursor)
+            }
             lastSyncDate = Date()
 
             if totalNew == 0 && totalUpdated == 0 {

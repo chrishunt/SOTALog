@@ -198,6 +198,110 @@ final class ADIFFormatterTests: XCTestCase {
     }
 }
 
+// MARK: - ADIFFormatter QRZ Field Parsing
+
+final class ADIFFormatterQRZFieldTests: XCTestCase {
+    func testDecodePreservesAppQRZLogLogId() {
+        let adif = "<CALL:4>W1AW<QSO_DATE:8>20240101<TIME_ON:4>1200<BAND:3>20m<APP_QRZLOG_LOGID:6>123456<EOR>"
+        let records = ADIFFormatter.decode(adif)
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records[0]["APP_QRZLOG_LOGID"], "123456")
+    }
+
+    func testDecodeUppercasesFieldNames() {
+        let adif = "<call:4>W1AW<qso_date:8>20240101<time_on:4>1200<band:3>20m<app_qrzlog_logid:3>100<EOR>"
+        let records = ADIFFormatter.decode(adif)
+        XCTAssertEqual(records[0]["CALL"], "W1AW")
+        XCTAssertEqual(records[0]["APP_QRZLOG_LOGID"], "100")
+    }
+}
+
+// MARK: - QRZLogbookService Response Parsing
+
+final class QRZResponseParsingTests: XCTestCase {
+    func testParseResponseExtractsHTMLEncodedADIF() {
+        // QRZ FETCH response: ADIF blob is HTML-encoded (&lt; &gt;)
+        let response = "RESULT=OK&COUNT=2&ADIF=&lt;call:4&gt;W1AW&lt;app_qrzlog_logid:3&gt;100&lt;eor&gt;\n&lt;call:5&gt;K3ABC&lt;app_qrzlog_logid:3&gt;200&lt;eor&gt;"
+        let parsed = QRZLogbookService.parseResponse(response)
+
+        XCTAssertEqual(parsed["RESULT"], "OK")
+        XCTAssertEqual(parsed["COUNT"], "2")
+        XCTAssertNotNil(parsed["ADIF"])
+
+        // Decode requires unescaping first (done by downloadQSOs)
+        let adif = parsed["ADIF"]!
+            .replacingOccurrences(of: "&lt;", with: "<")
+            .replacingOccurrences(of: "&gt;", with: ">")
+            .replacingOccurrences(of: "&amp;", with: "&")
+        let records = ADIFFormatter.decode(adif)
+        XCTAssertEqual(records.count, 2)
+        XCTAssertEqual(records[0]["APP_QRZLOG_LOGID"], "100")
+        XCTAssertEqual(records[1]["APP_QRZLOG_LOGID"], "200")
+    }
+
+    func testParseResponseNoADIF() {
+        let response = "RESULT=OK&LOGID=12345&COUNT=1"
+        let parsed = QRZLogbookService.parseResponse(response)
+        XCTAssertEqual(parsed["RESULT"], "OK")
+        XCTAssertEqual(parsed["LOGID"], "12345")
+        XCTAssertEqual(parsed["COUNT"], "1")
+        XCTAssertNil(parsed["ADIF"])
+    }
+
+    func testParseResponseFailure() {
+        let response = "RESULT=FAIL&REASON=invalid api key"
+        let parsed = QRZLogbookService.parseResponse(response)
+        XCTAssertEqual(parsed["RESULT"], "FAIL")
+        XCTAssertEqual(parsed["REASON"], "invalid api key")
+    }
+}
+
+// MARK: - QRZLogbookService Form Encoding
+
+final class QRZFormEncodingTests: XCTestCase {
+    func testFormSafeCharactersExcludeReserved() {
+        // Characters like &, =, + must be percent-encoded in form data
+        let testValue = "KEY=value&other+stuff"
+        let safe: CharacterSet = {
+            var cs = CharacterSet.alphanumerics
+            cs.insert(charactersIn: "-._~")
+            return cs
+        }()
+        let encoded = testValue.addingPercentEncoding(withAllowedCharacters: safe)!
+        XCTAssertFalse(encoded.contains("&"))
+        XCTAssertFalse(encoded.contains("="))
+        XCTAssertFalse(encoded.contains("+"))
+        XCTAssertTrue(encoded.contains("%26"))  // & encoded
+        XCTAssertTrue(encoded.contains("%3D"))  // = encoded
+        XCTAssertTrue(encoded.contains("%2B"))  // + encoded
+    }
+
+    func testFormSafeCharactersAllowAlphanumerics() {
+        let safe: CharacterSet = {
+            var cs = CharacterSet.alphanumerics
+            cs.insert(charactersIn: "-._~")
+            return cs
+        }()
+        let simple = "W1AW"
+        let encoded = simple.addingPercentEncoding(withAllowedCharacters: safe)!
+        XCTAssertEqual(encoded, "W1AW")
+    }
+
+    func testADIFContentEncodedProperly() {
+        // ADIF records contain <> which must be percent-encoded
+        let adif = "<CALL:4>W1AW<EOR>"
+        let safe: CharacterSet = {
+            var cs = CharacterSet.alphanumerics
+            cs.insert(charactersIn: "-._~")
+            return cs
+        }()
+        let encoded = adif.addingPercentEncoding(withAllowedCharacters: safe)!
+        XCTAssertFalse(encoded.contains("<"))
+        XCTAssertFalse(encoded.contains(">"))
+        XCTAssertFalse(encoded.contains(":"))
+    }
+}
+
 // MARK: - String+Callsign Tests
 
 final class StringCallsignTests: XCTestCase {

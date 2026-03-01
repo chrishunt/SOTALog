@@ -199,7 +199,7 @@ final class QSORepositoryExtendedTests: XCTestCase {
         XCTAssertEqual(fetched?.qrzLogId, 12345)
     }
 
-    func testExistsWithQRZLogIdTrue() async throws {
+    func testFetchByQRZLogIdFound() async throws {
         let db = try AppDatabase.empty()
         let logRepo = LogRepository(database: db)
         let qsoRepo = QSORepository(database: db)
@@ -210,16 +210,17 @@ final class QSORepositoryExtendedTests: XCTestCase {
         var qso = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m", qrzLogId: 12345)
         try await qsoRepo.save(&qso)
 
-        let exists = try await qsoRepo.existsWithQRZLogId(12345)
-        XCTAssertTrue(exists)
+        let fetched = try await qsoRepo.fetchByQRZLogId(12345)
+        XCTAssertNotNil(fetched)
+        XCTAssertEqual(fetched?.callsign, "K3ABC")
     }
 
-    func testExistsWithQRZLogIdFalse() async throws {
+    func testFetchByQRZLogIdNotFound() async throws {
         let db = try AppDatabase.empty()
         let qsoRepo = QSORepository(database: db)
 
-        let exists = try await qsoRepo.existsWithQRZLogId(99999)
-        XCTAssertFalse(exists)
+        let fetched = try await qsoRepo.fetchByQRZLogId(99999)
+        XCTAssertNil(fetched)
     }
 
     func testDeleteQSO() async throws {
@@ -252,6 +253,290 @@ final class QSORepositoryExtendedTests: XCTestCase {
         let fetched = try await qsoRepo.fetch(id: qso.id!)
         XCTAssertNotNil(fetched)
         XCTAssertEqual(fetched?.callsign, "K3ABC")
+    }
+}
+
+// MARK: - QSORepository importPage
+
+final class QSORepositoryImportPageTests: XCTestCase {
+    func testImportPageInsertsNewRecords() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        let records: [[String: String]] = [
+            [
+                "APP_QRZLOG_LOGID": "100",
+                "CALL": "W1AW",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1200",
+                "BAND": "20m",
+                "MODE": "CW",
+            ],
+            [
+                "APP_QRZLOG_LOGID": "101",
+                "CALL": "K3ABC",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1205",
+                "BAND": "40m",
+                "MODE": "CW",
+            ],
+        ]
+
+        let result = try await qsoRepo.importPage(records)
+        XCTAssertEqual(result.newCount, 2)
+        XCTAssertEqual(result.updatedCount, 0)
+        XCTAssertEqual(result.maxLogId, 101)
+    }
+
+    func testImportPageTier1ExactMatchByQRZLogId() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        // Pre-insert a QSO with qrzLogId
+        var existing = QSO(callsign: "W1AW", date: "20240101", timeOn: "1200", band: "20m", qrzLogId: 100, syncedToQRZ: true)
+        try await qsoRepo.save(&existing)
+
+        // Import page with same qrzLogId but updated name
+        let records: [[String: String]] = [
+            [
+                "APP_QRZLOG_LOGID": "100",
+                "CALL": "W1AW",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1200",
+                "BAND": "20m",
+                "MODE": "CW",
+                "NAME": "Hiram",
+            ],
+        ]
+
+        let result = try await qsoRepo.importPage(records)
+        XCTAssertEqual(result.newCount, 0)
+        XCTAssertEqual(result.updatedCount, 1)
+
+        let fetched = try await qsoRepo.fetchByQRZLogId(100)
+        XCTAssertEqual(fetched?.name, "Hiram")
+    }
+
+    func testImportPageTier2SemanticMatch() async throws {
+        let db = try AppDatabase.empty()
+        let logRepo = LogRepository(database: db)
+        let qsoRepo = QSORepository(database: db)
+
+        var log = Log(date: "20240101", myCallsign: "W1AW")
+        try await logRepo.save(&log)
+
+        // Pre-insert a QSO without qrzLogId (locally created)
+        var existing = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m")
+        try await qsoRepo.save(&existing)
+
+        // Import page with matching callsign+band+date+time — should semantic-match
+        let records: [[String: String]] = [
+            [
+                "APP_QRZLOG_LOGID": "200",
+                "CALL": "K3ABC",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1202",  // within ±5 min
+                "BAND": "20m",
+                "MODE": "CW",
+                "NAME": "John",
+            ],
+        ]
+
+        let result = try await qsoRepo.importPage(records)
+        XCTAssertEqual(result.newCount, 0)
+        XCTAssertEqual(result.updatedCount, 1)
+
+        // Original record should now have qrzLogId linked
+        let fetched = try await qsoRepo.fetchByQRZLogId(200)
+        XCTAssertNotNil(fetched)
+        XCTAssertEqual(fetched?.logId, log.id)  // preserved attachment
+        XCTAssertEqual(fetched?.name, "John")
+    }
+
+    func testImportPageInsertsRecordsMissingLogId() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        let records: [[String: String]] = [
+            [
+                // No APP_QRZLOG_LOGID — still imported via tier 3
+                "CALL": "W1AW",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1200",
+                "BAND": "20m",
+                "MODE": "CW",
+            ],
+        ]
+
+        let result = try await qsoRepo.importPage(records)
+        XCTAssertEqual(result.newCount, 1)
+        XCTAssertEqual(result.updatedCount, 0)
+        XCTAssertEqual(result.maxLogId, 0)
+    }
+
+    func testImportPageSkipsRecordsMissingRequiredFields() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        let records: [[String: String]] = [
+            [
+                "APP_QRZLOG_LOGID": "100",
+                // Missing CALL, QSO_DATE, TIME_ON — qsoFromFields returns nil
+            ],
+        ]
+
+        let result = try await qsoRepo.importPage(records)
+        XCTAssertEqual(result.newCount, 0)
+        XCTAssertEqual(result.updatedCount, 0)
+        XCTAssertEqual(result.maxLogId, 100)  // maxLogId still tracked
+    }
+
+    func testImportPageTracksMaxLogId() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        let records: [[String: String]] = [
+            [
+                "APP_QRZLOG_LOGID": "50",
+                "CALL": "W1AW",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1200",
+                "BAND": "20m",
+                "MODE": "CW",
+            ],
+            [
+                "APP_QRZLOG_LOGID": "300",
+                "CALL": "K3ABC",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1205",
+                "BAND": "40m",
+                "MODE": "CW",
+            ],
+            [
+                "APP_QRZLOG_LOGID": "150",
+                "CALL": "N4XYZ",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1210",
+                "BAND": "15m",
+                "MODE": "CW",
+            ],
+        ]
+
+        let result = try await qsoRepo.importPage(records)
+        XCTAssertEqual(result.maxLogId, 300)
+    }
+
+    func testImportPageEmptyRecords() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        let result = try await qsoRepo.importPage([])
+        XCTAssertEqual(result.newCount, 0)
+        XCTAssertEqual(result.updatedCount, 0)
+        XCTAssertEqual(result.maxLogId, 0)
+    }
+
+    func testImportPageSemanticMatchPreservesLocalFields() async throws {
+        let db = try AppDatabase.empty()
+        let logRepo = LogRepository(database: db)
+        let qsoRepo = QSORepository(database: db)
+
+        var log = Log(date: "20240101", myCallsign: "W1AW")
+        try await logRepo.save(&log)
+
+        // Local QSO has notes and potaRef that QRZ doesn't
+        var existing = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m", potaRef: "US-4431", notes: "My local notes")
+        try await qsoRepo.save(&existing)
+
+        // QRZ record has no notes or potaRef
+        let records: [[String: String]] = [
+            [
+                "APP_QRZLOG_LOGID": "200",
+                "CALL": "K3ABC",
+                "QSO_DATE": "20240101",
+                "TIME_ON": "1200",
+                "BAND": "20m",
+                "MODE": "CW",
+            ],
+        ]
+
+        let result = try await qsoRepo.importPage(records)
+        XCTAssertEqual(result.updatedCount, 1)
+
+        let fetched = try await qsoRepo.fetchByQRZLogId(200)
+        XCTAssertEqual(fetched?.potaRef, "US-4431")  // preserved
+        XCTAssertEqual(fetched?.notes, "My local notes")  // preserved
+    }
+}
+
+// MARK: - QSORepository Sync Cursor
+
+final class QSORepositorySyncCursorTests: XCTestCase {
+    func testSyncCursorRoundTrip() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        let initial = try await qsoRepo.lastSyncedQRZLogId()
+        XCTAssertEqual(initial, 0)
+
+        try await qsoRepo.saveLastSyncedQRZLogId(12345)
+        let saved = try await qsoRepo.lastSyncedQRZLogId()
+        XCTAssertEqual(saved, 12345)
+    }
+
+    func testLastSyncDateUpdates() async throws {
+        let db = try AppDatabase.empty()
+        let qsoRepo = QSORepository(database: db)
+
+        let initial = try await qsoRepo.lastSyncDate()
+        XCTAssertNil(initial)
+
+        try await qsoRepo.saveLastSyncedQRZLogId(1)
+        let after = try await qsoRepo.lastSyncDate()
+        XCTAssertNotNil(after)
+    }
+
+    func testDeleteAllUnattached() async throws {
+        let db = try AppDatabase.empty()
+        let logRepo = LogRepository(database: db)
+        let qsoRepo = QSORepository(database: db)
+
+        var log = Log(date: "20240101", myCallsign: "W1AW")
+        try await logRepo.save(&log)
+
+        // Attached QSO
+        var attached = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m")
+        try await qsoRepo.save(&attached)
+
+        // Unattached QSO (logId = nil — from QRZ download)
+        var unattached = QSO(callsign: "N4XYZ", date: "20240101", timeOn: "1205", band: "40m")
+        try await qsoRepo.save(&unattached)
+
+        try await qsoRepo.deleteAllUnattached()
+
+        let fetchedAttached = try await qsoRepo.fetch(id: attached.id!)
+        XCTAssertNotNil(fetchedAttached)
+
+        let fetchedUnattached = try await qsoRepo.fetch(id: unattached.id!)
+        XCTAssertNil(fetchedUnattached)
+    }
+
+    func testClearAllSyncState() async throws {
+        let db = try AppDatabase.empty()
+        let logRepo = LogRepository(database: db)
+        let qsoRepo = QSORepository(database: db)
+
+        var log = Log(date: "20240101", myCallsign: "W1AW")
+        try await logRepo.save(&log)
+
+        var qso = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m", qrzLogId: 100, syncedToQRZ: true)
+        try await qsoRepo.save(&qso)
+
+        try await qsoRepo.clearAllSyncState()
+
+        let fetched = try await qsoRepo.fetch(id: qso.id!)
+        XCTAssertEqual(fetched?.syncedToQRZ, false)
+        XCTAssertNil(fetched?.qrzLogId)
     }
 }
 

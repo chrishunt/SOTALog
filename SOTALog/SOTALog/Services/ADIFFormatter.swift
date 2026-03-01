@@ -102,9 +102,9 @@ enum ADIFFormatter {
 
         let body = String(adif[bodyStart...])
 
-        // Split on <EOR>
-        let rawRecords = body.components(separatedBy: "<EOR>")
-            .map { $0.replacingOccurrences(of: "<eor>", with: "", options: .caseInsensitive) }
+        // Normalize <eor>/<Eor>/etc. to <EOR>, then split
+        let normalized = body.replacingOccurrences(of: "<eor>", with: "<EOR>", options: .caseInsensitive)
+        let rawRecords = normalized.components(separatedBy: "<EOR>")
 
         for rawRecord in rawRecords {
             let fields = parseFields(rawRecord)
