@@ -1,6 +1,6 @@
-# DitLog Design Document
+# SOTA Log Design Document
 
-This is the authoritative reference for DitLog's design philosophy and intent. Read this before working on any feature or bug. For implementation details, read the code.
+This is the authoritative reference for SOTA Log's design philosophy and intent. Read this before working on any feature or bug. For implementation details, read the code.
 
 ---
 

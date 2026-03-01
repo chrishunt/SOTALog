@@ -1,16 +1,16 @@
 # Xcode
-DitLog/DitLog.xcodeproj/xcuserdata/
-DitLog/DitLog.xcodeproj/project.xcworkspace/xcuserdata/
-DitLog/DitLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+SOTALog/SOTALog.xcodeproj/xcuserdata/
+SOTALog/SOTALog.xcodeproj/project.xcworkspace/xcuserdata/
+SOTALog/SOTALog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 
 # Build
-DitLog/.build/
-DitLog/build/
+SOTALog/.build/
+SOTALog/build/
 DerivedData/
 *.xcresult
 
 # SPM
-DitLog/.swiftpm/
+SOTALog/.swiftpm/
 
 # macOS
 .DS_Store

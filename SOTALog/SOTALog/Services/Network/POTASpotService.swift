@@ -5,7 +5,7 @@ enum POTASpotService {
     static func fetchSpots() async throws -> [Spot] {
         let url = URL(string: "https://api.pota.app/spot/activator")!
         var request = URLRequest(url: url)
-        request.setValue("DitLog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let decoded = try JSONDecoder().decode([POTASpotDTO].self, from: data)

@@ -2,30 +2,30 @@
 import PackageDescription
 
 let package = Package(
-    name: "DitLog",
+    name: "SOTALog",
     platforms: [.iOS(.v17), .macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
     ],
     targets: [
         .target(
-            name: "DitLog",
+            name: "SOTALog",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
-            path: "DitLog",
+            path: "SOTALog",
             resources: [
                 .process("Resources/Assets.xcassets"),
                 .process("Resources/CallPrefixes.json"),
             ]
         ),
         .testTarget(
-            name: "DitLogTests",
+            name: "SOTALogTests",
             dependencies: [
-                "DitLog",
+                "SOTALog",
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
-            path: "DitLogTests"
+            path: "SOTALogTests"
         ),
     ]
 )

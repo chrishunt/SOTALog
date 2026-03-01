@@ -42,7 +42,7 @@ struct LogListView: View {
                     }
                 }
             }
-            .navigationTitle("Dit Log")
+            .navigationTitle("SOTA Log")
             .navigationDestination(for: Log.self) { log in
                 ActiveLogView(database: database, log: log)
             }

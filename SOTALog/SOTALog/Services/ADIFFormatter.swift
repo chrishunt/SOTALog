@@ -67,9 +67,9 @@ enum ADIFFormatter {
 
     /// Encodes a full ADIF file with header.
     static func encodeFile(qsos: [QSO], log: Log? = nil) -> String {
-        var output = "ADIF Export from DitLog\n"
+        var output = "ADIF Export from SOTALog\n"
         output += encodeField("ADIF_VER", value: "3.1.4")
-        output += encodeField("PROGRAMID", value: "DitLog")
+        output += encodeField("PROGRAMID", value: "SOTALog")
         output += encodeField("PROGRAMVERSION", value: "1.0")
         output += "<EOH>\n\n"
 

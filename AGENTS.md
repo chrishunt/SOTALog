@@ -1,4 +1,4 @@
-# DitLog Agent Guide
+# SOTA Log Agent Guide
 
 > **Read [DESIGN.md](DESIGN.md) first.** It contains the app's design philosophy, architecture, data model, UI conventions, and interaction patterns. Understand the design before making any changes.
 
