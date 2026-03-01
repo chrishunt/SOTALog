@@ -18,6 +18,8 @@ struct RSTField: View {
                 .background(Color(.secondarySystemFill), in: RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("RST \(value)")
+        .accessibilityHint("Tap to change signal report")
         .popover(isPresented: $showPicker) {
             VStack(spacing: 0) {
                 ForEach(Self.commonValues, id: \.self) { rst in
@@ -38,7 +40,7 @@ struct RSTField: View {
                     }
                 }
             }
-            .frame(width: 120)
+            .frame(minWidth: 120)
             .presentationCompactAdaptation(.popover)
         }
     }

@@ -12,7 +12,6 @@ struct Log: Codable, Identifiable, Equatable, Hashable {
     var parkName: String?
     var summitName: String?
     var notes: String?
-    var isActive: Bool
 
     init(
         id: Int64? = nil,
@@ -24,8 +23,7 @@ struct Log: Codable, Identifiable, Equatable, Hashable {
         sotaReference: String? = nil,
         parkName: String? = nil,
         summitName: String? = nil,
-        notes: String? = nil,
-        isActive: Bool = false
+        notes: String? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -37,7 +35,15 @@ struct Log: Codable, Identifiable, Equatable, Hashable {
         self.parkName = parkName
         self.summitName = summitName
         self.notes = notes
-        self.isActive = isActive
+    }
+
+    /// Formats "20240315" as "2024-03-15" for display
+    var formattedDate: String {
+        guard date.count == 8 else { return date }
+        let y = date.prefix(4)
+        let m = date.dropFirst(4).prefix(2)
+        let d = date.dropFirst(6).prefix(2)
+        return "\(y)-\(m)-\(d)"
     }
 
     /// Whether this activation is a POTA activation

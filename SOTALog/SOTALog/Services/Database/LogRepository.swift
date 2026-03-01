@@ -45,6 +45,10 @@ struct LogRepository {
         let observation = ValueObservation.tracking { db in
             try Log.order(Column("createdAt").desc).fetchAll(db)
         }
-        return observation.start(in: writer, onError: { _ in }, onChange: onChange)
+        return observation.start(
+            in: writer,
+            onError: { error in AppLog.database.error("Log observation failed: \(error)") },
+            onChange: onChange
+        )
     }
 }

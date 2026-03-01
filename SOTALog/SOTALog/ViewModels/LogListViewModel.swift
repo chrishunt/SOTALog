@@ -6,7 +6,6 @@ import Observation
 final class LogListViewModel {
     private let database: AppDatabase
     private let logRepo: LogRepository
-    private let qsoRepo: QSORepository
     private var cancellable: AnyDatabaseCancellable?
 
     var logs: [Log] = []
@@ -15,27 +14,28 @@ final class LogListViewModel {
     init(database: AppDatabase) {
         self.database = database
         self.logRepo = LogRepository(database: database)
-        self.qsoRepo = QSORepository(database: database)
     }
 
     func startObserving() async {
-        cancellable = logRepo.observeAll(in: database.dbWriter) { [weak self] logs in
-            guard let self else { return }
-            self.logs = logs
-            Task { [weak self] in
-                guard let self else { return }
-                var counts: [Int64: Int] = [:]
-                for log in logs {
-                    if let id = log.id {
-                        counts[id] = try? await self.qsoRepo.fetchCount(forLogId: id)
-                    }
-                }
-                let finalCounts = counts
-                await MainActor.run { [weak self] in
-                    self?.qsoCounts = finalCounts
+        let observation = ValueObservation.tracking { db -> ([Log], [Int64: Int]) in
+            let logs = try Log.order(Column("createdAt").desc).fetchAll(db)
+            var counts: [Int64: Int] = [:]
+            for log in logs {
+                if let id = log.id {
+                    counts[id] = try QSO.filter(Column("logId") == id).fetchCount(db)
                 }
             }
+            return (logs, counts)
         }
+
+        cancellable = observation.start(
+            in: database.dbWriter,
+            onError: { error in AppLog.database.error("Log list observation failed: \(error)") },
+            onChange: { [weak self] (logs, counts) in
+                self?.logs = logs
+                self?.qsoCounts = counts
+            }
+        )
     }
 
     func deleteLog(id: Int64) async throws {

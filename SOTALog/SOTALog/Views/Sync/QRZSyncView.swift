@@ -103,7 +103,7 @@ struct QRZSyncView: View {
                 // ADIF Export
                 Section("Export") {
                     ShareLink(
-                        item: viewModel.exportADIF(),
+                        item: viewModel.adifExport,
                         preview: SharePreview("SOTA Log ADIF Export", image: Image(systemName: "doc.text"))
                     ) {
                         Label("Export All as ADIF", systemImage: "square.and.arrow.up")
@@ -130,7 +130,7 @@ struct QRZSyncView: View {
                     }
                 }
             }
-            .navigationTitle("Sync")
+            .navigationTitle("Tools")
             .sheet(isPresented: $showLogin) {
                 QRZLoginView(viewModel: viewModel)
             }

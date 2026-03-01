@@ -200,6 +200,116 @@ final class StringCallsignTests: XCTestCase {
     }
 }
 
+// MARK: - OmniFieldParser Tests
+
+final class OmniFieldParserTests: XCTestCase {
+    func testCallsignOnly() {
+        let result = OmniFieldParser.parse("W1AW")
+        XCTAssertEqual(result.callsign, "W1AW")
+        XCTAssertNil(result.rstSent)
+        XCTAssertNil(result.rstReceived)
+        XCTAssertNil(result.frequency)
+        XCTAssertNil(result.qth)
+        XCTAssertNil(result.potaRef)
+        XCTAssertNil(result.sotaRef)
+    }
+
+    func testFullEntry() {
+        let result = OmniFieldParser.parse("W1AW 579 559 14.060 CT")
+        XCTAssertEqual(result.callsign, "W1AW")
+        XCTAssertEqual(result.rstSent, "579")
+        XCTAssertEqual(result.rstReceived, "559")
+        XCTAssertEqual(result.frequency, "14.060")
+        XCTAssertEqual(result.qth, "CT")
+    }
+
+    func testTwoDigitRSTAutoTone() {
+        let result = OmniFieldParser.parse("K3ABC 55")
+        XCTAssertEqual(result.callsign, "K3ABC")
+        XCTAssertEqual(result.rstSent, "559")
+    }
+
+    func testThreeDigitRST() {
+        let result = OmniFieldParser.parse("K3ABC 579")
+        XCTAssertEqual(result.rstSent, "579")
+    }
+
+    func testTwoRSTValues() {
+        let result = OmniFieldParser.parse("W1AW 579 339")
+        XCTAssertEqual(result.rstSent, "579")
+        XCTAssertEqual(result.rstReceived, "339")
+    }
+
+    func testPOTARef() {
+        let result = OmniFieldParser.parse("W1AW US4431")
+        XCTAssertEqual(result.callsign, "W1AW")
+        XCTAssertEqual(result.potaRef, "US4431")
+    }
+
+    func testSOTARef() {
+        let result = OmniFieldParser.parse("W1AW W4CCM001")
+        XCTAssertEqual(result.callsign, "W1AW")
+        XCTAssertEqual(result.sotaRef, "W4CCM001")
+    }
+
+    func testFrequencyDetection() {
+        let result = OmniFieldParser.parse("W1AW 7.030")
+        XCTAssertEqual(result.frequency, "7.030")
+    }
+
+    func testQTHDetection() {
+        let result = OmniFieldParser.parse("W1AW NC")
+        XCTAssertEqual(result.qth, "NC")
+    }
+
+    func testUnrecognizedTokensIgnored() {
+        let result = OmniFieldParser.parse("W1AW XYZZY")
+        XCTAssertEqual(result.callsign, "W1AW")
+        // XYZZY doesn't match any pattern — silently ignored
+    }
+
+    func testEmptyInput() {
+        let result = OmniFieldParser.parse("")
+        XCTAssertEqual(result.callsign, "")
+    }
+
+    func testCanadianQTH() {
+        let result = OmniFieldParser.parse("VE3ABC ON")
+        XCTAssertEqual(result.qth, "ON")
+    }
+
+    func testInvalidRSTIgnored() {
+        // "69" has R=6 which is out of 1-5 range
+        let result = OmniFieldParser.parse("W1AW 69")
+        XCTAssertNil(result.rstSent)
+    }
+
+    func testCombinedRSTAndFrequency() {
+        let result = OmniFieldParser.parse("W1AW 57 14.060")
+        XCTAssertEqual(result.rstSent, "579")
+        XCTAssertEqual(result.frequency, "14.060")
+    }
+}
+
+// MARK: - Log Model Tests
+
+final class LogModelTests: XCTestCase {
+    func testFormattedDate() {
+        let log = Log(date: "20240315", myCallsign: "W1AW")
+        XCTAssertEqual(log.formattedDate, "2024-03-15")
+    }
+
+    func testFormattedDateShortString() {
+        let log = Log(date: "202", myCallsign: "W1AW")
+        XCTAssertEqual(log.formattedDate, "202")
+    }
+
+    func testFormattedDateEmpty() {
+        let log = Log(date: "", myCallsign: "W1AW")
+        XCTAssertEqual(log.formattedDate, "")
+    }
+}
+
 // MARK: - Database Tests
 
 final class DatabaseTests: XCTestCase {
@@ -213,17 +323,13 @@ final class DatabaseTests: XCTestCase {
         let logRepo = LogRepository(database: db)
 
         // Create
-        var log = Log(date: "20240101", myCallsign: "W1AW", isActive: true)
+        var log = Log(date: "20240101", myCallsign: "W1AW")
         try await logRepo.save(&log)
         XCTAssertNotNil(log.id)
 
         // Read
         let fetched = try await logRepo.fetch(id: log.id!)
         XCTAssertEqual(fetched?.myCallsign, "W1AW")
-
-        // Read active
-        let active = try await logRepo.fetchActive()
-        XCTAssertEqual(active?.id, log.id)
 
         // Delete
         try await logRepo.delete(id: log.id!)
@@ -236,7 +342,7 @@ final class DatabaseTests: XCTestCase {
         let logRepo = LogRepository(database: db)
         let qsoRepo = QSORepository(database: db)
 
-        var log = Log(date: "20240101", myCallsign: "W1AW", isActive: true)
+        var log = Log(date: "20240101", myCallsign: "W1AW")
         try await logRepo.save(&log)
 
         // Create QSO
@@ -271,21 +377,4 @@ final class DatabaseTests: XCTestCase {
         XCTAssertEqual(history?.name, "Hiram") // Not overwritten by nil
     }
 
-    func testOnlyOneActiveLog() async throws {
-        let db = try AppDatabase.empty()
-        let logRepo = LogRepository(database: db)
-
-        var log1 = Log(date: "20240101", myCallsign: "W1AW", isActive: true)
-        try await logRepo.save(&log1)
-
-        var log2 = Log(date: "20240102", myCallsign: "K3ABC", isActive: true)
-        try await logRepo.save(&log2)
-
-        // log1 should now be inactive
-        let fetched1 = try await logRepo.fetch(id: log1.id!)
-        XCTAssertFalse(fetched1!.isActive)
-
-        let active = try await logRepo.fetchActive()
-        XCTAssertEqual(active?.id, log2.id)
-    }
 }

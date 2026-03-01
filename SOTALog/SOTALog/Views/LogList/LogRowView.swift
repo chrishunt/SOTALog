@@ -26,7 +26,7 @@ struct LogRowView: View {
 
                 Spacer()
 
-                Text(log.date)
+                Text(log.formattedDate)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }

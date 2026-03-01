@@ -17,6 +17,7 @@ final class QRZSyncViewModel {
     var downloadedCount: Int?
     var errorMessage: String?
     var successMessage: String?
+    var adifExport: String = ""
 
     init(database: AppDatabase) {
         self.database = database
@@ -29,6 +30,19 @@ final class QRZSyncViewModel {
         hasAPIKey = KeychainService.load(key: .qrzAPIKey) != nil
         hasCredentials = KeychainService.load(key: .qrzUsername) != nil
         unsyncedCount = (try? await qsoRepo.fetchUnsynced().count) ?? 0
+        await refreshADIF()
+    }
+
+    private func refreshADIF() async {
+        var allQSOs: [QSO] = []
+        let logs = try? await logRepo.fetchAll()
+        for log in logs ?? [] {
+            if let logId = log.id {
+                let qsos = try? await qsoRepo.fetchAll(forLogId: logId)
+                allQSOs.append(contentsOf: qsos ?? [])
+            }
+        }
+        adifExport = ADIFFormatter.encodeFile(qsos: allQSOs)
     }
 
     func saveCredentials(apiKey: String, username: String, password: String) {
@@ -77,7 +91,9 @@ final class QRZSyncViewModel {
 
             unsyncedCount = 0
             successMessage = "Uploaded \(uploadProgress) QSOs"
+            await refreshADIF()
         } catch {
+            AppLog.sync.error("Upload failed: \(error)")
             errorMessage = error.localizedDescription
         }
 
@@ -136,34 +152,16 @@ final class QRZSyncViewModel {
 
             downloadedCount = imported
             successMessage = "Imported \(imported) new QSOs"
+            await refreshADIF()
         } catch {
+            AppLog.sync.error("Download failed: \(error)")
             errorMessage = error.localizedDescription
         }
 
         isDownloading = false
     }
 
-    // MARK: - ADIF Export
-
-    func exportADIF() -> String {
-        // Synchronous for ShareLink — fetch all QSOs
-        var allQSOs: [QSO] = []
-        let semaphore = DispatchSemaphore(value: 0)
-
-        Task {
-            let logs = try? await logRepo.fetchAll()
-            for log in logs ?? [] {
-                if let logId = log.id {
-                    let qsos = try? await qsoRepo.fetchAll(forLogId: logId)
-                    allQSOs.append(contentsOf: qsos ?? [])
-                }
-            }
-            semaphore.signal()
-        }
-
-        semaphore.wait()
-        return ADIFFormatter.encodeFile(qsos: allQSOs)
-    }
+    // MARK: - ADIF Export (pre-computed in loadState)
 
     // MARK: - QRZ XML Lookup
 
@@ -206,6 +204,7 @@ final class QRZSyncViewModel {
                 return result
             }
         } catch {
+            AppLog.network.error("QRZ lookup failed for \(callsign): \(error)")
             return nil
         }
     }

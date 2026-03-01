@@ -41,6 +41,19 @@ struct ActivationStatusView: View {
                 sotaBlock(ref)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityDescription)
+    }
+
+    private var accessibilityDescription: String {
+        var parts = ["\(count) QSOs"]
+        if let ref = potaReference {
+            parts.append("POTA \(ref) \(potaComplete ? "complete" : "\(count) of \(potaThreshold)")")
+        }
+        if let ref = sotaReference {
+            parts.append("SOTA \(ref) \(sotaComplete ? "complete" : "\(count) of \(sotaThreshold)")")
+        }
+        return parts.joined(separator: ", ")
     }
 
     // MARK: - Reference blocks
