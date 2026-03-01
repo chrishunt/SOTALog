@@ -3,6 +3,7 @@ import SwiftUI
 struct QSOEntryView: View {
     let database: AppDatabase
     let log: Log
+    @Binding var editingQSO: QSO?
     let onSave: (QSO) -> Void
 
     @State private var viewModel: QSOEntryViewModel
@@ -12,15 +13,21 @@ struct QSOEntryView: View {
         case callsign, frequency, name, qth, sotaRef, potaRef
     }
 
-    init(database: AppDatabase, log: Log, onSave: @escaping (QSO) -> Void) {
+    init(database: AppDatabase, log: Log, editingQSO: Binding<QSO?>, onSave: @escaping (QSO) -> Void) {
         self.database = database
         self.log = log
+        self._editingQSO = editingQSO
         self.onSave = onSave
         self._viewModel = State(initialValue: QSOEntryViewModel(database: database, log: log))
     }
 
     var body: some View {
         VStack(spacing: 12) {
+            // Editing banner
+            if viewModel.isEditing {
+                editingBanner
+            }
+
             // Callsign row
             callsignRow
 
@@ -48,6 +55,35 @@ struct QSOEntryView: View {
         .onAppear {
             focusedField = .callsign
         }
+        .onChange(of: editingQSO) { _, newValue in
+            if let qso = newValue {
+                viewModel.loadForEditing(qso)
+                focusedField = .callsign
+            }
+        }
+    }
+
+    // MARK: - Editing Banner
+
+    private var editingBanner: some View {
+        HStack {
+            Image(systemName: "pencil.circle.fill")
+                .foregroundStyle(.orange)
+            Text("Editing: \(viewModel.callsign)")
+                .font(.subheadline.bold())
+                .foregroundStyle(.orange)
+            Spacer()
+            Button("Cancel") {
+                viewModel.cancelEditing()
+                editingQSO = nil
+                focusedField = .callsign
+            }
+            .font(.subheadline)
+            .foregroundStyle(.orange)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - Callsign Row
@@ -142,12 +178,22 @@ struct QSOEntryView: View {
                 .font(.caption.bold())
                 .foregroundStyle(.secondary)
 
-            TextField("Park ref", text: $viewModel.potaRef)
+            TextField("Park (e.g. US4431)", text: $viewModel.potaRefInput)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .potaRef)
                 .textFieldStyle(.roundedBorder)
                 .font(.body.monospaced())
+                .onChange(of: viewModel.potaRefInput) { _, newValue in
+                    viewModel.potaRefInput = newValue.sanitizedAlphanumeric
+                    viewModel.validatePOTARef()
+                }
+
+            if let formatted = viewModel.potaRefFormatted {
+                Text(formatted)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+            }
 
             if let name = viewModel.potaRefName {
                 Text(name)
@@ -201,11 +247,14 @@ struct QSOEntryView: View {
         Button {
             Task {
                 await viewModel.saveQSO()
-                onSave(viewModel.lastSavedQSO!)
+                if let saved = viewModel.lastSavedQSO {
+                    editingQSO = nil
+                    onSave(saved)
+                }
                 focusedField = .callsign
             }
         } label: {
-            Text("LOG QSO")
+            Text(viewModel.isEditing ? "SAVE QSO" : "LOG QSO")
                 .font(.system(size: 20, weight: .bold))
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)

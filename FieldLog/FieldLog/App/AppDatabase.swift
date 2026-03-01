@@ -102,6 +102,16 @@ struct AppDatabase {
             }
         }
 
+        migrator.registerMigration("v2_potaParkNormalized") { db in
+            try db.drop(table: "potaPark")
+            try db.create(table: "potaPark") { t in
+                t.primaryKey("reference", .text)
+                t.column("name", .text).notNull()
+                t.column("referenceNormalized", .text)
+            }
+            try db.create(index: "potaPark_referenceNormalized", on: "potaPark", columns: ["referenceNormalized"])
+        }
+
         return migrator
     }
 

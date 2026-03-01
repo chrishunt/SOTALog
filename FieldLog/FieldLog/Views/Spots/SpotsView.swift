@@ -22,9 +22,13 @@ struct SpotsView: View {
                     )
                 } else {
                     List {
-                        ForEach(viewModel.filteredSpots) { spot in
-                            SpotRowView(spot: spot)
-                                .listRowBackground(spotBackground(spot))
+                        ForEach(viewModel.spotsByBand, id: \.band) { section in
+                            Section(section.band) {
+                                ForEach(section.spots) { spot in
+                                    SpotRowView(spot: spot)
+                                        .listRowBackground(spotBackground(spot))
+                                }
+                            }
                         }
                     }
                     .listStyle(.plain)

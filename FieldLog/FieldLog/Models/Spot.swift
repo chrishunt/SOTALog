@@ -7,15 +7,43 @@ struct Spot: Identifiable, Equatable {
     }
 
     let id: String
-    let source: Source
     let activatorCallsign: String
     let frequency: Double        // MHz
     let mode: String
-    let reference: String        // Park or summit reference
-    let referenceName: String?
+
+    // Dual reference fields — a spot can have both POTA and SOTA refs (after consolidation)
+    var potaReference: String?
+    var potaReferenceName: String?
+    var sotaReference: String?
+    var sotaReferenceName: String?
+
     let spotterCallsign: String?
     let comments: String?
     let timestamp: Date
+
+    /// Which sources contributed to this spot
+    var sources: Set<Source> {
+        var s = Set<Source>()
+        if potaReference != nil { s.insert(.pota) }
+        if sotaReference != nil { s.insert(.sota) }
+        return s
+    }
+
+    /// Primary source (backwards compat)
+    var source: Source {
+        if potaReference != nil { return .pota }
+        return .sota
+    }
+
+    /// Primary reference (backwards compat)
+    var reference: String {
+        potaReference ?? sotaReference ?? ""
+    }
+
+    /// Primary reference name (backwards compat)
+    var referenceName: String? {
+        potaReferenceName ?? sotaReferenceName
+    }
 
     /// Whether this spot is older than the expiry threshold
     func isExpired(after minutes: Double = 10) -> Bool {

@@ -18,12 +18,11 @@ enum POTASpotService {
 
             return Spot(
                 id: "pota-\(dto.spotId ?? 0)-\(dto.activator ?? "")",
-                source: .pota,
                 activatorCallsign: dto.activator ?? "",
                 frequency: freqMHz,
                 mode: "CW",
-                reference: dto.reference ?? "",
-                referenceName: dto.name,
+                potaReference: dto.reference,
+                potaReferenceName: dto.name,
                 spotterCallsign: dto.spotter,
                 comments: dto.comments,
                 timestamp: dto.parsedTimestamp ?? Date()

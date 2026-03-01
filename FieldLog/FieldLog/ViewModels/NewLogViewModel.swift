@@ -76,8 +76,7 @@ final class NewLogViewModel {
             potaReference: potaReference.isEmpty ? nil : potaReference.uppercased(),
             sotaReference: sotaReference.isEmpty ? nil : sotaReference.uppercased(),
             parkName: parkName,
-            summitName: summitName,
-            isActive: true
+            summitName: summitName
         )
 
         try await logRepo.save(&log)
@@ -96,10 +95,11 @@ final class NewLogViewModel {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
             let results = try? await refRepo.searchParks(query: query, limit: 5)
+            let normalized = POTAPark.normalize(query)
             await MainActor.run {
                 parkSearchResults = results ?? []
-                // Exact match
-                if let exact = results?.first(where: { $0.reference == query.uppercased() }) {
+                // Exact match on normalized reference
+                if let exact = results?.first(where: { $0.referenceNormalized == normalized }) {
                     parkName = exact.name
                 }
             }

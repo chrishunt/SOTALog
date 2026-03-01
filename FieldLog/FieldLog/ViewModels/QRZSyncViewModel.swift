@@ -108,8 +108,7 @@ final class QRZSyncViewModel {
                 importLog = Log(
                     date: Date().adifDate,
                     myCallsign: KeychainService.load(key: .myCallsign) ?? "IMPORT",
-                    notes: "QRZ Import",
-                    isActive: false
+                    notes: "QRZ Import"
                 )
                 try await logRepo.save(&importLog)
             }

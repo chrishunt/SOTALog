@@ -12,15 +12,6 @@ struct LogRowView: View {
 
                 Spacer()
 
-                if log.isActive {
-                    Text("ACTIVE")
-                        .font(.caption2.bold())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.green, in: Capsule())
-                }
-
                 Text("\(qsoCount) QSOs")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

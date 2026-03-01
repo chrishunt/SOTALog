@@ -24,19 +24,8 @@ struct SpotRowView: View {
             }
 
             HStack {
-                Image(systemName: spot.source == .pota ? "tree" : "mountain.2")
-                    .font(.caption)
-                    .foregroundStyle(spot.source == .pota ? .green : .blue)
-
-                Text(spot.reference)
-                    .font(.caption.monospaced())
-
-                if let name = spot.referenceName {
-                    Text(name)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                // Reference icons and labels
+                referenceInfo
 
                 Spacer()
 
@@ -49,7 +38,7 @@ struct SpotRowView: View {
                         .background(.red, in: Capsule())
                 }
 
-                Text("\(spot.ageMinutes)m ago")
+                Text("\(spot.timestamp.utcTimeDisplay) (\(spot.ageMinutes)m)")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -62,5 +51,36 @@ struct SpotRowView: View {
             }
         }
         .padding(.vertical, 2)
+    }
+
+    @ViewBuilder
+    private var referenceInfo: some View {
+        if let potaRef = spot.potaReference {
+            Image(systemName: "tree")
+                .font(.caption)
+                .foregroundStyle(.green)
+            Text(potaRef)
+                .font(.caption.monospaced())
+            if let name = spot.potaReferenceName, spot.sotaReference == nil {
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+
+        if let sotaRef = spot.sotaReference {
+            Image(systemName: "mountain.2")
+                .font(.caption)
+                .foregroundStyle(.blue)
+            Text(sotaRef)
+                .font(.caption.monospaced())
+            if let name = spot.sotaReferenceName, spot.potaReference == nil {
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
     }
 }
