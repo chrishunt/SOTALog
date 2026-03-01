@@ -7,28 +7,34 @@ struct QRZLoginView: View {
     @State private var apiKey = ""
     @State private var username = ""
     @State private var password = ""
+    @State private var didSave = false
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    Text("Enter your QRZ API key for logbook sync, and your username/password for callsign lookups.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    SecureField("API Key", text: $apiKey)
+                        .autocorrectionDisabled()
+                    if didSave {
+                        credentialStatus(result: viewModel.apiKeyTestResult, label: "API key")
+                    }
+                } header: {
+                    Text("Logbook Sync")
+                } footer: {
+                    Link("Find your API key on QRZ.com",
+                         destination: URL(string: "https://www.qrz.com/docs/logbook30/api")!)
                 }
 
-                Section("Logbook API Key") {
-                    SecureField("QRZ API Key", text: $apiKey)
+                Section("Callsign Lookup") {
+                    TextField("Callsign", text: $username)
                         .autocorrectionDisabled()
-                }
-
-                Section("XML Lookup Credentials") {
-                    TextField("QRZ Username", text: $username)
-                        .autocorrectionDisabled()
-                    SecureField("QRZ Password", text: $password)
+                    SecureField("Password", text: $password)
+                    if didSave {
+                        credentialStatus(result: viewModel.xmlLoginTestResult, label: "Login")
+                    }
                 }
             }
-            .navigationTitle("QRZ Login")
+            .navigationTitle("QRZ Account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -36,19 +42,56 @@ struct QRZLoginView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        viewModel.saveCredentials(
-                            apiKey: apiKey,
-                            username: username,
-                            password: password
-                        )
-                        dismiss()
+                        didSave = true
+                        Task {
+                            await viewModel.saveCredentials(
+                                apiKey: apiKey,
+                                username: username,
+                                password: password
+                            )
+                            if viewModel.allTestsPassed {
+                                dismiss()
+                            }
+                        }
                     }
                     .bold()
+                    .disabled(viewModel.isTestingCredentials)
                 }
             }
             .onAppear {
                 apiKey = KeychainService.load(key: .qrzAPIKey) ?? ""
                 username = KeychainService.load(key: .qrzUsername) ?? ""
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func credentialStatus(result: QRZSyncViewModel.CredentialTestResult?, label: String) -> some View {
+        if viewModel.isTestingCredentials && result == nil {
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Testing \(label.lowercased())...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } else if let result {
+            switch result {
+            case .success:
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Color.appGreen)
+                    Text("\(label) verified")
+                        .font(.caption)
+                        .foregroundStyle(Color.appGreen)
+                }
+            case .failure(let message):
+                HStack(spacing: 6) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color.appRed)
+                    Text(message)
+                        .font(.caption)
+                        .foregroundStyle(Color.appRed)
+                }
             }
         }
     }
