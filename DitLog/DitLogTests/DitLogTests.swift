@@ -1,5 +1,5 @@
 import XCTest
-@testable import FieldLog
+@testable import DitLog
 
 // MARK: - BandPlan Tests
 

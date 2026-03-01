@@ -104,7 +104,7 @@ struct QRZSyncView: View {
                 Section("Export") {
                     ShareLink(
                         item: viewModel.exportADIF(),
-                        preview: SharePreview("FieldLog ADIF Export", image: Image(systemName: "doc.text"))
+                        preview: SharePreview("DitLog ADIF Export", image: Image(systemName: "doc.text"))
                     ) {
                         Label("Export All as ADIF", systemImage: "square.and.arrow.up")
                     }

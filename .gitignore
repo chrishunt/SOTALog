@@ -1,16 +1,16 @@
 # Xcode
-FieldLog/FieldLog.xcodeproj/xcuserdata/
-FieldLog/FieldLog.xcodeproj/project.xcworkspace/xcuserdata/
-FieldLog/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+DitLog/DitLog.xcodeproj/xcuserdata/
+DitLog/DitLog.xcodeproj/project.xcworkspace/xcuserdata/
+DitLog/DitLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 
 # Build
-FieldLog/.build/
-FieldLog/build/
+DitLog/.build/
+DitLog/build/
 DerivedData/
 *.xcresult
 
 # SPM
-FieldLog/.swiftpm/
+DitLog/.swiftpm/
 
 # macOS
 .DS_Store

@@ -1,4 +1,4 @@
-# FieldLog Design Principles
+# DitLog Design Principles
 
 ## Core Philosophy
 

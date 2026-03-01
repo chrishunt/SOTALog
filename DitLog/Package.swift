@@ -2,30 +2,30 @@
 import PackageDescription
 
 let package = Package(
-    name: "FieldLog",
+    name: "DitLog",
     platforms: [.iOS(.v17), .macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
     ],
     targets: [
         .target(
-            name: "FieldLog",
+            name: "DitLog",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
-            path: "FieldLog",
+            path: "DitLog",
             resources: [
                 .process("Resources/Assets.xcassets"),
                 .process("Resources/CallPrefixes.json"),
             ]
         ),
         .testTarget(
-            name: "FieldLogTests",
+            name: "DitLogTests",
             dependencies: [
-                "FieldLog",
+                "DitLog",
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
-            path: "FieldLogTests"
+            path: "DitLogTests"
         ),
     ]
 )
