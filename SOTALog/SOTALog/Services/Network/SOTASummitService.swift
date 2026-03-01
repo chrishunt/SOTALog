@@ -5,7 +5,7 @@ enum SOTASummitService {
     static func fetchSummits() async throws -> [SOTASummit] {
         let url = URL(string: "https://www.sotadata.org.uk/summitslist.csv")!
         var request = URLRequest(url: url)
-        request.setValue("DitLog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         guard let csvString = String(data: data, encoding: .utf8) else {

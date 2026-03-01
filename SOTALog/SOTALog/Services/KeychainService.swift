@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 enum KeychainService {
-    private static let serviceName = "com.ditlog.app"
+    private static let serviceName = "com.sotalog.app"
 
     enum Key: String {
         case qrzAPIKey = "qrz_api_key"

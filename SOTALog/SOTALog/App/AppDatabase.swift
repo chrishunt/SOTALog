@@ -124,7 +124,7 @@ struct AppDatabase {
             appropriateFor: nil,
             create: true
         )
-        let directoryURL = appSupportURL.appendingPathComponent("DitLog", isDirectory: true)
+        let directoryURL = appSupportURL.appendingPathComponent("SOTALog", isDirectory: true)
         try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
         let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
         let dbPool = try DatabasePool(path: databaseURL.path)
