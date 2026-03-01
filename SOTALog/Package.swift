@@ -14,6 +14,7 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
             path: "SOTALog",
+            exclude: ["App/SOTALogApp.swift"],
             resources: [
                 .process("Resources/Assets.xcassets"),
                 .process("Resources/CallPrefixes.json"),
