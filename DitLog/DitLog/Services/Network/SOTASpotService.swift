@@ -55,7 +55,13 @@ enum SOTASpotService {
             formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
             if let date = formatter.date(from: timeStamp) { return date }
             formatter.formatOptions = [.withInternetDateTime]
-            return formatter.date(from: timeStamp)
+            if let date = formatter.date(from: timeStamp) { return date }
+            // Fallback for timestamps without timezone designator (assumes UTC)
+            let df = DateFormatter()
+            df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            df.timeZone = TimeZone(identifier: "UTC")
+            df.locale = Locale(identifier: "en_US_POSIX")
+            return df.date(from: timeStamp)
         }
     }
 }

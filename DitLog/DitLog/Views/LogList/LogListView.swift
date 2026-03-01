@@ -3,8 +3,10 @@ import GRDB
 
 struct LogListView: View {
     let database: AppDatabase
+    @Environment(SpotRouter.self) private var spotRouter
     @State private var viewModel: LogListViewModel
     @State private var showNewLog = false
+    @State private var navigationPath = NavigationPath()
 
     init(database: AppDatabase) {
         self.database = database
@@ -12,7 +14,7 @@ struct LogListView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             Group {
                 if viewModel.logs.isEmpty {
                     ContentUnavailableView(
@@ -60,6 +62,10 @@ struct LogListView: View {
             }
             .task {
                 await viewModel.startObserving()
+            }
+            .onChange(of: spotRouter.pendingSpot) { _, newValue in
+                guard newValue != nil, navigationPath.isEmpty, let firstLog = viewModel.logs.first else { return }
+                navigationPath.append(firstLog)
             }
         }
     }

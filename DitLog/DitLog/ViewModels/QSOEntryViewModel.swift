@@ -281,15 +281,18 @@ final class QSOEntryViewModel {
     // MARK: - Spot pre-fill
 
     func prefillFromSpot(_ spot: Spot) {
-        self.entryText = spot.activatorCallsign.uppercased()
-        self.frequencyText = String(format: "%.3f", spot.frequency)
+        // Clear all fields first so stale data from a previous spot doesn't persist
+        clearFieldsForNextQSO()
+
+        entryText = spot.activatorCallsign.uppercased()
+        frequencyText = String(format: "%.3f", spot.frequency)
 
         if let ref = spot.potaReference {
-            self.potaRefInput = POTAPark.normalize(ref)
+            potaRefInput = POTAPark.normalize(ref)
             validatePOTARef()
         }
         if let ref = spot.sotaReference {
-            self.sotaRefInput = SOTASummit.normalize(ref)
+            sotaRefInput = SOTASummit.normalize(ref)
             validateSOTARef()
         }
         callsignChanged()

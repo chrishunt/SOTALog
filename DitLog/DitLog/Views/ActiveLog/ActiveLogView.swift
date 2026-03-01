@@ -4,6 +4,7 @@ struct ActiveLogView: View {
     let database: AppDatabase
     let log: Log
 
+    @Environment(SpotRouter.self) private var spotRouter
     @State private var viewModel: ActiveLogViewModel
     @State private var editingQSO: QSO?
 
@@ -25,6 +26,10 @@ struct ActiveLogView: View {
                 database: database,
                 log: log,
                 editingQSO: $editingQSO,
+                pendingSpot: Binding(
+                    get: { spotRouter.pendingSpot },
+                    set: { spotRouter.pendingSpot = $0 }
+                ),
                 onSave: { qso in
                     viewModel.qsoSaved()
                 }
@@ -59,12 +64,13 @@ struct ActiveLogView: View {
 
             Spacer()
 
-            if log.activationThreshold > 0 {
-                ThresholdBadge(
-                    count: viewModel.qsoCount,
-                    threshold: log.activationThreshold,
-                    label: log.thresholdLabel
-                )
+            if log.isPOTA || log.isSOTA {
+                if log.isPOTA {
+                    ThresholdBadge(count: viewModel.qsoCount, threshold: 10, label: "POTA")
+                }
+                if log.isSOTA {
+                    ThresholdBadge(count: viewModel.qsoCount, threshold: 4, label: "SOTA")
+                }
             } else {
                 Text("\(viewModel.qsoCount) QSOs")
                     .font(.subheadline.monospacedDigit())
