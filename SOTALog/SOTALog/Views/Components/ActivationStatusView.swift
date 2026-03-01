@@ -1,136 +1,87 @@
 import SwiftUI
 
-/// Single capsule showing QSO count and activation progress.
+/// Inline status display with labeled QSO count and per-reference progress.
 ///
-/// - No activation: count only in secondary
-/// - Single POTA: count | tree icon + progress
-/// - Single SOTA: count | mountain icon + progress
-/// - Dual: count | per-program indicator (checkmark when met, progress when not)
+/// Color is used only on the progress indicator (fraction or checkmark),
+/// keeping references neutral so status pops at a glance.
+///
+/// - No activation: `5 QSOs` (secondary)
+/// - POTA incomplete: `5 QSOs  🌲 US-4431  5/10` (fraction orange)
+/// - POTA complete: `12 QSOs  🌲 US-4431  ✓` (checkmark green)
+/// - SOTA complete: `6 QSOs  ⛰️ W4C/CM-001  ✓` (checkmark blue)
+/// - Dual mixed: both blocks, each with its own progress color
 struct ActivationStatusView: View {
     let count: Int
-    let isPOTA: Bool
-    let isSOTA: Bool
+    let potaReference: String?
+    let sotaReference: String?
 
     private let potaThreshold = 10
     private let sotaThreshold = 4
 
     private var potaComplete: Bool { count >= potaThreshold }
     private var sotaComplete: Bool { count >= sotaThreshold }
-
-    private var hasActivation: Bool { isPOTA || isSOTA }
-
-    /// Orange if any activation incomplete, green only when all met.
-    private var capsuleColor: Color {
-        guard hasActivation else { return .secondary }
-        if isPOTA && !potaComplete { return .orange }
-        if isSOTA && !sotaComplete { return .orange }
-        return .green
-    }
+    private var hasActivation: Bool { potaReference != nil || sotaReference != nil }
 
     var body: some View {
         HStack(spacing: 6) {
-            Text("\(count)")
-                .font(.title3.monospacedDigit().bold())
-                .foregroundStyle(hasActivation ? .primary : .secondary)
+            // Labeled QSO count
+            HStack(spacing: 3) {
+                Text("\(count)")
+                    .font(.title3.monospacedDigit().bold())
+                Text("QSOs")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
-            if hasActivation {
-                divider
+            if let ref = potaReference {
+                potaBlock(ref)
+            }
 
-                if isPOTA && isSOTA {
-                    dualIndicators
-                } else if isPOTA {
-                    potaIndicator
-                } else {
-                    sotaIndicator
-                }
+            if let ref = sotaReference {
+                sotaBlock(ref)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(capsuleColor.opacity(0.12), in: Capsule())
     }
 
-    // MARK: - Single indicators
+    // MARK: - Reference blocks
 
-    private var potaIndicator: some View {
+    private func potaBlock(_ reference: String) -> some View {
         HStack(spacing: 3) {
+            Image(systemName: "tree")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(reference)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
             if potaComplete {
                 Image(systemName: "checkmark")
                     .font(.caption2.bold())
-            }
-            Image(systemName: "tree")
-                .font(.caption)
-            if !potaComplete {
+                    .foregroundStyle(.green)
+            } else {
                 Text("\(count)/\(potaThreshold)")
                     .font(.caption.monospacedDigit().bold())
+                    .foregroundStyle(.orange)
             }
         }
-        .foregroundStyle(potaComplete ? .green : .orange)
     }
 
-    private var sotaIndicator: some View {
+    private func sotaBlock(_ reference: String) -> some View {
         HStack(spacing: 3) {
+            Image(systemName: "mountain.2")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(reference)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
             if sotaComplete {
                 Image(systemName: "checkmark")
                     .font(.caption2.bold())
-            }
-            Image(systemName: "mountain.2")
-                .font(.caption)
-            if !sotaComplete {
+                    .foregroundStyle(.blue)
+            } else {
                 Text("\(count)/\(sotaThreshold)")
                     .font(.caption.monospacedDigit().bold())
+                    .foregroundStyle(.orange)
             }
         }
-        .foregroundStyle(sotaComplete ? .blue : .orange)
-    }
-
-    // MARK: - Dual indicators
-
-    private var dualIndicators: some View {
-        HStack(spacing: 6) {
-            dualPotaChip
-            divider
-            dualSotaChip
-        }
-    }
-
-    private var dualPotaChip: some View {
-        HStack(spacing: 3) {
-            if potaComplete {
-                Image(systemName: "checkmark")
-                    .font(.caption2.bold())
-            }
-            Image(systemName: "tree")
-                .font(.caption)
-            if !potaComplete {
-                Text("\(count)/\(potaThreshold)")
-                    .font(.caption.monospacedDigit().bold())
-            }
-        }
-        .foregroundStyle(potaComplete ? .green : .orange)
-    }
-
-    private var dualSotaChip: some View {
-        HStack(spacing: 3) {
-            if sotaComplete {
-                Image(systemName: "checkmark")
-                    .font(.caption2.bold())
-            }
-            Image(systemName: "mountain.2")
-                .font(.caption)
-            if !sotaComplete {
-                Text("\(count)/\(sotaThreshold)")
-                    .font(.caption.monospacedDigit().bold())
-            }
-        }
-        .foregroundStyle(sotaComplete ? .blue : .orange)
-    }
-
-    // MARK: - Helpers
-
-    private var divider: some View {
-        Rectangle()
-            .fill(.quaternary)
-            .frame(width: 1, height: 16)
     }
 }
