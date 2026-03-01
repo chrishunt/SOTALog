@@ -65,7 +65,7 @@ struct QSOEntryView: View {
                 focusedField = .callsign
             }
         }
-        .onChange(of: pendingSpot) { _, newValue in
+        .onChange(of: pendingSpot, initial: true) { _, newValue in
             if let spot = newValue {
                 viewModel.prefillFromSpot(spot)
                 pendingSpot = nil
