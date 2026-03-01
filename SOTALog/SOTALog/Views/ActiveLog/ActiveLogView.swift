@@ -50,21 +50,12 @@ struct ActiveLogView: View {
     // MARK: - Header
 
     private var logHeader: some View {
-        HStack {
-            if let ref = log.referenceDisplay {
-                Text(ref)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            ActivationStatusView(
-                count: viewModel.qsoCount,
-                isPOTA: log.isPOTA,
-                isSOTA: log.isSOTA
-            )
-        }
+        ActivationStatusView(
+            count: viewModel.qsoCount,
+            potaReference: log.potaReference,
+            sotaReference: log.sotaReference
+        )
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal)
         .padding(.vertical, 8)
     }

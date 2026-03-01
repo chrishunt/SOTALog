@@ -24,7 +24,7 @@ struct SpotsView: View {
                 } else {
                     List {
                         ForEach(viewModel.spotsByBand, id: \.band) { section in
-                            Section(section.band) {
+                            Section {
                                 ForEach(section.spots) { spot in
                                     Button {
                                         spotRouter.pendingSpot = spot
@@ -34,6 +34,16 @@ struct SpotsView: View {
                                     }
                                     .buttonStyle(.plain)
                                 }
+                            } header: {
+                                HStack {
+                                    Text(section.band)
+                                        .font(.subheadline.monospacedDigit().bold())
+                                        .foregroundStyle(.primary)
+                                    Text("\(section.spots.count)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .textCase(nil)
                             }
                         }
                     }
