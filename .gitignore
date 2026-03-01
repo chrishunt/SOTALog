@@ -1,0 +1,18 @@
+# Xcode
+FieldLog/FieldLog.xcodeproj/xcuserdata/
+FieldLog/FieldLog.xcodeproj/project.xcworkspace/xcuserdata/
+FieldLog/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# Build
+FieldLog/.build/
+DerivedData/
+*.xcresult
+
+# SPM
+FieldLog/.swiftpm/
+
+# macOS
+.DS_Store
+
+# Claude
+.claude/
