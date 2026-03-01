@@ -18,6 +18,16 @@ final class QRZSyncViewModel {
     var successMessage: String?
     var adifExport: String = ""
 
+    // Credential testing
+    var isTestingCredentials = false
+    var apiKeyTestResult: CredentialTestResult?
+    var xmlLoginTestResult: CredentialTestResult?
+
+    enum CredentialTestResult {
+        case success
+        case failure(String)
+    }
+
     init(database: AppDatabase) {
         self.database = database
         self.qsoRepo = QSORepository(database: database)
@@ -43,7 +53,8 @@ final class QRZSyncViewModel {
         adifExport = ADIFFormatter.encodeFile(qsos: allQSOs)
     }
 
-    func saveCredentials(apiKey: String, username: String, password: String) {
+    func saveCredentials(apiKey: String, username: String, password: String) async {
+        // Save to Keychain first (instant, offline-safe)
         if !apiKey.isEmpty {
             try? KeychainService.save(key: .qrzAPIKey, value: apiKey)
             hasAPIKey = true
@@ -55,6 +66,44 @@ final class QRZSyncViewModel {
         if !password.isEmpty {
             try? KeychainService.save(key: .qrzPassword, value: password)
         }
+
+        // Test credentials
+        isTestingCredentials = true
+        apiKeyTestResult = nil
+        xmlLoginTestResult = nil
+
+        async let apiTest: Void = testAPIKey(apiKey)
+        async let xmlTest: Void = testXMLLogin(username, password)
+        _ = await (apiTest, xmlTest)
+
+        isTestingCredentials = false
+    }
+
+    private func testAPIKey(_ apiKey: String) async {
+        guard !apiKey.isEmpty else { return }
+        do {
+            try await QRZLogbookService.testAPIKey(apiKey: apiKey)
+            apiKeyTestResult = .success
+        } catch {
+            apiKeyTestResult = .failure(error.localizedDescription)
+        }
+    }
+
+    private func testXMLLogin(_ username: String, _ password: String) async {
+        guard !username.isEmpty, !password.isEmpty else { return }
+        do {
+            let sessionKey = try await QRZXMLService.login(username: username, password: password)
+            try? KeychainService.save(key: .qrzSessionKey, value: sessionKey)
+            xmlLoginTestResult = .success
+        } catch {
+            xmlLoginTestResult = .failure(error.localizedDescription)
+        }
+    }
+
+    var allTestsPassed: Bool {
+        let apiOk = apiKeyTestResult.map { if case .success = $0 { return true } else { return false } } ?? true
+        let xmlOk = xmlLoginTestResult.map { if case .success = $0 { return true } else { return false } } ?? true
+        return apiOk && xmlOk
     }
 
     // MARK: - Upload

@@ -49,7 +49,7 @@ struct SpotsView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .automatic) {
+                ToolbarItem(placement: .principal) {
                     Picker("Source", selection: $viewModel.sourceFilter) {
                         Text("All").tag(SpotsViewModel.SourceFilter.all)
                         Text("POTA").tag(SpotsViewModel.SourceFilter.pota)

@@ -30,7 +30,7 @@ struct QRZSyncView: View {
 
                 HStack {
                     Image(systemName: viewModel.hasAPIKey ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(viewModel.hasAPIKey ? .green : .secondary)
+                        .foregroundStyle(viewModel.hasAPIKey ? Color.appGreen : .secondary)
                     Text(viewModel.hasAPIKey ? "API key configured" : "API key not set")
                     Spacer()
                     if viewModel.hasAPIKey {
@@ -41,7 +41,7 @@ struct QRZSyncView: View {
 
                 HStack {
                     Image(systemName: viewModel.hasCredentials ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(viewModel.hasCredentials ? .green : .secondary)
+                        .foregroundStyle(viewModel.hasCredentials ? Color.appGreen : .secondary)
                     Text(viewModel.hasCredentials ? "Callsign lookup configured" : "Callsign lookup not set up")
                     Spacer()
                     if viewModel.hasCredentials {
@@ -51,51 +51,53 @@ struct QRZSyncView: View {
                 }
             }
 
-            // Upload
-            Section("Upload to QRZ") {
-                HStack {
-                    Text("Unsynced QSOs")
-                    Spacer()
-                    Text("\(viewModel.unsyncedCount)")
-                        .foregroundStyle(.secondary)
+            if viewModel.hasAPIKey {
+                // Upload
+                Section("Upload to QRZ") {
+                    HStack {
+                        Text("Unsynced QSOs")
+                        Spacer()
+                        Text("\(viewModel.unsyncedCount)")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if viewModel.unsyncedCount > 0 {
+                        Button {
+                            Task { await viewModel.uploadAll() }
+                        } label: {
+                            if viewModel.isUploading {
+                                HStack {
+                                    ProgressView()
+                                    Text("Uploading \(viewModel.uploadProgress)/\(viewModel.unsyncedCount)...")
+                                }
+                            } else {
+                                Label("Upload \(viewModel.unsyncedCount) QSOs", systemImage: "arrow.up.circle")
+                            }
+                        }
+                        .disabled(viewModel.isUploading)
+                    }
                 }
 
-                if viewModel.unsyncedCount > 0 {
+                // Download
+                Section("Download from QRZ") {
                     Button {
-                        Task { await viewModel.uploadAll() }
+                        Task { await viewModel.downloadNew() }
                     } label: {
-                        if viewModel.isUploading {
+                        if viewModel.isDownloading {
                             HStack {
                                 ProgressView()
-                                Text("Uploading \(viewModel.uploadProgress)/\(viewModel.unsyncedCount)...")
+                                Text("Downloading...")
                             }
                         } else {
-                            Label("Upload \(viewModel.unsyncedCount) QSOs", systemImage: "arrow.up.circle")
+                            Label("Check for new QSOs", systemImage: "arrow.down.circle")
                         }
                     }
-                    .disabled(viewModel.isUploading || !viewModel.hasAPIKey)
-                }
-            }
+                    .disabled(viewModel.isDownloading)
 
-            // Download
-            Section("Download from QRZ") {
-                Button {
-                    Task { await viewModel.downloadNew() }
-                } label: {
-                    if viewModel.isDownloading {
-                        HStack {
-                            ProgressView()
-                            Text("Downloading...")
-                        }
-                    } else {
-                        Label("Check for new QSOs", systemImage: "arrow.down.circle")
+                    if let count = viewModel.downloadedCount {
+                        Text("Found \(count) new QSOs")
+                            .foregroundStyle(.secondary)
                     }
-                }
-                .disabled(viewModel.isDownloading || !viewModel.hasAPIKey)
-
-                if let count = viewModel.downloadedCount {
-                    Text("Found \(count) new QSOs")
-                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -118,14 +120,14 @@ struct QRZSyncView: View {
             if let error = viewModel.errorMessage {
                 Section {
                     Text(error)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color.appRed)
                 }
             }
 
             if let success = viewModel.successMessage {
                 Section {
                     Text(success)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Color.appGreen)
                 }
             }
         }

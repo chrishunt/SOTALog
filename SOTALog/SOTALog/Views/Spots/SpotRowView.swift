@@ -47,7 +47,7 @@ struct SpotRowView: View {
         if let potaRef = spot.potaReference {
             Image(systemName: "tree")
                 .font(.caption)
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.appGreen)
                 .accessibilityLabel("POTA")
             Text(potaRef)
                 .font(.caption.monospaced())
@@ -62,7 +62,7 @@ struct SpotRowView: View {
         if let sotaRef = spot.sotaReference {
             Image(systemName: "mountain.2")
                 .font(.caption)
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.appBlue)
                 .accessibilityLabel("SOTA")
             Text(sotaRef)
                 .font(.caption.monospaced())

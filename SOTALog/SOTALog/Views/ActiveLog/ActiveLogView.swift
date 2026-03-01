@@ -42,6 +42,10 @@ struct ActiveLogView: View {
         }
         .navigationTitle(log.myCallsign)
         .navigationBarTitleDisplayMode(.inline)
+        #if os(iOS)
+        .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
+        .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
+        #endif
         .task {
             await viewModel.startObserving()
         }

@@ -69,11 +69,11 @@ struct ActivationStatusView: View {
             if potaComplete {
                 Image(systemName: "checkmark")
                     .font(.caption2.bold())
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color.appGreen)
             } else {
                 Text("\(count)/\(potaThreshold)")
                     .font(.caption.monospacedDigit().bold())
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appOrange)
             }
         }
     }
@@ -89,11 +89,11 @@ struct ActivationStatusView: View {
             if sotaComplete {
                 Image(systemName: "checkmark")
                     .font(.caption2.bold())
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.appBlue)
             } else {
                 Text("\(count)/\(sotaThreshold)")
                     .font(.caption.monospacedDigit().bold())
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appOrange)
             }
         }
     }

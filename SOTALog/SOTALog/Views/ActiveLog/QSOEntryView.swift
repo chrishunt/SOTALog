@@ -76,6 +76,23 @@ struct QSOEntryView: View {
                 focusedField = .callsign
             }
         }
+        #if os(iOS)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                if focusedField == .callsign {
+                    HStack(spacing: 6) {
+                        ForEach(["1","2","3","4","5","6","7","8","9","0","/"], id: \.self) { char in
+                            Button(char) {
+                                viewModel.entryText.append(char)
+                            }
+                            .font(.callout.monospacedDigit())
+                            .frame(minWidth: 28, minHeight: 36)
+                        }
+                    }
+                }
+            }
+        }
+        #endif
     }
 
     // MARK: - Editing Banner
@@ -83,10 +100,10 @@ struct QSOEntryView: View {
     private var editingBanner: some View {
         HStack {
             Image(systemName: "pencil.circle.fill")
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.appOrange)
             Text("Editing: \(viewModel.parsedCallsign)")
                 .font(.subheadline.bold())
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.appOrange)
             Spacer()
             Button("Cancel") {
                 viewModel.cancelEditing()
@@ -94,11 +111,11 @@ struct QSOEntryView: View {
                 focusedField = .callsign
             }
             .font(.subheadline)
-            .foregroundStyle(.orange)
+            .foregroundStyle(Color.appOrange)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+        .background(Color.appOrange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - Callsign Row
@@ -173,6 +190,7 @@ struct QSOEntryView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 TextField("Name", text: $viewModel.name)
+                    .autocorrectionDisabled()
                     .focused($focusedField, equals: .name)
                     .submitLabel(.send)
                     .onSubmit { submitQSO() }
@@ -185,6 +203,7 @@ struct QSOEntryView: View {
                     .foregroundStyle(.secondary)
                 TextField("QTH", text: $viewModel.qth)
                     .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
                     .focused($focusedField, equals: .qth)
                     .submitLabel(.send)
                     .onSubmit { submitQSO() }
@@ -238,7 +257,7 @@ struct QSOEntryView: View {
 
                 if viewModel.potaRefValid {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Color.appGreen)
                 }
             }
         }
@@ -276,7 +295,7 @@ struct QSOEntryView: View {
 
                 if viewModel.sotaRefValid {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Color.appGreen)
                 }
             }
         }

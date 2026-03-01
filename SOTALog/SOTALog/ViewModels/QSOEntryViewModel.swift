@@ -95,6 +95,11 @@ final class QSOEntryViewModel {
         lookupTask?.cancel()
         let call = parsedCallsign
 
+        if call.isEmpty {
+            clearAllFields()
+            return
+        }
+
         guard call.count >= 3 else {
             clearLookupFields()
             return
@@ -367,6 +372,24 @@ final class QSOEntryViewModel {
     }
 
     // MARK: - Private
+
+    private func clearAllFields() {
+        rstSent = "599"
+        rstReceived = "599"
+        name = ""
+        qth = ""
+        potaRefInput = ""
+        potaRefFormatted = nil
+        potaRefName = nil
+        potaRefValid = false
+        sotaRefInput = ""
+        sotaRefFormatted = nil
+        sotaRefValid = false
+        timesWorked = 0
+        grid = nil
+        manualOverrides = []
+        // frequency persists between QSOs
+    }
 
     private func clearLookupFields() {
         timesWorked = 0
