@@ -158,6 +158,8 @@ struct QSOEntryView: View {
                     .keyboardType(.decimalPad)
                     #endif
                     .focused($focusedField, equals: .frequency)
+                    .submitLabel(.send)
+                    .onSubmit { submitQSO() }
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: viewModel.frequencyText) { _, _ in
                         if focusedField == .frequency {
@@ -178,6 +180,8 @@ struct QSOEntryView: View {
                     .foregroundStyle(.secondary)
                 TextField("Name", text: $viewModel.name)
                     .focused($focusedField, equals: .name)
+                    .submitLabel(.send)
+                    .onSubmit { submitQSO() }
                     .textFieldStyle(.roundedBorder)
             }
 
@@ -188,6 +192,8 @@ struct QSOEntryView: View {
                 TextField("QTH", text: $viewModel.qth)
                     .textInputAutocapitalization(.characters)
                     .focused($focusedField, equals: .qth)
+                    .submitLabel(.send)
+                    .onSubmit { submitQSO() }
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: viewModel.qth) { _, _ in
                         if focusedField == .qth {
@@ -211,6 +217,8 @@ struct QSOEntryView: View {
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .potaRef)
+                .submitLabel(.send)
+                .onSubmit { submitQSO() }
                 .textFieldStyle(.roundedBorder)
                 .font(.body.monospaced())
                 .onChange(of: viewModel.potaRefInput) { _, newValue in
@@ -253,6 +261,8 @@ struct QSOEntryView: View {
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .sotaRef)
+                .submitLabel(.send)
+                .onSubmit { submitQSO() }
                 .textFieldStyle(.roundedBorder)
                 .font(.body.monospaced())
                 .onChange(of: viewModel.sotaRefInput) { _, newValue in

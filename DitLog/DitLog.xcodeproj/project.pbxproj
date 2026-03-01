@@ -19,6 +19,7 @@
 		1E6B4D2116FFB6CDE569726B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90FD73410777EDF15B761808 /* ContentView.swift */; };
 		2312D4F29AB59EF7830BAAB9 /* QSOEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B387B45757B20704DA95DD4 /* QSOEntryViewModel.swift */; };
 		249E02E760DFE31E8F67305A /* LogListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623A2F467E9461F323FDF6CB /* LogListViewModel.swift */; };
+		282071CD8FDC754E8758AAEB /* ActivationStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E434C756DB6D9CC71673C7A /* ActivationStatusView.swift */; };
 		30A927DF292D277A6FAEF0F1 /* DitLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92EE3A1A1DDBA6CFEA308E5 /* DitLogTests.swift */; };
 		32E11BECC42DBF1B302063EB /* OmniFieldParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0843999BE67698B85EA2AD11 /* OmniFieldParser.swift */; };
 		3B53D8BEAA72B8B8CC9E05D8 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B2A17B34C84233B11CD34B /* AppDatabase.swift */; };
@@ -45,7 +46,6 @@
 		7ACF920682539B83F25E5504 /* NewLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E82CAA55936C8F3830FDAE /* NewLogViewModel.swift */; };
 		85B1C1F4D0A8E4BDAA09FE2B /* QSORepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D7D7BB0540FEFBF1C5F8D4 /* QSORepository.swift */; };
 		8D10E2F6129F3D6126AABB2C /* POTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A7B5A24568C74E6C541A3 /* POTASpotService.swift */; };
-		94F149BA4D7BD2FC150263E6 /* ActivationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C38CF973ADE1BDB04B96328D /* ActivationProgressView.swift */; };
 		97ED2829D237E23CD8287C1B /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8ECE5B5149C59C94846BE53 /* KeychainService.swift */; };
 		A13794BDCBFBB1B54854EA71 /* CallsignPrefixResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 746A8EE12235B5F34892635C /* CallsignPrefixResolver.swift */; };
 		A5A97E367F60DDBF8E6E62AD /* ReferenceManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80728AF4B8D820DE46163C57 /* ReferenceManagerView.swift */; };
@@ -55,7 +55,6 @@
 		C38AA3FBD6D9C798D0B45D66 /* SOTASummitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2736F3F9EF5DEA4BF1C9647A /* SOTASummitService.swift */; };
 		C93ECB5196FFDA363C7997D6 /* QRZSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 254DB25BD95B71DF2E6E29DC /* QRZSyncView.swift */; };
 		C9542D7302F78E49F88092CD /* MaidenheadConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9442490BD568F8EAE077A800 /* MaidenheadConverter.swift */; };
-		DA35CEDC5DB06D4941AEB2FE /* ThresholdBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C428DB7708A671A7AEF194F /* ThresholdBadge.swift */; };
 		E03E7D298A52F90C156F0C96 /* Date+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80674030BFE9B0DBD822E225 /* Date+Formatting.swift */; };
 		E064CE484A62E23777D8D782 /* LogRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC2198EB4F022E6A5F51B55 /* LogRowView.swift */; };
 		E518DCD3ECC568253EC9C86C /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354E485183884531DF025A68 /* Log.swift */; };
@@ -81,7 +80,7 @@
 		067C2BDDFB1710F4D748B2CE /* CallsignHistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignHistoryRepository.swift; sourceTree = "<group>"; };
 		074218FC4A6B1DD9E0F39D16 /* QRZCallsignResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZCallsignResult.swift; sourceTree = "<group>"; };
 		0843999BE67698B85EA2AD11 /* OmniFieldParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniFieldParser.swift; sourceTree = "<group>"; };
-		0C428DB7708A671A7AEF194F /* ThresholdBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThresholdBadge.swift; sourceTree = "<group>"; };
+		0E434C756DB6D9CC71673C7A /* ActivationStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationStatusView.swift; sourceTree = "<group>"; };
 		0EC41F6898A67D23408174D6 /* QRZLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLoginView.swift; sourceTree = "<group>"; };
 		0F6F6FF9B123BBDC549E26AA /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		1213EC34263D90B5F3E6CD78 /* QSOEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSOEntryView.swift; sourceTree = "<group>"; };
@@ -126,7 +125,6 @@
 		B8962A9DFE2A8382F9DF2592 /* ADIFFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADIFFormatter.swift; sourceTree = "<group>"; };
 		B8A4E92DA231E4DF03BE39CA /* Spot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spot.swift; sourceTree = "<group>"; };
 		BEE4B9D6D3173F509BC8C64A /* ReferenceMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceMetadata.swift; sourceTree = "<group>"; };
-		C38CF973ADE1BDB04B96328D /* ActivationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationProgressView.swift; sourceTree = "<group>"; };
 		D76A492487AA339B63903A3A /* DitLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DitLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAD58F3BA3AB24DBCBAE8DF3 /* QRZLogbookService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLogbookService.swift; sourceTree = "<group>"; };
 		DF99DF813056D9F255A9903D /* CallsignHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignHistory.swift; sourceTree = "<group>"; };
@@ -205,7 +203,6 @@
 		595ABF1736FBCE5AC9021C59 /* ActiveLog */ = {
 			isa = PBXGroup;
 			children = (
-				C38CF973ADE1BDB04B96328D /* ActivationProgressView.swift */,
 				659D53AC0D59F7E308C8FA93 /* ActiveLogView.swift */,
 				1213EC34263D90B5F3E6CD78 /* QSOEntryView.swift */,
 				977FF053CD1C7628029F1829 /* QSORowView.swift */,
@@ -350,9 +347,9 @@
 		F5CB9DCF03A711951FAE4BAD /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				0E434C756DB6D9CC71673C7A /* ActivationStatusView.swift */,
 				96E9481FDC456CA127461357 /* CallsignField.swift */,
 				AE5E88577B3D5E079AE8743D /* RSTField.swift */,
-				0C428DB7708A671A7AEF194F /* ThresholdBadge.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -472,7 +469,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				751179F0A5C3B25997A877F7 /* ADIFFormatter.swift in Sources */,
-				94F149BA4D7BD2FC150263E6 /* ActivationProgressView.swift in Sources */,
+				282071CD8FDC754E8758AAEB /* ActivationStatusView.swift in Sources */,
 				3EABBCD4D7433A971D218BBB /* ActiveLogView.swift in Sources */,
 				1E4F7205E3E7704D3DA4F3ED /* ActiveLogViewModel.swift in Sources */,
 				3B53D8BEAA72B8B8CC9E05D8 /* AppDatabase.swift in Sources */,
@@ -522,7 +519,6 @@
 				B93DB62CC5EBCD00DD9D6E48 /* SpotsView.swift in Sources */,
 				063058F1B6370B682AA240F7 /* SpotsViewModel.swift in Sources */,
 				F03734D49B335C0E33C6D6E1 /* String+Callsign.swift in Sources */,
-				DA35CEDC5DB06D4941AEB2FE /* ThresholdBadge.swift in Sources */,
 				6BE5A600C0BA4D934E580F12 /* View+iOS.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

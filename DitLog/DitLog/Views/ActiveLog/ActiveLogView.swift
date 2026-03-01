@@ -51,31 +51,19 @@ struct ActiveLogView: View {
 
     private var logHeader: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(log.myCallsign)
-                    .font(.headline.monospaced())
-
-                if let ref = log.referenceDisplay {
-                    Text(ref)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            if let ref = log.referenceDisplay {
+                Text(ref)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            if log.isPOTA || log.isSOTA {
-                if log.isPOTA {
-                    ThresholdBadge(count: viewModel.qsoCount, threshold: 10, label: "POTA")
-                }
-                if log.isSOTA {
-                    ThresholdBadge(count: viewModel.qsoCount, threshold: 4, label: "SOTA")
-                }
-            } else {
-                Text("\(viewModel.qsoCount) QSOs")
-                    .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
+            ActivationStatusView(
+                count: viewModel.qsoCount,
+                isPOTA: log.isPOTA,
+                isSOTA: log.isSOTA
+            )
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
