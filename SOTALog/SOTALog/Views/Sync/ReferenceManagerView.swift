@@ -85,7 +85,7 @@ struct ReferenceManagerView: View {
             if let error = errorMessage {
                 Text(error)
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.appRed)
             }
         }
         .task {

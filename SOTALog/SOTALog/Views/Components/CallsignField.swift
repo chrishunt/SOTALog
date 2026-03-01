@@ -16,6 +16,9 @@ struct CallsignField: View {
                 .minimumScaleFactor(0.6)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
+                #if os(iOS)
+                .keyboardType(.asciiCapable)
+                #endif
                 .onChange(of: text) { _, newValue in
                     text = sanitizer?(newValue) ?? newValue.sanitizedCallsign
                 }
@@ -23,10 +26,10 @@ struct CallsignField: View {
             if timesWorked > 0 {
                 Text("x\(timesWorked)")
                     .font(.title3.bold())
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.appOrange)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(.orange.opacity(0.15), in: RoundedRectangle(cornerRadius: 6))
+                    .background(Color.appOrange.opacity(0.15), in: RoundedRectangle(cornerRadius: 6))
                     .accessibilityLabel("Worked \(timesWorked) times before")
             }
         }

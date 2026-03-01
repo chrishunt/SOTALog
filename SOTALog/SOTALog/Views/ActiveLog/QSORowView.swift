@@ -22,14 +22,14 @@ struct QSORowView: View {
             if let potaRef = qso.potaRef {
                 Image(systemName: "tree")
                     .font(.caption)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color.appGreen)
                     .accessibilityLabel("Park to park \(potaRef)")
             }
 
             if let sotaRef = qso.sotaRef {
                 Image(systemName: "mountain.2")
                     .font(.caption)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(Color.appBlue)
                     .accessibilityLabel("Summit to summit \(sotaRef)")
             }
         }

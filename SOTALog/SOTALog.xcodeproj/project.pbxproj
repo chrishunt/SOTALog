@@ -27,6 +27,7 @@
 		54EE456BFBCCB2385D14BB2A /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190E13792453F4C7A4C179CF /* LocationService.swift */; };
 		5AD435F02D6504F060E3D9CA /* ActiveLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D38D90E827F671EA1FEDB8 /* ActiveLogView.swift */; };
 		5C113C4422B91075E740F7CA /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 6835EC719EC72628DDFF197E /* GRDB */; };
+		5CAD509F47D2D9AFF445DC08 /* Color+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E66F550ED47884F3A91479 /* Color+App.swift */; };
 		5E57763C0C897C7A9F5BF73B /* QRZCallsignResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EFB5E0766D441B59BDE42C /* QRZCallsignResult.swift */; };
 		62584B78191D37BC7F3C98FC /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1164680FD822CB549FBF2785 /* AppDatabase.swift */; };
 		6262199275FB8DBC452028DA /* NewLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EC7F7B0ACA429D66488273 /* NewLogView.swift */; };
@@ -149,6 +150,7 @@
 		CE11D3EC8DB1BFC6C897E8BB /* String+Callsign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Callsign.swift"; sourceTree = "<group>"; };
 		D2D4A497BD7549AF647F5D06 /* SpotRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRouter.swift; sourceTree = "<group>"; };
 		D5062A6D3908A213D88346E8 /* QSORepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSORepository.swift; sourceTree = "<group>"; };
+		D5E66F550ED47884F3A91479 /* Color+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+App.swift"; sourceTree = "<group>"; };
 		E18198C59474BB2FEA4A1510 /* View+iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+iOS.swift"; sourceTree = "<group>"; };
 		E509603AB3965292400E7ECB /* ReferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceRepository.swift; sourceTree = "<group>"; };
 		E7FD4C5547079091555AB9C5 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
@@ -366,6 +368,7 @@
 		F04FE33C498835E77F0B151D /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				D5E66F550ED47884F3A91479 /* Color+App.swift */,
 				276873C316FE8259B1240F70 /* Date+Formatting.swift */,
 				CE11D3EC8DB1BFC6C897E8BB /* String+Callsign.swift */,
 				E18198C59474BB2FEA4A1510 /* View+iOS.swift */,
@@ -505,6 +508,7 @@
 				A600AFC63E0367C8F477ABFB /* CallsignHistory.swift in Sources */,
 				A18331906A4110FD6FFC56AF /* CallsignHistoryRepository.swift in Sources */,
 				E42F491C91E5F3B637C387F4 /* CallsignPrefixResolver.swift in Sources */,
+				5CAD509F47D2D9AFF445DC08 /* Color+App.swift in Sources */,
 				FF081D0BDBFFE24D75C80382 /* ContentView.swift in Sources */,
 				5002A13AA26D298653D09550 /* Date+Formatting.swift in Sources */,
 				0F1D52B3C3ACE55ED3385B38 /* KeychainService.swift in Sources */,

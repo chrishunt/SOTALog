@@ -1,0 +1,38 @@
+import SwiftUI
+
+// Okabe-Ito color blind-safe palette with light/dark mode variants.
+// Light mode: Okabe-Ito base values (designed for light backgrounds).
+// Dark mode: Same hues, brightened for dark backgrounds.
+extension Color {
+    #if os(iOS)
+    static let appOrange = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 255/255, green: 183/255, blue: 51/255, alpha: 1)   // #FFB733
+            : UIColor(red: 230/255, green: 159/255, blue: 0/255, alpha: 1)    // #E69F00
+    })
+
+    static let appGreen = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 46/255, green: 201/255, blue: 160/255, alpha: 1)   // #2EC9A0
+            : UIColor(red: 0/255, green: 158/255, blue: 115/255, alpha: 1)    // #009E73
+    })
+
+    static let appBlue = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 86/255, green: 180/255, blue: 233/255, alpha: 1)   // #56B4E9
+            : UIColor(red: 0/255, green: 114/255, blue: 178/255, alpha: 1)    // #0072B2
+    })
+
+    static let appRed = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 255/255, green: 119/255, blue: 51/255, alpha: 1)   // #FF7733
+            : UIColor(red: 213/255, green: 94/255, blue: 0/255, alpha: 1)     // #D55E00
+    })
+    #else
+    // macOS SPM build fallback — static colors (light mode values)
+    static let appOrange = Color(red: 230/255, green: 159/255, blue: 0/255)
+    static let appGreen = Color(red: 0/255, green: 158/255, blue: 115/255)
+    static let appBlue = Color(red: 0/255, green: 114/255, blue: 178/255)
+    static let appRed = Color(red: 213/255, green: 94/255, blue: 0/255)
+    #endif
+}

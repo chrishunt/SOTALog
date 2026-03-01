@@ -3,6 +3,27 @@ import Foundation
 enum QRZLogbookService {
     private static let baseURL = "https://logbook.qrz.com/api"
 
+    /// Tests an API key by requesting account status.
+    static func testAPIKey(apiKey: String) async throws {
+        var components = URLComponents(string: baseURL)!
+        components.queryItems = [
+            URLQueryItem(name: "KEY", value: apiKey),
+            URLQueryItem(name: "ACTION", value: "STATUS"),
+        ]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "POST"
+        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = String(data: data, encoding: .utf8) ?? ""
+
+        if response.contains("RESULT=FAIL") {
+            let reason = extractValue(from: response, key: "REASON") ?? "Invalid API key"
+            throw QRZError.uploadFailed(reason)
+        }
+    }
+
     /// Uploads a single QSO to QRZ logbook.
     static func uploadQSO(apiKey: String, adifRecord: String) async throws -> Int64? {
         var components = URLComponents(string: baseURL)!

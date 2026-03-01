@@ -418,4 +418,76 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.name, "")
         XCTAssertEqual(vm.timesWorked, 0)
     }
+
+    // MARK: - Empty Callsign Clears All Fields
+
+    func testEmptyCallsignClearsAllFields() {
+        let vm = makeVM()
+        // Simulate populated state
+        vm.entryText = "W1AW"
+        vm.rstSent = "579"
+        vm.rstReceived = "559"
+        vm.name = "Hiram"
+        vm.qth = "CT"
+        vm.potaRefInput = "US4431"
+        vm.sotaRefInput = "W4CCM001"
+
+        // Clear callsign — empty parsedCallsign triggers clearAllFields
+        vm.entryText = ""
+        vm.callsignChanged()
+
+        XCTAssertEqual(vm.rstSent, "599", "RST sent should reset to default")
+        XCTAssertEqual(vm.rstReceived, "599", "RST received should reset to default")
+        XCTAssertEqual(vm.name, "", "Name should be cleared")
+        XCTAssertEqual(vm.qth, "", "QTH should be cleared")
+        XCTAssertEqual(vm.potaRefInput, "", "POTA ref should be cleared")
+        XCTAssertEqual(vm.sotaRefInput, "", "SOTA ref should be cleared")
+        XCTAssertEqual(vm.timesWorked, 0, "Times worked should reset")
+        XCTAssertEqual(vm.frequencyText, "14.060", "Frequency should be preserved")
+    }
+
+    func testEmptyCallsignClearsManualOverrides() {
+        let vm = makeVM()
+        vm.markManualOverride("frequency")
+        vm.markManualOverride("qth")
+        vm.entryText = "W1AW"
+
+        // Clear callsign
+        vm.entryText = ""
+        vm.callsignChanged()
+
+        // After clearing, overrides should be reset so parseEntry works freely
+        vm.entryText = "K3ABC 7.030"
+        vm.parseEntry()
+        XCTAssertEqual(vm.frequencyText, "7.030", "Frequency override should be cleared after empty callsign")
+    }
+
+    func testShortCallsignDoesNotClearRST() {
+        let vm = makeVM()
+        vm.rstSent = "579"
+        vm.rstReceived = "559"
+        vm.potaRefInput = "US4431"
+        vm.sotaRefInput = "W4CCM001"
+
+        // 1-2 char callsign only clears lookup fields, not RST/refs
+        vm.entryText = "W1"
+        vm.callsignChanged()
+
+        XCTAssertEqual(vm.rstSent, "579", "RST should not reset for short callsign")
+        XCTAssertEqual(vm.rstReceived, "559", "RST received should not reset for short callsign")
+        XCTAssertEqual(vm.potaRefInput, "US4431", "POTA ref should not clear for short callsign")
+        XCTAssertEqual(vm.sotaRefInput, "W4CCM001", "SOTA ref should not clear for short callsign")
+    }
+
+    func testEmptyCallsignPreservesFrequencyAfterManualSet() {
+        let vm = makeVM()
+        vm.frequencyText = "7.030"
+        vm.entryText = "W1AW"
+
+        // Clear callsign
+        vm.entryText = ""
+        vm.callsignChanged()
+
+        XCTAssertEqual(vm.frequencyText, "7.030", "Custom frequency should persist through clear")
+    }
 }

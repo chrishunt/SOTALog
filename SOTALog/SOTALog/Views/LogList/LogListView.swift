@@ -7,6 +7,7 @@ struct LogListView: View {
     @State private var viewModel: LogListViewModel
     @State private var showNewLog = false
     @State private var navigationPath = NavigationPath()
+    @State private var pendingNavLog: Log?
 
     init(database: AppDatabase) {
         self.database = database
@@ -55,8 +56,14 @@ struct LogListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showNewLog) {
+            .sheet(isPresented: $showNewLog, onDismiss: {
+                if let log = pendingNavLog {
+                    navigationPath.append(log)
+                    pendingNavLog = nil
+                }
+            }) {
                 NewLogView(database: database) { newLog in
+                    pendingNavLog = newLog
                     showNewLog = false
                 }
             }
