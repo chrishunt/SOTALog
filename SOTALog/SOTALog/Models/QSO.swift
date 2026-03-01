@@ -3,7 +3,7 @@ import GRDB
 
 struct QSO: Codable, Identifiable, Equatable {
     var id: Int64?
-    var logId: Int64
+    var logId: Int64?
     var callsign: String
     var date: String          // YYYYMMDD
     var timeOn: String        // HHMM UTC
@@ -23,7 +23,7 @@ struct QSO: Codable, Identifiable, Equatable {
 
     init(
         id: Int64? = nil,
-        logId: Int64,
+        logId: Int64? = nil,
         callsign: String = "",
         date: String = "",
         timeOn: String = "",

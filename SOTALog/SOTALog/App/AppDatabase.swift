@@ -112,6 +112,54 @@ struct AppDatabase {
             try db.create(index: "potaPark_referenceNormalized", on: "potaPark", columns: ["referenceNormalized"])
         }
 
+        migrator.registerMigration("v3_nullableLogId") { db in
+            // SQLite can't ALTER column constraints, so rebuild the table
+            try db.rename(table: "qso", to: "qso_old")
+
+            try db.create(table: "qso") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("logId", .integer)
+                    .references("log", onDelete: .setNull)
+                t.column("callsign", .text).notNull()
+                t.column("date", .text).notNull()
+                t.column("timeOn", .text).notNull()
+                t.column("frequency", .double)
+                t.column("band", .text).notNull()
+                t.column("mode", .text).notNull().defaults(to: "CW")
+                t.column("rstSent", .text).notNull().defaults(to: "599")
+                t.column("rstReceived", .text).notNull().defaults(to: "599")
+                t.column("name", .text)
+                t.column("qth", .text)
+                t.column("grid", .text)
+                t.column("sotaRef", .text)
+                t.column("potaRef", .text)
+                t.column("notes", .text)
+                t.column("qrzLogId", .integer)
+                t.column("syncedToQRZ", .boolean).notNull().defaults(to: false)
+            }
+
+            try db.execute(sql: """
+                INSERT INTO qso SELECT * FROM qso_old
+                """)
+            try db.drop(table: "qso_old")
+
+            // Recreate original indices
+            try db.create(index: "qso_logId", on: "qso", columns: ["logId"])
+            try db.create(index: "qso_callsign", on: "qso", columns: ["callsign"])
+            try db.create(index: "qso_syncedToQRZ", on: "qso", columns: ["syncedToQRZ"])
+
+            // New indices for sync
+            try db.create(index: "qso_dedup", on: "qso", columns: ["callsign", "band", "date", "timeOn"])
+            try db.create(index: "qso_qrzLogId", on: "qso", columns: ["qrzLogId"])
+
+            // Delete "QRZ Import" pseudo-log and set its QSOs to unattached
+            try db.execute(sql: """
+                UPDATE qso SET logId = NULL
+                WHERE logId IN (SELECT id FROM log WHERE notes = 'QRZ Import')
+                """)
+            try db.execute(sql: "DELETE FROM log WHERE notes = 'QRZ Import'")
+        }
+
         return migrator
     }
 

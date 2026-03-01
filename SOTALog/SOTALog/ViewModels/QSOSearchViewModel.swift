@@ -34,7 +34,7 @@ final class QSOSearchViewModel {
                     SELECT q.id, q.callsign, q.date, q.timeOn, q.band, q.frequency,
                            l.potaReference AS logPotaReference, l.sotaReference AS logSotaReference
                     FROM qso q
-                    JOIN log l ON l.id = q.logId
+                    LEFT JOIN log l ON l.id = q.logId
                     ORDER BY q.date DESC, q.timeOn DESC
                     LIMIT 200
                     """
@@ -44,7 +44,7 @@ final class QSOSearchViewModel {
                     SELECT q.id, q.callsign, q.date, q.timeOn, q.band, q.frequency,
                            l.potaReference AS logPotaReference, l.sotaReference AS logSotaReference
                     FROM qso q
-                    JOIN log l ON l.id = q.logId
+                    LEFT JOIN log l ON l.id = q.logId
                     WHERE q.callsign LIKE ? || '%'
                     ORDER BY q.date DESC, q.timeOn DESC
                     """
