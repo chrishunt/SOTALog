@@ -11,4 +11,10 @@ extension String {
     var sanitizedAlphanumeric: String {
         uppercased().unicodeScalars.filter { CharacterSet.alphanumerics.contains($0) }.map { String($0) }.joined()
     }
+
+    /// Sanitizes omnifield input: A-Z, 0-9, /, space, period, dash
+    var sanitizedOmnifield: String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "/ .-"))
+        return uppercased().unicodeScalars.filter { allowed.contains($0) }.map { String($0) }.joined()
+    }
 }

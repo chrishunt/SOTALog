@@ -9,8 +9,10 @@ final class QSOEntryViewModel {
     private let historyRepo: CallsignHistoryRepository
     private let refRepo: ReferenceRepository
 
+    // Omnifield input (space-separated tokens: callsign + optional overrides)
+    var entryText: String = ""
+
     // Field state
-    var callsign: String = ""
     var rstSent: String = "599"
     var rstReceived: String = "599"
     var frequencyText: String = "14.060"
@@ -24,6 +26,9 @@ final class QSOEntryViewModel {
     var sotaRefFormatted: String?
     var sotaRefValid: Bool = false
 
+    // Tracks which fields were manually edited (not set by omnifield)
+    private var manualOverrides: Set<String> = []
+
     // Editing state
     var editingQSO: QSO?
     var isEditing: Bool { editingQSO != nil }
@@ -32,6 +37,12 @@ final class QSOEntryViewModel {
     var timesWorked: Int = 0
     var lastSavedQSO: QSO?
     var saveCount: Int = 0
+
+    /// The callsign extracted from the first token of entryText
+    var parsedCallsign: String {
+        let first = entryText.split(separator: " ", maxSplits: 1).first.map(String.init) ?? ""
+        return first.sanitizedCallsign
+    }
 
     private var lookupTask: Task<Void, Never>?
 
@@ -43,11 +54,42 @@ final class QSOEntryViewModel {
         self.refRepo = ReferenceRepository(database: database)
     }
 
+    // MARK: - Omnifield Parsing
+
+    func parseEntry() {
+        let parsed = OmniFieldParser.parse(entryText)
+
+        if let rst = parsed.rstSent, !manualOverrides.contains("rstSent") {
+            rstSent = rst
+        }
+        if let rst = parsed.rstReceived, !manualOverrides.contains("rstReceived") {
+            rstReceived = rst
+        }
+        if let freq = parsed.frequency, !manualOverrides.contains("frequency") {
+            frequencyText = freq
+        }
+        if let q = parsed.qth, !manualOverrides.contains("qth") {
+            qth = q
+        }
+        if let ref = parsed.potaRef, !manualOverrides.contains("potaRef") {
+            potaRefInput = ref
+            validatePOTARef()
+        }
+        if let ref = parsed.sotaRef, !manualOverrides.contains("sotaRef") {
+            sotaRefInput = ref
+            validateSOTARef()
+        }
+    }
+
+    func markManualOverride(_ field: String) {
+        manualOverrides.insert(field)
+    }
+
     // MARK: - Callsign Changed (Auto-populate cascade)
 
     func callsignChanged() {
         lookupTask?.cancel()
-        let call = callsign
+        let call = parsedCallsign
 
         guard call.count >= 3 else {
             clearLookupFields()
@@ -140,7 +182,7 @@ final class QSOEntryViewModel {
 
     func loadForEditing(_ qso: QSO) {
         editingQSO = qso
-        callsign = qso.callsign
+        entryText = qso.callsign
         rstSent = qso.rstSent
         rstReceived = qso.rstReceived
         if let freq = qso.frequency {
@@ -166,6 +208,7 @@ final class QSOEntryViewModel {
     // MARK: - Save QSO
 
     func saveQSO() async {
+        let callsign = parsedCallsign
         guard !callsign.isEmpty, let logId = log.id else { return }
 
         let frequency = Double(frequencyText)
@@ -238,7 +281,7 @@ final class QSOEntryViewModel {
     // MARK: - Spot pre-fill
 
     func prefillFromSpot(_ spot: Spot) {
-        self.callsign = spot.activatorCallsign.uppercased()
+        self.entryText = spot.activatorCallsign.uppercased()
         self.frequencyText = String(format: "%.3f", spot.frequency)
 
         if let ref = spot.potaReference {
@@ -261,7 +304,7 @@ final class QSOEntryViewModel {
     }
 
     private func clearFieldsForNextQSO() {
-        callsign = ""
+        entryText = ""
         rstSent = "599"
         rstReceived = "599"
         name = ""
@@ -274,6 +317,7 @@ final class QSOEntryViewModel {
         sotaRefFormatted = nil
         sotaRefValid = false
         timesWorked = 0
+        manualOverrides = []
         // frequency persists between QSOs
     }
 }

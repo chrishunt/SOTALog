@@ -35,6 +35,7 @@
 		6494149119FB8E1009445244 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E958AF387CB3DF7C0EC80C4 /* Log.swift */; };
 		67475F56122BD79993EFE093 /* ActiveLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B3CE076C059B5BE18EEA32 /* ActiveLogView.swift */; };
 		69B3B074F75F8B1D067A6C1D /* Spot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 139068C3CAF2040CED70DC45 /* Spot.swift */; };
+		72DA1AE21F46DF0A74E51C16 /* OmniFieldParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66333A184B3204F0797841A0 /* OmniFieldParser.swift */; };
 		7EE55652B73BEF55B7EEC3FF /* ReferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD6176B0014BC1EA93106D8 /* ReferenceRepository.swift */; };
 		81049ED749BEB3B2E71941DE /* ReferenceManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF1BF004AACE0199EDC8A5D2 /* ReferenceManagerView.swift */; };
 		8E56C1F8DD15EDCFD2E888AE /* String+Callsign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29D759AE0C3CD92C3A73C3A5 /* String+Callsign.swift */; };
@@ -102,6 +103,7 @@
 		501BEA3DC829A63BD30D1D86 /* CallsignPrefixResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignPrefixResolver.swift; sourceTree = "<group>"; };
 		5CF8D9F92C44FB63A868F9FD /* QSOEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSOEntryView.swift; sourceTree = "<group>"; };
 		640B29AA0E03542B9F37A8D6 /* SpotsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsViewModel.swift; sourceTree = "<group>"; };
+		66333A184B3204F0797841A0 /* OmniFieldParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniFieldParser.swift; sourceTree = "<group>"; };
 		6C0AD39CBF4CAB60668F751B /* MaidenheadConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaidenheadConverter.swift; sourceTree = "<group>"; };
 		7B12C9709AB434ADCEA8CA26 /* ThresholdBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThresholdBadge.swift; sourceTree = "<group>"; };
 		830BB3A2360096383F2D1031 /* QRZLogbookService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLogbookService.swift; sourceTree = "<group>"; };
@@ -219,6 +221,7 @@
 				C170370BFE8F6A94501447F5 /* KeychainService.swift */,
 				932E6C73C43ECA77F2894614 /* LocationService.swift */,
 				6C0AD39CBF4CAB60668F751B /* MaidenheadConverter.swift */,
+				66333A184B3204F0797841A0 /* OmniFieldParser.swift */,
 				7B87000FD09F38BFF8B41791 /* Database */,
 				8FA42256121DA487D2F7F9E4 /* Network */,
 			);
@@ -480,6 +483,7 @@
 				A098D9F3E4CF5069479A9D89 /* MaidenheadConverter.swift in Sources */,
 				626B00689DF2192FA71482B6 /* NewLogView.swift in Sources */,
 				0E5DEB87D8C8B8926A1AD34D /* NewLogViewModel.swift in Sources */,
+				72DA1AE21F46DF0A74E51C16 /* OmniFieldParser.swift in Sources */,
 				35EEB1905083C8199A460977 /* POTAPark.swift in Sources */,
 				5A2CBF38B35924D905496465 /* POTAParkService.swift in Sources */,
 				4F4339C62EEADC864BB5725E /* POTASpotService.swift in Sources */,
