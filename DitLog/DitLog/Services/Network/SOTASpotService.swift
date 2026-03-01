@@ -5,7 +5,7 @@ enum SOTASpotService {
     static func fetchSpots() async throws -> [Spot] {
         let url = URL(string: "https://api2.sota.org.uk/api/spots/60/all")!
         var request = URLRequest(url: url)
-        request.setValue("FieldLog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("DitLog/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let decoded = try JSONDecoder().decode([SOTASpotDTO].self, from: data)

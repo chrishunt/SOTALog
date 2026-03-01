@@ -14,7 +14,7 @@ enum QRZLogbookService {
 
         var request = URLRequest(url: components.url!)
         request.httpMethod = "POST"
-        request.setValue("FieldLog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("DitLog/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let response = String(data: data, encoding: .utf8) ?? ""
@@ -46,7 +46,7 @@ enum QRZLogbookService {
 
         var request = URLRequest(url: components.url!)
         request.httpMethod = "POST"
-        request.setValue("FieldLog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("DitLog/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let response = String(data: data, encoding: .utf8) ?? ""

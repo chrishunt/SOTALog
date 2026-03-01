@@ -1,0 +1,797 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		063058F1B6370B682AA240F7 /* SpotsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C99DC52A68FAB765FEB6C9A /* SpotsViewModel.swift */; };
+		0727A9677BCBDBED7AC6A1A3 /* BandPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26E65D3068C76DBCCB2BA79 /* BandPlan.swift */; };
+		0A9F6178CAA479A22F79163D /* SOTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918D692E4ED91047A119F564 /* SOTASpotService.swift */; };
+		0EA2C2DD27B0A251781E6F55 /* ReferenceMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEE4B9D6D3173F509BC8C64A /* ReferenceMetadata.swift */; };
+		188C073C9B3EAD40EBF9E46F /* QRZSyncViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74FBB835C5014FE1ADF907FE /* QRZSyncViewModel.swift */; };
+		18E4CB772D3869D5C34D7077 /* POTAParkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B814542F555159FEE821C519 /* POTAParkService.swift */; };
+		1D3CB28CD7641DFEBDFDD694 /* QSORowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977FF053CD1C7628029F1829 /* QSORowView.swift */; };
+		1E4F7205E3E7704D3DA4F3ED /* ActiveLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331E98DA39CFAC1479D35F63 /* ActiveLogViewModel.swift */; };
+		1E6B4D2116FFB6CDE569726B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90FD73410777EDF15B761808 /* ContentView.swift */; };
+		2312D4F29AB59EF7830BAAB9 /* QSOEntryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B387B45757B20704DA95DD4 /* QSOEntryViewModel.swift */; };
+		249E02E760DFE31E8F67305A /* LogListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623A2F467E9461F323FDF6CB /* LogListViewModel.swift */; };
+		30A927DF292D277A6FAEF0F1 /* DitLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92EE3A1A1DDBA6CFEA308E5 /* DitLogTests.swift */; };
+		32E11BECC42DBF1B302063EB /* OmniFieldParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0843999BE67698B85EA2AD11 /* OmniFieldParser.swift */; };
+		3B53D8BEAA72B8B8CC9E05D8 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B2A17B34C84233B11CD34B /* AppDatabase.swift */; };
+		3C4DC8834E05EFE99D025D22 /* CallPrefixes.json in Resources */ = {isa = PBXBuildFile; fileRef = EFFA30272B617BBBB597942F /* CallPrefixes.json */; };
+		3E306BB930E83D8439730EDD /* CallsignHistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 067C2BDDFB1710F4D748B2CE /* CallsignHistoryRepository.swift */; };
+		3EABBCD4D7433A971D218BBB /* ActiveLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659D53AC0D59F7E308C8FA93 /* ActiveLogView.swift */; };
+		3F683DD073A31818E8CD70A7 /* QRZXMLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D1499B0053C0F731380498 /* QRZXMLService.swift */; };
+		4839282623EFCB19B6D11EF9 /* LogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A605819DC2D2AEEB4B24BBC5 /* LogListView.swift */; };
+		4C3B2200294DC75F8B41A77F /* DitLogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87B3C9DCA93395321DF51451 /* DitLogApp.swift */; };
+		587ED22D07602D4BF166C2B1 /* QSO.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4054EA629BF89CEADA2587D /* QSO.swift */; };
+		5C5BDD7A57FC7634ACC00D4B /* QRZLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EC41F6898A67D23408174D6 /* QRZLoginView.swift */; };
+		63EE9239AAAE89B1F4E8F542 /* RSTField.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5E88577B3D5E079AE8743D /* RSTField.swift */; };
+		6646A253C5734F0D5F8C73EF /* NewLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBF893326F301A3DB090B37 /* NewLogView.swift */; };
+		6696560E1A27F26FAC901616 /* CallsignHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF99DF813056D9F255A9903D /* CallsignHistory.swift */; };
+		6B72769BDFCFC4D2F8802335 /* ReferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E49FDA95F2764E4FB7C7016 /* ReferenceRepository.swift */; };
+		6BE5A600C0BA4D934E580F12 /* View+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76F796FB1BEABA6564099C18 /* View+iOS.swift */; };
+		6CB2633DCBC7C86784FB80D8 /* QRZLogbookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAD58F3BA3AB24DBCBAE8DF3 /* QRZLogbookService.swift */; };
+		6CBB4321E2B07CCB58BD13A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84E578EF037BC8B6E0217C83 /* Assets.xcassets */; };
+		6EAC391357D682635B0D2654 /* LogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277720CDC9FF7E8BF3AEECA6 /* LogRepository.swift */; };
+		720CCDDEABD37150173B608B /* POTAPark.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4AEF8974CD3EADE84559253 /* POTAPark.swift */; };
+		72A21599F6D1D8345CCAFD26 /* SpotRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8777F07519CCF674EEAB0AF /* SpotRowView.swift */; };
+		74687078132E6F61ACCAED36 /* SOTASummit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864F7D3E215CCCE0136BA766 /* SOTASummit.swift */; };
+		751179F0A5C3B25997A877F7 /* ADIFFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8962A9DFE2A8382F9DF2592 /* ADIFFormatter.swift */; };
+		7ACF920682539B83F25E5504 /* NewLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18E82CAA55936C8F3830FDAE /* NewLogViewModel.swift */; };
+		85B1C1F4D0A8E4BDAA09FE2B /* QSORepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7D7D7BB0540FEFBF1C5F8D4 /* QSORepository.swift */; };
+		8D10E2F6129F3D6126AABB2C /* POTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656A7B5A24568C74E6C541A3 /* POTASpotService.swift */; };
+		94F149BA4D7BD2FC150263E6 /* ActivationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C38CF973ADE1BDB04B96328D /* ActivationProgressView.swift */; };
+		97ED2829D237E23CD8287C1B /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8ECE5B5149C59C94846BE53 /* KeychainService.swift */; };
+		A13794BDCBFBB1B54854EA71 /* CallsignPrefixResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 746A8EE12235B5F34892635C /* CallsignPrefixResolver.swift */; };
+		A5A97E367F60DDBF8E6E62AD /* ReferenceManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80728AF4B8D820DE46163C57 /* ReferenceManagerView.swift */; };
+		A929A2D7F00F4ECF8468C5D8 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 54AF5F6DD2E7BA95207606A8 /* GRDB */; };
+		B93A9418EBB8DCB723994198 /* Spot.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8A4E92DA231E4DF03BE39CA /* Spot.swift */; };
+		B93DB62CC5EBCD00DD9D6E48 /* SpotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB5CDBF3A4A4AE884E03B2FB /* SpotsView.swift */; };
+		C38AA3FBD6D9C798D0B45D66 /* SOTASummitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2736F3F9EF5DEA4BF1C9647A /* SOTASummitService.swift */; };
+		C93ECB5196FFDA363C7997D6 /* QRZSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 254DB25BD95B71DF2E6E29DC /* QRZSyncView.swift */; };
+		C9542D7302F78E49F88092CD /* MaidenheadConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9442490BD568F8EAE077A800 /* MaidenheadConverter.swift */; };
+		DA35CEDC5DB06D4941AEB2FE /* ThresholdBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C428DB7708A671A7AEF194F /* ThresholdBadge.swift */; };
+		E03E7D298A52F90C156F0C96 /* Date+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80674030BFE9B0DBD822E225 /* Date+Formatting.swift */; };
+		E064CE484A62E23777D8D782 /* LogRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC2198EB4F022E6A5F51B55 /* LogRowView.swift */; };
+		E518DCD3ECC568253EC9C86C /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354E485183884531DF025A68 /* Log.swift */; };
+		E709EC48C2CA836560AD0EA1 /* QRZCallsignResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074218FC4A6B1DD9E0F39D16 /* QRZCallsignResult.swift */; };
+		ED782E1762D62ECA49FC8CC1 /* CallsignField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96E9481FDC456CA127461357 /* CallsignField.swift */; };
+		F03734D49B335C0E33C6D6E1 /* String+Callsign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB419087AF6CD7FC5C14940 /* String+Callsign.swift */; };
+		F2C1F816E33F2DDB0C1A1CA8 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 986BB045B614BAB7D577ACE5 /* GRDB */; };
+		F3D34C1D9E36A62BEF0DF2DF /* QSOEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1213EC34263D90B5F3E6CD78 /* QSOEntryView.swift */; };
+		FB9BF3E548AFEAEBE14583F7 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F6F6FF9B123BBDC549E26AA /* LocationService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CA60757C0EE4A1B0293E5645 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FB8CF4373A7D7F4C84FD9BF2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1342373D889AEA06F49D9FEA;
+			remoteInfo = DitLog;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		067C2BDDFB1710F4D748B2CE /* CallsignHistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignHistoryRepository.swift; sourceTree = "<group>"; };
+		074218FC4A6B1DD9E0F39D16 /* QRZCallsignResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZCallsignResult.swift; sourceTree = "<group>"; };
+		0843999BE67698B85EA2AD11 /* OmniFieldParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniFieldParser.swift; sourceTree = "<group>"; };
+		0C428DB7708A671A7AEF194F /* ThresholdBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThresholdBadge.swift; sourceTree = "<group>"; };
+		0EC41F6898A67D23408174D6 /* QRZLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLoginView.swift; sourceTree = "<group>"; };
+		0F6F6FF9B123BBDC549E26AA /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		1213EC34263D90B5F3E6CD78 /* QSOEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSOEntryView.swift; sourceTree = "<group>"; };
+		18E82CAA55936C8F3830FDAE /* NewLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewLogViewModel.swift; sourceTree = "<group>"; };
+		254DB25BD95B71DF2E6E29DC /* QRZSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZSyncView.swift; sourceTree = "<group>"; };
+		2736F3F9EF5DEA4BF1C9647A /* SOTASummitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummitService.swift; sourceTree = "<group>"; };
+		277720CDC9FF7E8BF3AEECA6 /* LogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRepository.swift; sourceTree = "<group>"; };
+		30B2A17B34C84233B11CD34B /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
+		331E98DA39CFAC1479D35F63 /* ActiveLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveLogViewModel.swift; sourceTree = "<group>"; };
+		354E485183884531DF025A68 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		3FBF893326F301A3DB090B37 /* NewLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewLogView.swift; sourceTree = "<group>"; };
+		4B387B45757B20704DA95DD4 /* QSOEntryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSOEntryViewModel.swift; sourceTree = "<group>"; };
+		4DC2198EB4F022E6A5F51B55 /* LogRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRowView.swift; sourceTree = "<group>"; };
+		5E49FDA95F2764E4FB7C7016 /* ReferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceRepository.swift; sourceTree = "<group>"; };
+		623A2F467E9461F323FDF6CB /* LogListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogListViewModel.swift; sourceTree = "<group>"; };
+		6321A9786E3D57AC124ABFF5 /* DitLogTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DitLogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		656A7B5A24568C74E6C541A3 /* POTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTASpotService.swift; sourceTree = "<group>"; };
+		659D53AC0D59F7E308C8FA93 /* ActiveLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveLogView.swift; sourceTree = "<group>"; };
+		6C99DC52A68FAB765FEB6C9A /* SpotsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsViewModel.swift; sourceTree = "<group>"; };
+		72D1499B0053C0F731380498 /* QRZXMLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZXMLService.swift; sourceTree = "<group>"; };
+		746A8EE12235B5F34892635C /* CallsignPrefixResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignPrefixResolver.swift; sourceTree = "<group>"; };
+		74FBB835C5014FE1ADF907FE /* QRZSyncViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZSyncViewModel.swift; sourceTree = "<group>"; };
+		76F796FB1BEABA6564099C18 /* View+iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+iOS.swift"; sourceTree = "<group>"; };
+		7EB419087AF6CD7FC5C14940 /* String+Callsign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Callsign.swift"; sourceTree = "<group>"; };
+		80674030BFE9B0DBD822E225 /* Date+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Formatting.swift"; sourceTree = "<group>"; };
+		80728AF4B8D820DE46163C57 /* ReferenceManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceManagerView.swift; sourceTree = "<group>"; };
+		84E578EF037BC8B6E0217C83 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		864F7D3E215CCCE0136BA766 /* SOTASummit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummit.swift; sourceTree = "<group>"; };
+		87B3C9DCA93395321DF51451 /* DitLogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DitLogApp.swift; sourceTree = "<group>"; };
+		90FD73410777EDF15B761808 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		918D692E4ED91047A119F564 /* SOTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASpotService.swift; sourceTree = "<group>"; };
+		9442490BD568F8EAE077A800 /* MaidenheadConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaidenheadConverter.swift; sourceTree = "<group>"; };
+		96E9481FDC456CA127461357 /* CallsignField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignField.swift; sourceTree = "<group>"; };
+		977FF053CD1C7628029F1829 /* QSORowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSORowView.swift; sourceTree = "<group>"; };
+		A26E65D3068C76DBCCB2BA79 /* BandPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandPlan.swift; sourceTree = "<group>"; };
+		A4054EA629BF89CEADA2587D /* QSO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSO.swift; sourceTree = "<group>"; };
+		A605819DC2D2AEEB4B24BBC5 /* LogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogListView.swift; sourceTree = "<group>"; };
+		AE5E88577B3D5E079AE8743D /* RSTField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RSTField.swift; sourceTree = "<group>"; };
+		B814542F555159FEE821C519 /* POTAParkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTAParkService.swift; sourceTree = "<group>"; };
+		B8777F07519CCF674EEAB0AF /* SpotRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRowView.swift; sourceTree = "<group>"; };
+		B8962A9DFE2A8382F9DF2592 /* ADIFFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADIFFormatter.swift; sourceTree = "<group>"; };
+		B8A4E92DA231E4DF03BE39CA /* Spot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spot.swift; sourceTree = "<group>"; };
+		BEE4B9D6D3173F509BC8C64A /* ReferenceMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceMetadata.swift; sourceTree = "<group>"; };
+		C38CF973ADE1BDB04B96328D /* ActivationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationProgressView.swift; sourceTree = "<group>"; };
+		D76A492487AA339B63903A3A /* DitLog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DitLog.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DAD58F3BA3AB24DBCBAE8DF3 /* QRZLogbookService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLogbookService.swift; sourceTree = "<group>"; };
+		DF99DF813056D9F255A9903D /* CallsignHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignHistory.swift; sourceTree = "<group>"; };
+		E7D7D7BB0540FEFBF1C5F8D4 /* QSORepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSORepository.swift; sourceTree = "<group>"; };
+		E92EE3A1A1DDBA6CFEA308E5 /* DitLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DitLogTests.swift; sourceTree = "<group>"; };
+		EFFA30272B617BBBB597942F /* CallPrefixes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CallPrefixes.json; sourceTree = "<group>"; };
+		F4AEF8974CD3EADE84559253 /* POTAPark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTAPark.swift; sourceTree = "<group>"; };
+		F8ECE5B5149C59C94846BE53 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		FB5CDBF3A4A4AE884E03B2FB /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8489DDB64E6F690560715E09 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A929A2D7F00F4ECF8468C5D8 /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D95F8A7A36538F880C06E606 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2C1F816E33F2DDB0C1A1CA8 /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		177178E135BB3176E900FE66 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				84E578EF037BC8B6E0217C83 /* Assets.xcassets */,
+				EFFA30272B617BBBB597942F /* CallPrefixes.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		1C53677B75980270161D5F8F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				DF99DF813056D9F255A9903D /* CallsignHistory.swift */,
+				354E485183884531DF025A68 /* Log.swift */,
+				F4AEF8974CD3EADE84559253 /* POTAPark.swift */,
+				074218FC4A6B1DD9E0F39D16 /* QRZCallsignResult.swift */,
+				A4054EA629BF89CEADA2587D /* QSO.swift */,
+				BEE4B9D6D3173F509BC8C64A /* ReferenceMetadata.swift */,
+				864F7D3E215CCCE0136BA766 /* SOTASummit.swift */,
+				B8A4E92DA231E4DF03BE39CA /* Spot.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		1E9FA7691CFAE860F090AC6D /* Spots */ = {
+			isa = PBXGroup;
+			children = (
+				B8777F07519CCF674EEAB0AF /* SpotRowView.swift */,
+				FB5CDBF3A4A4AE884E03B2FB /* SpotsView.swift */,
+			);
+			path = Spots;
+			sourceTree = "<group>";
+		};
+		374278432DE61DC43C07E2D8 /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				0EC41F6898A67D23408174D6 /* QRZLoginView.swift */,
+				254DB25BD95B71DF2E6E29DC /* QRZSyncView.swift */,
+				80728AF4B8D820DE46163C57 /* ReferenceManagerView.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		595ABF1736FBCE5AC9021C59 /* ActiveLog */ = {
+			isa = PBXGroup;
+			children = (
+				C38CF973ADE1BDB04B96328D /* ActivationProgressView.swift */,
+				659D53AC0D59F7E308C8FA93 /* ActiveLogView.swift */,
+				1213EC34263D90B5F3E6CD78 /* QSOEntryView.swift */,
+				977FF053CD1C7628029F1829 /* QSORowView.swift */,
+			);
+			path = ActiveLog;
+			sourceTree = "<group>";
+		};
+		618F6CA6FFAE3C9A3B882041 /* NewLog */ = {
+			isa = PBXGroup;
+			children = (
+				3FBF893326F301A3DB090B37 /* NewLogView.swift */,
+			);
+			path = NewLog;
+			sourceTree = "<group>";
+		};
+		61C69A533BA99E29CE20ACBA /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				067C2BDDFB1710F4D748B2CE /* CallsignHistoryRepository.swift */,
+				277720CDC9FF7E8BF3AEECA6 /* LogRepository.swift */,
+				E7D7D7BB0540FEFBF1C5F8D4 /* QSORepository.swift */,
+				5E49FDA95F2764E4FB7C7016 /* ReferenceRepository.swift */,
+			);
+			path = Database;
+			sourceTree = "<group>";
+		};
+		66637B7C268F6A988C6F33E0 = {
+			isa = PBXGroup;
+			children = (
+				9C3232468CC5064690CA6BA5 /* DitLog */,
+				7BDBD55F8F83A25F58B201D1 /* DitLogTests */,
+				FD81224BBB291F4EFB6F9240 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		760D69CDB3EBFC73D6FAFD9A /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				331E98DA39CFAC1479D35F63 /* ActiveLogViewModel.swift */,
+				623A2F467E9461F323FDF6CB /* LogListViewModel.swift */,
+				18E82CAA55936C8F3830FDAE /* NewLogViewModel.swift */,
+				74FBB835C5014FE1ADF907FE /* QRZSyncViewModel.swift */,
+				4B387B45757B20704DA95DD4 /* QSOEntryViewModel.swift */,
+				6C99DC52A68FAB765FEB6C9A /* SpotsViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		7977826A8F70DF116BDCF119 /* LogList */ = {
+			isa = PBXGroup;
+			children = (
+				A605819DC2D2AEEB4B24BBC5 /* LogListView.swift */,
+				4DC2198EB4F022E6A5F51B55 /* LogRowView.swift */,
+			);
+			path = LogList;
+			sourceTree = "<group>";
+		};
+		7BDBD55F8F83A25F58B201D1 /* DitLogTests */ = {
+			isa = PBXGroup;
+			children = (
+				E92EE3A1A1DDBA6CFEA308E5 /* DitLogTests.swift */,
+			);
+			path = DitLogTests;
+			sourceTree = "<group>";
+		};
+		9C3232468CC5064690CA6BA5 /* DitLog */ = {
+			isa = PBXGroup;
+			children = (
+				E357C124CEC26FB7B566251C /* App */,
+				B05463E1FBE6A1F0E2145500 /* Extensions */,
+				1C53677B75980270161D5F8F /* Models */,
+				177178E135BB3176E900FE66 /* Resources */,
+				EE6EA1D80B81A2605742E291 /* Services */,
+				760D69CDB3EBFC73D6FAFD9A /* ViewModels */,
+				C09D1D7DEC1C023675A994AE /* Views */,
+			);
+			path = DitLog;
+			sourceTree = "<group>";
+		};
+		B05463E1FBE6A1F0E2145500 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				80674030BFE9B0DBD822E225 /* Date+Formatting.swift */,
+				7EB419087AF6CD7FC5C14940 /* String+Callsign.swift */,
+				76F796FB1BEABA6564099C18 /* View+iOS.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		C09D1D7DEC1C023675A994AE /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				90FD73410777EDF15B761808 /* ContentView.swift */,
+				595ABF1736FBCE5AC9021C59 /* ActiveLog */,
+				F5CB9DCF03A711951FAE4BAD /* Components */,
+				7977826A8F70DF116BDCF119 /* LogList */,
+				618F6CA6FFAE3C9A3B882041 /* NewLog */,
+				1E9FA7691CFAE860F090AC6D /* Spots */,
+				374278432DE61DC43C07E2D8 /* Sync */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		DA953FE9948EC129EF58D381 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				B814542F555159FEE821C519 /* POTAParkService.swift */,
+				656A7B5A24568C74E6C541A3 /* POTASpotService.swift */,
+				DAD58F3BA3AB24DBCBAE8DF3 /* QRZLogbookService.swift */,
+				72D1499B0053C0F731380498 /* QRZXMLService.swift */,
+				918D692E4ED91047A119F564 /* SOTASpotService.swift */,
+				2736F3F9EF5DEA4BF1C9647A /* SOTASummitService.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		E357C124CEC26FB7B566251C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				30B2A17B34C84233B11CD34B /* AppDatabase.swift */,
+				87B3C9DCA93395321DF51451 /* DitLogApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		EE6EA1D80B81A2605742E291 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B8962A9DFE2A8382F9DF2592 /* ADIFFormatter.swift */,
+				A26E65D3068C76DBCCB2BA79 /* BandPlan.swift */,
+				746A8EE12235B5F34892635C /* CallsignPrefixResolver.swift */,
+				F8ECE5B5149C59C94846BE53 /* KeychainService.swift */,
+				0F6F6FF9B123BBDC549E26AA /* LocationService.swift */,
+				9442490BD568F8EAE077A800 /* MaidenheadConverter.swift */,
+				0843999BE67698B85EA2AD11 /* OmniFieldParser.swift */,
+				61C69A533BA99E29CE20ACBA /* Database */,
+				DA953FE9948EC129EF58D381 /* Network */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		F5CB9DCF03A711951FAE4BAD /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				96E9481FDC456CA127461357 /* CallsignField.swift */,
+				AE5E88577B3D5E079AE8743D /* RSTField.swift */,
+				0C428DB7708A671A7AEF194F /* ThresholdBadge.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		FD81224BBB291F4EFB6F9240 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D76A492487AA339B63903A3A /* DitLog.app */,
+				6321A9786E3D57AC124ABFF5 /* DitLogTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1342373D889AEA06F49D9FEA /* DitLog */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60835F7816B78BD5D58CB620 /* Build configuration list for PBXNativeTarget "DitLog" */;
+			buildPhases = (
+				B11A5506236CEA8E2524508B /* Sources */,
+				5E9AD7BBB19644C8EC3E685D /* Resources */,
+				8489DDB64E6F690560715E09 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DitLog;
+			packageProductDependencies = (
+				54AF5F6DD2E7BA95207606A8 /* GRDB */,
+			);
+			productName = DitLog;
+			productReference = D76A492487AA339B63903A3A /* DitLog.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3209C1E28EB3BCE61BF5AF6E /* DitLogTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C7C2980DC894BB3659F97F5C /* Build configuration list for PBXNativeTarget "DitLogTests" */;
+			buildPhases = (
+				01A7FF78F017335061702C02 /* Sources */,
+				D95F8A7A36538F880C06E606 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4B3EBE9FE3C33B0A2430EC21 /* PBXTargetDependency */,
+			);
+			name = DitLogTests;
+			packageProductDependencies = (
+				986BB045B614BAB7D577ACE5 /* GRDB */,
+			);
+			productName = DitLogTests;
+			productReference = 6321A9786E3D57AC124ABFF5 /* DitLogTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FB8CF4373A7D7F4C84FD9BF2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					1342373D889AEA06F49D9FEA = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = BAE15DCC24A7ADB798706044 /* Build configuration list for PBXProject "DitLog" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 66637B7C268F6A988C6F33E0;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5083A6A60DEC03362FF44E39 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1342373D889AEA06F49D9FEA /* DitLog */,
+				3209C1E28EB3BCE61BF5AF6E /* DitLogTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5E9AD7BBB19644C8EC3E685D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6CBB4321E2B07CCB58BD13A8 /* Assets.xcassets in Resources */,
+				3C4DC8834E05EFE99D025D22 /* CallPrefixes.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		01A7FF78F017335061702C02 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30A927DF292D277A6FAEF0F1 /* DitLogTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B11A5506236CEA8E2524508B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				751179F0A5C3B25997A877F7 /* ADIFFormatter.swift in Sources */,
+				94F149BA4D7BD2FC150263E6 /* ActivationProgressView.swift in Sources */,
+				3EABBCD4D7433A971D218BBB /* ActiveLogView.swift in Sources */,
+				1E4F7205E3E7704D3DA4F3ED /* ActiveLogViewModel.swift in Sources */,
+				3B53D8BEAA72B8B8CC9E05D8 /* AppDatabase.swift in Sources */,
+				0727A9677BCBDBED7AC6A1A3 /* BandPlan.swift in Sources */,
+				ED782E1762D62ECA49FC8CC1 /* CallsignField.swift in Sources */,
+				6696560E1A27F26FAC901616 /* CallsignHistory.swift in Sources */,
+				3E306BB930E83D8439730EDD /* CallsignHistoryRepository.swift in Sources */,
+				A13794BDCBFBB1B54854EA71 /* CallsignPrefixResolver.swift in Sources */,
+				1E6B4D2116FFB6CDE569726B /* ContentView.swift in Sources */,
+				E03E7D298A52F90C156F0C96 /* Date+Formatting.swift in Sources */,
+				4C3B2200294DC75F8B41A77F /* DitLogApp.swift in Sources */,
+				97ED2829D237E23CD8287C1B /* KeychainService.swift in Sources */,
+				FB9BF3E548AFEAEBE14583F7 /* LocationService.swift in Sources */,
+				E518DCD3ECC568253EC9C86C /* Log.swift in Sources */,
+				4839282623EFCB19B6D11EF9 /* LogListView.swift in Sources */,
+				249E02E760DFE31E8F67305A /* LogListViewModel.swift in Sources */,
+				6EAC391357D682635B0D2654 /* LogRepository.swift in Sources */,
+				E064CE484A62E23777D8D782 /* LogRowView.swift in Sources */,
+				C9542D7302F78E49F88092CD /* MaidenheadConverter.swift in Sources */,
+				6646A253C5734F0D5F8C73EF /* NewLogView.swift in Sources */,
+				7ACF920682539B83F25E5504 /* NewLogViewModel.swift in Sources */,
+				32E11BECC42DBF1B302063EB /* OmniFieldParser.swift in Sources */,
+				720CCDDEABD37150173B608B /* POTAPark.swift in Sources */,
+				18E4CB772D3869D5C34D7077 /* POTAParkService.swift in Sources */,
+				8D10E2F6129F3D6126AABB2C /* POTASpotService.swift in Sources */,
+				E709EC48C2CA836560AD0EA1 /* QRZCallsignResult.swift in Sources */,
+				6CB2633DCBC7C86784FB80D8 /* QRZLogbookService.swift in Sources */,
+				5C5BDD7A57FC7634ACC00D4B /* QRZLoginView.swift in Sources */,
+				C93ECB5196FFDA363C7997D6 /* QRZSyncView.swift in Sources */,
+				188C073C9B3EAD40EBF9E46F /* QRZSyncViewModel.swift in Sources */,
+				3F683DD073A31818E8CD70A7 /* QRZXMLService.swift in Sources */,
+				587ED22D07602D4BF166C2B1 /* QSO.swift in Sources */,
+				F3D34C1D9E36A62BEF0DF2DF /* QSOEntryView.swift in Sources */,
+				2312D4F29AB59EF7830BAAB9 /* QSOEntryViewModel.swift in Sources */,
+				85B1C1F4D0A8E4BDAA09FE2B /* QSORepository.swift in Sources */,
+				1D3CB28CD7641DFEBDFDD694 /* QSORowView.swift in Sources */,
+				63EE9239AAAE89B1F4E8F542 /* RSTField.swift in Sources */,
+				A5A97E367F60DDBF8E6E62AD /* ReferenceManagerView.swift in Sources */,
+				0EA2C2DD27B0A251781E6F55 /* ReferenceMetadata.swift in Sources */,
+				6B72769BDFCFC4D2F8802335 /* ReferenceRepository.swift in Sources */,
+				0A9F6178CAA479A22F79163D /* SOTASpotService.swift in Sources */,
+				74687078132E6F61ACCAED36 /* SOTASummit.swift in Sources */,
+				C38AA3FBD6D9C798D0B45D66 /* SOTASummitService.swift in Sources */,
+				B93A9418EBB8DCB723994198 /* Spot.swift in Sources */,
+				72A21599F6D1D8345CCAFD26 /* SpotRowView.swift in Sources */,
+				B93DB62CC5EBCD00DD9D6E48 /* SpotsView.swift in Sources */,
+				063058F1B6370B682AA240F7 /* SpotsViewModel.swift in Sources */,
+				F03734D49B335C0E33C6D6E1 /* String+Callsign.swift in Sources */,
+				DA35CEDC5DB06D4941AEB2FE /* ThresholdBadge.swift in Sources */,
+				6BE5A600C0BA4D934E580F12 /* View+iOS.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4B3EBE9FE3C33B0A2430EC21 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1342373D889AEA06F49D9FEA /* DitLog */;
+			targetProxy = CA60757C0EE4A1B0293E5645 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		173B7AB87D0046DAB4C226DF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DitLog uses your location to calculate your Maidenhead grid square for logging.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ditlog.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		78FC2D64548D269B05F6E74C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "DitLog uses your location to calculate your Maidenhead grid square for logging.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ditlog.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		805E5F120875D9A80F61FE58 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ditlog.DitLogTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DitLog.app/DitLog";
+			};
+			name = Debug;
+		};
+		EBE9EDE536D35A5B0A2EEEFA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ditlog.DitLogTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DitLog.app/DitLog";
+			};
+			name = Release;
+		};
+		EC39A55CA80A5414332992F1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		FC47935FF309DC8316AEF626 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		60835F7816B78BD5D58CB620 /* Build configuration list for PBXNativeTarget "DitLog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				78FC2D64548D269B05F6E74C /* Debug */,
+				173B7AB87D0046DAB4C226DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BAE15DCC24A7ADB798706044 /* Build configuration list for PBXProject "DitLog" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC47935FF309DC8316AEF626 /* Debug */,
+				EC39A55CA80A5414332992F1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C7C2980DC894BB3659F97F5C /* Build configuration list for PBXNativeTarget "DitLogTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				805E5F120875D9A80F61FE58 /* Debug */,
+				EBE9EDE536D35A5B0A2EEEFA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5083A6A60DEC03362FF44E39 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		54AF5F6DD2E7BA95207606A8 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5083A6A60DEC03362FF44E39 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+		986BB045B614BAB7D577ACE5 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5083A6A60DEC03362FF44E39 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = FB8CF4373A7D7F4C84FD9BF2 /* Project object */;
+}

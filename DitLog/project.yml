@@ -1,6 +1,6 @@
-name: FieldLog
+name: DitLog
 options:
-  bundleIdPrefix: com.fieldlog
+  bundleIdPrefix: com.ditlog
   deploymentTarget:
     iOS: "17.0"
   xcodeVersion: "15.0"
@@ -17,36 +17,36 @@ packages:
     from: "7.0.0"
 
 targets:
-  FieldLog:
+  DitLog:
     type: application
     platform: iOS
     sources:
-      - path: FieldLog
+      - path: DitLog
     resources:
-      - path: FieldLog/Resources/Assets.xcassets
-      - path: FieldLog/Resources/CallPrefixes.json
+      - path: DitLog/Resources/Assets.xcassets
+      - path: DitLog/Resources/CallPrefixes.json
     settings:
       base:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "FieldLog uses your location to calculate your Maidenhead grid square for logging."
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "DitLog uses your location to calculate your Maidenhead grid square for logging."
         GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.fieldlog.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.ditlog.app
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: 1
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: GRDB
 
-  FieldLogTests:
+  DitLogTests:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - path: FieldLogTests
+      - path: DitLogTests
     dependencies:
-      - target: FieldLog
+      - target: DitLog
       - package: GRDB
     settings:
       base:

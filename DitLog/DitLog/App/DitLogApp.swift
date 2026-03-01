@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct FieldLogApp: App {
+struct DitLogApp: App {
     let database: AppDatabase
 
     init() {
