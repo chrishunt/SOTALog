@@ -16,12 +16,17 @@ final class QSOEntryViewModel {
     var frequencyText: String = "14.060"
     var name: String = ""
     var qth: String = ""
-    var potaRef: String = ""
+    var potaRefInput: String = ""
+    var potaRefFormatted: String?
     var potaRefName: String?
     var potaRefValid: Bool = false
     var sotaRefInput: String = ""
     var sotaRefFormatted: String?
     var sotaRefValid: Bool = false
+
+    // Editing state
+    var editingQSO: QSO?
+    var isEditing: Bool { editingQSO != nil }
 
     // Lookup state
     var timesWorked: Int = 0
@@ -83,21 +88,24 @@ final class QSOEntryViewModel {
     // MARK: - POTA P2P Validation
 
     func validatePOTARef() {
-        let ref = potaRef.uppercased()
-        guard ref.count >= 3 else {
+        let normalized = potaRefInput.sanitizedAlphanumeric
+        guard normalized.count >= 3 else {
             potaRefValid = false
+            potaRefFormatted = nil
             potaRefName = nil
             return
         }
         Task {
-            if let park = try? await refRepo.fetchPark(reference: ref) {
+            if let park = try? await refRepo.fetchParkByNormalized(normalized) {
                 await MainActor.run {
                     potaRefValid = true
+                    potaRefFormatted = park.reference
                     potaRefName = park.name
                 }
             } else {
                 await MainActor.run {
                     potaRefValid = false
+                    potaRefFormatted = nil
                     potaRefName = nil
                 }
             }
@@ -128,30 +136,81 @@ final class QSOEntryViewModel {
         }
     }
 
+    // MARK: - Editing
+
+    func loadForEditing(_ qso: QSO) {
+        editingQSO = qso
+        callsign = qso.callsign
+        rstSent = qso.rstSent
+        rstReceived = qso.rstReceived
+        if let freq = qso.frequency {
+            frequencyText = String(format: "%.3f", freq)
+        }
+        name = qso.name ?? ""
+        qth = qso.qth ?? ""
+        if let ref = qso.potaRef {
+            potaRefInput = POTAPark.normalize(ref)
+            validatePOTARef()
+        }
+        if let ref = qso.sotaRef {
+            sotaRefInput = SOTASummit.normalize(ref)
+            validateSOTARef()
+        }
+    }
+
+    func cancelEditing() {
+        editingQSO = nil
+        clearFieldsForNextQSO()
+    }
+
     // MARK: - Save QSO
 
     func saveQSO() async {
         guard !callsign.isEmpty, let logId = log.id else { return }
 
-        let now = Date()
         let frequency = Double(frequencyText)
         let band = frequency.flatMap { BandPlan.band(for: $0) } ?? "20m"
 
-        var qso = QSO(
-            logId: logId,
-            callsign: callsign.uppercased(),
-            date: now.adifDate,
-            timeOn: now.adifTime,
-            frequency: frequency,
-            band: band,
-            mode: "CW",
-            rstSent: rstSent,
-            rstReceived: rstReceived,
-            name: name.isEmpty ? nil : name,
-            qth: qth.isEmpty ? nil : qth,
-            sotaRef: sotaRefValid ? sotaRefFormatted : nil,
-            potaRef: potaRefValid ? potaRef.uppercased() : nil
-        )
+        var qso: QSO
+        if let editing = editingQSO {
+            // Update existing QSO — preserve id, date, and timeOn
+            qso = QSO(
+                id: editing.id,
+                logId: logId,
+                callsign: callsign.uppercased(),
+                date: editing.date,
+                timeOn: editing.timeOn,
+                frequency: frequency,
+                band: band,
+                mode: "CW",
+                rstSent: rstSent,
+                rstReceived: rstReceived,
+                name: name.isEmpty ? nil : name,
+                qth: qth.isEmpty ? nil : qth,
+                sotaRef: sotaRefValid ? sotaRefFormatted : nil,
+                potaRef: potaRefValid ? potaRefFormatted : nil,
+                qrzLogId: editing.qrzLogId,
+                syncedToQRZ: editing.syncedToQRZ
+            )
+        } else {
+            // Create new QSO
+            let now = Date()
+            qso = QSO(
+                logId: logId,
+                callsign: callsign.uppercased(),
+                date: now.adifDate,
+                timeOn: now.adifTime,
+                frequency: frequency,
+                band: band,
+                mode: "CW",
+                rstSent: rstSent,
+                rstReceived: rstReceived,
+                name: name.isEmpty ? nil : name,
+                qth: qth.isEmpty ? nil : qth,
+                sotaRef: sotaRefValid ? sotaRefFormatted : nil,
+                potaRef: potaRefValid ? potaRefFormatted : nil
+            )
+        }
 
         do {
             try await qsoRepo.save(&qso)
@@ -167,6 +226,7 @@ final class QSOEntryViewModel {
 
             // Clear fields but keep frequency
             await MainActor.run {
+                editingQSO = nil
                 saveCount += 1
                 clearFieldsForNextQSO()
             }
@@ -177,19 +237,17 @@ final class QSOEntryViewModel {
 
     // MARK: - Spot pre-fill
 
-    func prefillFromSpot(callsign: String, frequency: Double?, reference: String?, source: Spot.Source?) {
-        self.callsign = callsign.uppercased()
-        if let freq = frequency {
-            self.frequencyText = String(format: "%.3f", freq)
+    func prefillFromSpot(_ spot: Spot) {
+        self.callsign = spot.activatorCallsign.uppercased()
+        self.frequencyText = String(format: "%.3f", spot.frequency)
+
+        if let ref = spot.potaReference {
+            self.potaRefInput = POTAPark.normalize(ref)
+            validatePOTARef()
         }
-        if let ref = reference {
-            if source == .pota {
-                self.potaRef = ref
-                validatePOTARef()
-            } else if source == .sota {
-                self.sotaRefInput = SOTASummit.normalize(ref)
-                validateSOTARef()
-            }
+        if let ref = spot.sotaReference {
+            self.sotaRefInput = SOTASummit.normalize(ref)
+            validateSOTARef()
         }
         callsignChanged()
     }
@@ -208,7 +266,8 @@ final class QSOEntryViewModel {
         rstReceived = "599"
         name = ""
         qth = ""
-        potaRef = ""
+        potaRefInput = ""
+        potaRefFormatted = nil
         potaRefName = nil
         potaRefValid = false
         sotaRefInput = ""

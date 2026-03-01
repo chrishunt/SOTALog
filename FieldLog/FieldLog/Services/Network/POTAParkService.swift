@@ -1,63 +1,87 @@
 import Foundation
 
 enum POTAParkService {
-    /// Fetches all POTA location codes.
-    static func fetchLocations() async throws -> [POTALocation] {
-        let url = URL(string: "https://api.pota.app/programs/locations/")!
+    /// Downloads and parses the POTA all-parks CSV.
+    static func fetchAllParks() async throws -> [POTAPark] {
+        let url = URL(string: "https://pota.app/all_parks.csv")!
         var request = URLRequest(url: url)
         request.setValue("FieldLog/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONDecoder().decode([POTALocation].self, from: data)
+        guard let csvString = String(data: data, encoding: .utf8) else {
+            throw POTAError.invalidEncoding
+        }
+
+        return parseCSV(csvString)
     }
 
-    /// Fetches parks for a single location code (e.g. "US-NC").
-    static func fetchParks(locationCode: String) async throws -> [POTAPark] {
-        let url = URL(string: "https://api.pota.app/location/parks/\(locationCode)")!
-        var request = URLRequest(url: url)
-        request.setValue("FieldLog/1.0", forHTTPHeaderField: "User-Agent")
+    /// Parses the POTA parks CSV.
+    /// Expected header: reference,name,active,entityId,locationDesc,...
+    static func parseCSV(_ csv: String) -> [POTAPark] {
+        let lines = csv.components(separatedBy: .newlines)
+        guard lines.count > 1 else { return [] }
 
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let dtos = try JSONDecoder().decode([POTAParkDTO].self, from: data)
+        // Find column indices from header
+        let header = parseCSVLine(lines[0])
+        guard let refIdx = header.firstIndex(of: "reference"),
+              let nameIdx = header.firstIndex(of: "name"),
+              let activeIdx = header.firstIndex(of: "active") else {
+            return []
+        }
 
-        return dtos.map { dto in
-            POTAPark(
-                reference: dto.reference,
-                name: dto.name,
-                locationCode: locationCode,
-                grid4: dto.grid4,
-                grid6: dto.grid6,
-                latitude: dto.latitude,
-                longitude: dto.longitude,
-                active: dto.active == 1
+        var parks: [POTAPark] = []
+
+        for line in lines.dropFirst() where !line.isEmpty {
+            let fields = parseCSVLine(line)
+            let maxIdx = max(refIdx, max(nameIdx, activeIdx))
+            guard fields.count > maxIdx else { continue }
+
+            let active = fields[activeIdx]
+            guard active == "1" else { continue }
+
+            let reference = fields[refIdx]
+            let name = fields[nameIdx]
+            guard !reference.isEmpty, !name.isEmpty else { continue }
+
+            let park = POTAPark(
+                reference: reference,
+                name: name,
+                referenceNormalized: POTAPark.normalize(reference)
             )
+            parks.append(park)
         }
+
+        return parks
     }
 
-    struct POTALocation: Decodable, Identifiable {
-        let programId: Int?
-        let entityId: Int?
-        let locationCode: String
-        let locationName: String?
-        let parks: Int?
+    /// Parses a CSV line handling quoted fields.
+    private static func parseCSVLine(_ line: String) -> [String] {
+        var fields: [String] = []
+        var current = ""
+        var inQuotes = false
 
-        var id: String { locationCode }
-
-        enum CodingKeys: String, CodingKey {
-            case programId, entityId
-            case locationCode = "locationCode"
-            case locationName = "locationName"
-            case parks
+        for char in line {
+            if char == "\"" {
+                inQuotes.toggle()
+            } else if char == "," && !inQuotes {
+                fields.append(current.trimmingCharacters(in: .whitespaces))
+                current = ""
+            } else {
+                current.append(char)
+            }
         }
+        fields.append(current.trimmingCharacters(in: .whitespaces))
+
+        return fields
     }
 
-    private struct POTAParkDTO: Decodable {
-        let reference: String
-        let name: String
-        let grid4: String?
-        let grid6: String?
-        let latitude: Double?
-        let longitude: Double?
-        let active: Int?
+    enum POTAError: LocalizedError {
+        case invalidEncoding
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidEncoding: return "Could not decode POTA parks data"
+            }
+        }
     }
 }

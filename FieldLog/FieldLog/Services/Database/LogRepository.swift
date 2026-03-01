@@ -18,22 +18,12 @@ struct LogRepository {
         }
     }
 
-    func fetchActive() async throws -> Log? {
-        try await database.dbWriter.read { db in
-            try Log.filter(Column("isActive") == true).fetchOne(db)
-        }
-    }
-
     // MARK: - Save
 
     @discardableResult
     func save(_ log: inout Log) async throws -> Log {
-        let isActive = log.isActive
         log = try await database.dbWriter.write { [log] db in
             var mutableLog = log
-            if isActive {
-                try Log.filter(Column("isActive") == true).updateAll(db, Column("isActive").set(to: false))
-            }
             try mutableLog.save(db)
             return mutableLog
         }

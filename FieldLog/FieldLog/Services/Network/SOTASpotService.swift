@@ -20,15 +20,16 @@ enum SOTASpotService {
                 return nil
             }
 
+            let sotaRef = dto.associationCode.map { "\($0)/\(dto.summitCode ?? "")" }
+                ?? dto.summitCode ?? ""
+
             return Spot(
                 id: "sota-\(dto.id ?? 0)-\(dto.activatorCallsign ?? "")",
-                source: .sota,
                 activatorCallsign: dto.activatorCallsign ?? "",
                 frequency: freqMHz,
                 mode: "CW",
-                reference: dto.associationCode.map { "\($0)/\(dto.summitCode ?? "")" }
-                    ?? dto.summitCode ?? "",
-                referenceName: dto.summitDetails,
+                sotaReference: sotaRef,
+                sotaReferenceName: dto.summitDetails,
                 spotterCallsign: dto.callsign,
                 comments: dto.comments,
                 timestamp: dto.parsedTimestamp ?? Date()

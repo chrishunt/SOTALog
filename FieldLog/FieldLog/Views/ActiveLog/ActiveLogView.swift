@@ -5,6 +5,7 @@ struct ActiveLogView: View {
     let log: Log
 
     @State private var viewModel: ActiveLogViewModel
+    @State private var editingQSO: QSO?
 
     init(database: AppDatabase, log: Log) {
         self.database = database
@@ -23,6 +24,7 @@ struct ActiveLogView: View {
             QSOEntryView(
                 database: database,
                 log: log,
+                editingQSO: $editingQSO,
                 onSave: { qso in
                     viewModel.qsoSaved()
                 }
@@ -78,7 +80,12 @@ struct ActiveLogView: View {
     private var qsoList: some View {
         List {
             ForEach(viewModel.qsos) { qso in
-                QSORowView(qso: qso)
+                Button {
+                    editingQSO = qso
+                } label: {
+                    QSORowView(qso: qso)
+                }
+                .buttonStyle(.plain)
             }
             .onDelete { offsets in
                 Task {

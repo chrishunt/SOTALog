@@ -6,6 +6,8 @@ struct ReferenceManagerView: View {
     @State private var sotaMetadata: ReferenceMetadata?
     @State private var isLoadingPOTA = false
     @State private var isLoadingSOTA = false
+    @State private var potaProgress: String?
+    @State private var sotaProgress: String?
     @State private var errorMessage: String?
 
     private var refRepo: ReferenceRepository {
@@ -19,7 +21,11 @@ struct ReferenceManagerView: View {
                 VStack(alignment: .leading) {
                     Text("POTA Parks")
                         .font(.subheadline)
-                    if let meta = potaMetadata {
+                    if let progress = potaProgress {
+                        Text(progress)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else if let meta = potaMetadata {
                         Text("\(meta.recordCount ?? 0) parks • \(meta.lastRefreshed?.shortDateDisplay ?? "Never")")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -48,7 +54,11 @@ struct ReferenceManagerView: View {
                 VStack(alignment: .leading) {
                     Text("SOTA Summits")
                         .font(.subheadline)
-                    if let meta = sotaMetadata {
+                    if let progress = sotaProgress {
+                        Text(progress)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else if let meta = sotaMetadata {
                         Text("\(meta.recordCount ?? 0) summits • \(meta.lastRefreshed?.shortDateDisplay ?? "Never")")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -86,23 +96,21 @@ struct ReferenceManagerView: View {
 
     private func refreshPOTA() async {
         isLoadingPOTA = true
-        defer { isLoadingPOTA = false }
+        potaProgress = "Downloading parks..."
+        defer {
+            isLoadingPOTA = false
+            potaProgress = nil
+        }
 
         do {
-            let locations = try await POTAParkService.fetchLocations()
-            var allParks: [POTAPark] = []
-
-            for location in locations {
-                let parks = try await POTAParkService.fetchParks(locationCode: location.locationCode)
-                allParks.append(contentsOf: parks)
-            }
-
+            let parks = try await POTAParkService.fetchAllParks()
+            potaProgress = "Importing \(parks.count) parks..."
             try await refRepo.deleteAllParks()
-            try await refRepo.importParks(allParks)
+            try await refRepo.importParks(parks)
             try await refRepo.saveMetadata(ReferenceMetadata(
                 key: "potaParks",
                 lastRefreshed: Date(),
-                recordCount: allParks.count
+                recordCount: parks.count
             ))
             potaMetadata = try? await refRepo.fetchMetadata(key: "potaParks")
             errorMessage = nil
@@ -113,10 +121,15 @@ struct ReferenceManagerView: View {
 
     private func refreshSOTA() async {
         isLoadingSOTA = true
-        defer { isLoadingSOTA = false }
+        sotaProgress = "Downloading summits..."
+        defer {
+            isLoadingSOTA = false
+            sotaProgress = nil
+        }
 
         do {
             let summits = try await SOTASummitService.fetchSummits()
+            sotaProgress = "Importing \(summits.count) summits..."
             try await refRepo.deleteAllSummits()
             try await refRepo.importSummits(summits)
             try await refRepo.saveMetadata(ReferenceMetadata(

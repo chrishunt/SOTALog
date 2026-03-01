@@ -15,27 +15,39 @@ struct QRZSyncView: View {
             List {
                 // QRZ Account
                 Section("QRZ Account") {
-                    if viewModel.hasAPIKey {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                            Text("API Key configured")
-                            Spacer()
-                            Button("Change") { showLogin = true }
-                        }
-                    } else {
+                    if !viewModel.hasAPIKey || !viewModel.hasCredentials {
                         Button {
                             showLogin = true
                         } label: {
-                            Label("Set QRZ API Key", systemImage: "key")
+                            VStack(alignment: .leading, spacing: 4) {
+                                Label("Set Up QRZ Account", systemImage: "person.badge.key")
+                                    .font(.body.bold())
+                                Text("API key syncs your logbook. Username & password enable callsign lookups.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
 
-                    if viewModel.hasCredentials {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                            Text("XML lookup credentials set")
+                    HStack {
+                        Image(systemName: viewModel.hasAPIKey ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(viewModel.hasAPIKey ? .green : .secondary)
+                        Text(viewModel.hasAPIKey ? "API key configured" : "API key not set")
+                        Spacer()
+                        if viewModel.hasAPIKey {
+                            Button("Change") { showLogin = true }
+                                .font(.caption)
+                        }
+                    }
+
+                    HStack {
+                        Image(systemName: viewModel.hasCredentials ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(viewModel.hasCredentials ? .green : .secondary)
+                        Text(viewModel.hasCredentials ? "Callsign lookup configured" : "Callsign lookup not set up")
+                        Spacer()
+                        if viewModel.hasCredentials {
+                            Button("Change") { showLogin = true }
+                                .font(.caption)
                         }
                     }
                 }

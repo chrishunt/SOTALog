@@ -7,10 +7,12 @@ struct ReferenceRepository {
     // MARK: - POTA Parks
 
     func searchParks(query: String, limit: Int = 20) async throws -> [POTAPark] {
-        try await database.dbWriter.read { db in
-            let pattern = "%\(query)%"
+        let normalized = POTAPark.normalize(query)
+        return try await database.dbWriter.read { db in
+            let pattern = "%\(normalized)%"
+            let namePattern = "%\(query)%"
             return try POTAPark
-                .filter(Column("reference").like(pattern) || Column("name").like(pattern))
+                .filter(Column("referenceNormalized").like(pattern) || Column("name").like(namePattern))
                 .limit(limit)
                 .fetchAll(db)
         }
@@ -19,6 +21,14 @@ struct ReferenceRepository {
     func fetchPark(reference: String) async throws -> POTAPark? {
         try await database.dbWriter.read { db in
             try POTAPark.fetchOne(db, id: reference)
+        }
+    }
+
+    func fetchParkByNormalized(_ normalized: String) async throws -> POTAPark? {
+        try await database.dbWriter.read { db in
+            try POTAPark
+                .filter(Column("referenceNormalized") == normalized.uppercased())
+                .fetchOne(db)
         }
     }
 
