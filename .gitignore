@@ -5,6 +5,7 @@ FieldLog/FieldLog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 
 # Build
 FieldLog/.build/
+FieldLog/build/
 DerivedData/
 *.xcresult
 
