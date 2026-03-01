@@ -93,7 +93,8 @@ struct QSORepository {
             let row = try Row.fetchOne(db, sql: """
                 SELECT lastRefreshed FROM referenceMetadata WHERE key = 'qrzSync'
                 """)
-            return row?["lastRefreshed"] as? Date
+            guard let row else { return nil }
+            return row["lastRefreshed"] as Date?
         }
     }
 
@@ -109,6 +110,105 @@ struct QSORepository {
         try await database.dbWriter.write { db in
             try db.execute(sql: "UPDATE qso SET qrzLogId = NULL, syncedToQRZ = 0")
         }
+    }
+
+    // MARK: - Batch Import
+
+    struct ImportResult {
+        var newCount = 0
+        var updatedCount = 0
+        var maxLogId: Int64 = 0
+    }
+
+    /// Imports an entire page of ADIF records in one write transaction.
+    /// Uses 3-tier merge: exact match by qrzLogId → semantic match → insert.
+    /// Per-record qrzLogId (APP_QRZLOG_LOGID) is optional — records without it
+    /// skip tier 1 and go straight to semantic match or insert.
+    func importPage(_ records: [[String: String]]) async throws -> ImportResult {
+        try await database.dbWriter.write { db in
+            var result = ImportResult()
+
+            for fields in records {
+                let qrzLogId = fields["APP_QRZLOG_LOGID"].flatMap(Int64.init)
+                if let qrzLogId { result.maxLogId = max(result.maxLogId, qrzLogId) }
+
+                guard var incoming = ADIFFormatter.qsoFromFields(fields) else { continue }
+                incoming.syncedToQRZ = true
+                incoming.qrzLogId = qrzLogId
+
+                // Tier 1: Exact match by qrzLogId (only if record has one)
+                if let qrzLogId,
+                   var existing = try QSO.filter(Column("qrzLogId") == qrzLogId).fetchOne(db) {
+                    existing.callsign = incoming.callsign
+                    existing.date = incoming.date
+                    existing.timeOn = incoming.timeOn
+                    existing.frequency = incoming.frequency
+                    existing.band = incoming.band
+                    existing.mode = incoming.mode
+                    existing.rstSent = incoming.rstSent
+                    existing.rstReceived = incoming.rstReceived
+                    existing.name = incoming.name
+                    existing.qth = incoming.qth
+                    existing.grid = incoming.grid
+                    existing.sotaRef = incoming.sotaRef
+                    existing.potaRef = incoming.potaRef
+                    existing.notes = incoming.notes
+                    existing.syncedToQRZ = true
+                    try existing.save(db)
+                    result.updatedCount += 1
+                    continue
+                }
+
+                // Tier 2: Semantic match (callsign + band + date + timeOn ±5 min)
+                if var matched = try findSemanticMatchSync(
+                    db: db,
+                    callsign: incoming.callsign,
+                    band: incoming.band,
+                    date: incoming.date,
+                    timeOn: incoming.timeOn
+                ) {
+                    matched.qrzLogId = qrzLogId ?? matched.qrzLogId
+                    matched.frequency = incoming.frequency ?? matched.frequency
+                    matched.name = incoming.name ?? matched.name
+                    matched.qth = incoming.qth ?? matched.qth
+                    matched.grid = incoming.grid ?? matched.grid
+                    matched.sotaRef = incoming.sotaRef ?? matched.sotaRef
+                    matched.potaRef = incoming.potaRef ?? matched.potaRef
+                    matched.notes = incoming.notes ?? matched.notes
+                    matched.syncedToQRZ = true
+                    try matched.save(db)
+                    result.updatedCount += 1
+                    continue
+                }
+
+                // Tier 3: No match — insert unattached
+                try incoming.save(db)
+                result.newCount += 1
+            }
+
+            return result
+        }
+    }
+
+    /// Synchronous semantic match for use inside a GRDB transaction.
+    private func findSemanticMatchSync(db: Database, callsign: String, band: String, date: String, timeOn: String) throws -> QSO? {
+        guard timeOn.count >= 4,
+              let hh = Int(timeOn.prefix(2)),
+              let mm = Int(timeOn.dropFirst(2).prefix(2)) else { return nil }
+
+        let totalMinutes = hh * 60 + mm
+        let lo = max(totalMinutes - 5, 0)
+        let hi = min(totalMinutes + 5, 24 * 60 - 1)
+
+        let loStr = String(format: "%02d%02d", lo / 60, lo % 60)
+        let hiStr = String(format: "%02d%02d", hi / 60, hi % 60)
+
+        return try QSO.fetchOne(db, sql: """
+            SELECT * FROM qso
+            WHERE callsign = ? AND band = ? AND date = ?
+              AND timeOn BETWEEN ? AND ?
+            LIMIT 1
+            """, arguments: [callsign, band, date, loStr, hiStr])
     }
 
     // MARK: - Save

@@ -3,6 +3,7 @@ import SwiftUI
 struct QSOSearchView: View {
     let database: AppDatabase
     @State private var viewModel: QSOSearchViewModel
+    @FocusState private var isSearchFocused: Bool
 
     init(database: AppDatabase) {
         self.database = database
@@ -35,23 +36,38 @@ struct QSOSearchView: View {
                 }
             }
         }
-        #if os(iOS)
-        .searchable(
-            text: $viewModel.searchText,
-            placement: .navigationBarDrawer(displayMode: .always),
-            prompt: "Search callsigns"
-        )
-        .textInputAutocapitalization(.characters)
-        #else
-        .searchable(
-            text: $viewModel.searchText,
-            prompt: "Search callsigns"
-        )
-        #endif
+        .safeAreaInset(edge: .top) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search callsigns", text: $viewModel.searchText)
+                    #if os(iOS)
+                    .textInputAutocapitalization(.characters)
+                    #endif
+                    .focused($isSearchFocused)
+                if !viewModel.searchText.isEmpty {
+                    Button {
+                        viewModel.searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(10)
+            #if os(iOS)
+            .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 10))
+            #else
+            .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+            #endif
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+        }
         .navigationTitle("Search")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             viewModel.startObserving()
+            isSearchFocused = true
         }
     }
 

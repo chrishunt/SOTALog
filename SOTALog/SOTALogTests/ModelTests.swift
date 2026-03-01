@@ -89,43 +89,48 @@ final class SOTASummitNormalizationTests: XCTestCase {
 
 final class QRZCallsignResultTests: XCTestCase {
     func testNameBothNames() {
-        let result = QRZCallsignResult(callsign: "W1AW", firstName: "Hiram", lastName: "Maxim", city: nil, state: nil, country: nil, grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: "Hiram", nickname: nil, lastName: "Maxim", city: nil, state: nil, country: nil, grid: nil, county: nil)
         XCTAssertEqual(result.name, "Hiram Maxim")
     }
 
     func testNameFirstOnly() {
-        let result = QRZCallsignResult(callsign: "W1AW", firstName: "Hiram", lastName: nil, city: nil, state: nil, country: nil, grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: "Hiram", nickname: nil, lastName: nil, city: nil, state: nil, country: nil, grid: nil, county: nil)
         XCTAssertEqual(result.name, "Hiram")
     }
 
     func testNameLastOnly() {
-        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, lastName: "Maxim", city: nil, state: nil, country: nil, grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, nickname: nil, lastName: "Maxim", city: nil, state: nil, country: nil, grid: nil, county: nil)
         XCTAssertEqual(result.name, "Maxim")
     }
 
     func testNameBothNil() {
-        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, lastName: nil, city: nil, state: nil, country: nil, grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, nickname: nil, lastName: nil, city: nil, state: nil, country: nil, grid: nil, county: nil)
         XCTAssertNil(result.name)
     }
 
     func testNameBothEmpty() {
         // compactMap keeps empty strings; joined produces " " which nilIfEmpty doesn't trim
-        let result = QRZCallsignResult(callsign: "W1AW", firstName: "", lastName: "", city: nil, state: nil, country: nil, grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: "", nickname: nil, lastName: "", city: nil, state: nil, country: nil, grid: nil, county: nil)
         XCTAssertEqual(result.name, " ")
     }
 
+    func testNicknameOverridesFirstAndLast() {
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: "Hiram", nickname: "Hi", lastName: "Maxim", city: nil, state: nil, country: nil, grid: nil, county: nil)
+        XCTAssertEqual(result.name, "Hi")
+    }
+
     func testQTHPrefersState() {
-        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, lastName: nil, city: nil, state: "CT", country: "United States", grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, nickname: nil, lastName: nil, city: nil, state: "CT", country: "United States", grid: nil, county: nil)
         XCTAssertEqual(result.qth, "CT")
     }
 
     func testQTHFallsBackToCountry() {
-        let result = QRZCallsignResult(callsign: "G3ABC", firstName: nil, lastName: nil, city: nil, state: nil, country: "England", grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "G3ABC", firstName: nil, nickname: nil, lastName: nil, city: nil, state: nil, country: "England", grid: nil, county: nil)
         XCTAssertEqual(result.qth, "England")
     }
 
     func testQTHBothNil() {
-        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, lastName: nil, city: nil, state: nil, country: nil, grid: nil, county: nil)
+        let result = QRZCallsignResult(callsign: "W1AW", firstName: nil, nickname: nil, lastName: nil, city: nil, state: nil, country: nil, grid: nil, county: nil)
         XCTAssertNil(result.qth)
     }
 }

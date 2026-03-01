@@ -6,6 +6,7 @@ struct LogListView: View {
     @Environment(SpotRouter.self) private var spotRouter
     @State private var viewModel: LogListViewModel
     @State private var showNewLog = false
+    @State private var showSearch = false
     @State private var navigationPath = NavigationPath()
     @State private var pendingNavLog: Log?
 
@@ -47,11 +48,14 @@ struct LogListView: View {
             .navigationDestination(for: Log.self) { log in
                 ActiveLogView(database: database, log: log)
             }
+            .navigationDestination(isPresented: $showSearch) {
+                QSOSearchView(database: database)
+            }
             .toolbar {
                 #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
-                    NavigationLink {
-                        QSOSearchView(database: database)
+                    Button {
+                        showSearch = true
                     } label: {
                         Image(systemName: "magnifyingglass")
                     }
