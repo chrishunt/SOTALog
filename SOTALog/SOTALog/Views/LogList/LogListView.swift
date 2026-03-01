@@ -48,6 +48,15 @@ struct LogListView: View {
                 ActiveLogView(database: database, log: log)
             }
             .toolbar {
+                #if os(iOS)
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink {
+                        QSOSearchView(database: database)
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                }
+                #endif
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         showNewLog = true

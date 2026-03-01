@@ -50,6 +50,7 @@ enum QRZXMLService {
         return QRZCallsignResult(
             callsign: extractXMLValue(from: xml, tag: "call") ?? callsign,
             firstName: extractXMLValue(from: xml, tag: "fname"),
+            nickname: extractXMLValue(from: xml, tag: "nickname"),
             lastName: extractXMLValue(from: xml, tag: "name"),
             city: extractXMLValue(from: xml, tag: "addr2"),
             state: extractXMLValue(from: xml, tag: "state"),

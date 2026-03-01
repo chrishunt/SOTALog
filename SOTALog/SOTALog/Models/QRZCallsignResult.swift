@@ -4,6 +4,7 @@ import Foundation
 struct QRZCallsignResult: Equatable {
     let callsign: String
     let firstName: String?
+    let nickname: String?
     let lastName: String?
     let city: String?
     let state: String?
@@ -13,7 +14,8 @@ struct QRZCallsignResult: Equatable {
 
     /// Combined name for display
     var name: String? {
-        [firstName, lastName].compactMap { $0 }.joined(separator: " ").nilIfEmpty
+        if let nickname { return nickname }
+        return [firstName, lastName].compactMap { $0 }.joined(separator: " ").nilIfEmpty
     }
 
     /// QTH for display — state for US, country otherwise

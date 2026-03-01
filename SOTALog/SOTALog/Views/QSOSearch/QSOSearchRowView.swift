@@ -1,48 +1,38 @@
 import SwiftUI
 
-struct QSORowView: View {
-    let qso: QSO
+struct QSOSearchRowView: View {
+    let result: QSOSearchResult
 
     var body: some View {
         HStack(spacing: 12) {
-            Text(qso.timeOn.insertingTimeSeparator + "Z")
+            Text(result.formattedDate + " " + result.timeOn.insertingTimeSeparator + "Z")
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
+                .fixedSize()
 
-            Text(qso.callsign)
+            Text(result.callsign)
                 .font(.body.monospaced().bold())
-                .frame(minWidth: 100, alignment: .leading)
+                .lineLimit(1)
 
-            Text(qso.band)
+            Text(result.band)
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
 
             Spacer()
 
-            if let potaRef = qso.potaRef {
+            if result.logPotaReference != nil {
                 Image(systemName: "tree")
                     .font(.caption)
                     .foregroundStyle(Color.appGreen)
-                    .accessibilityLabel("Park to park \(potaRef)")
             }
 
-            if let sotaRef = qso.sotaRef {
+            if result.logSotaReference != nil {
                 Image(systemName: "mountain.2")
                     .font(.caption)
                     .foregroundStyle(Color.appBlue)
-                    .accessibilityLabel("Summit to summit \(sotaRef)")
             }
         }
         .contentShape(Rectangle())
         .padding(.vertical, 2)
-    }
-}
-
-extension String {
-    /// Converts "1234" to "12:34"
-    var insertingTimeSeparator: String {
-        guard count == 4 else { return self }
-        let idx = index(startIndex, offsetBy: 2)
-        return String(self[..<idx]) + ":" + String(self[idx...])
     }
 }

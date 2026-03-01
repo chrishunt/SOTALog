@@ -76,6 +76,13 @@ Key details:
 - **Bundle ID**: `com.sotalog.app`
 - **Signing**: Automatic (Apple Development certificate)
 
+### Release checklist
+
+1. Update `CHANGELOG.md` — move Unreleased items under a dated version heading
+2. Bump `MARKETING_VERSION` and/or `CURRENT_PROJECT_VERSION` in `project.yml`
+3. Archive and upload (see TestFlight deployment above)
+4. In App Store Connect, paste the changelog entries as "What to Test" notes
+
 ## Commit Standards
 
 - Short subject lines following standard git conventions
