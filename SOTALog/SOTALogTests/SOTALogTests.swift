@@ -63,11 +63,14 @@ final class MaidenheadConverterTests: XCTestCase {
 // MARK: - CallsignPrefixResolver Tests
 
 final class CallsignPrefixResolverTests: XCTestCase {
-    func testUSCallsigns() {
-        XCTAssertNotNil(CallsignPrefixResolver.resolve("W1AW"))
-        XCTAssertTrue(CallsignPrefixResolver.resolve("K6ABC")?.contains("CA") == true)
-        XCTAssertNotNil(CallsignPrefixResolver.resolve("N4XYZ"))
-        XCTAssertNotNil(CallsignPrefixResolver.resolve("AA1BB"))
+    func testUSCallsignSingleState() {
+        XCTAssertEqual(CallsignPrefixResolver.resolve("K6ABC"), "CA")
+    }
+
+    func testUSCallsignMultiStateReturnsNil() {
+        XCTAssertNil(CallsignPrefixResolver.resolve("W1AW"))   // district 1 = CT/MA/ME/...
+        XCTAssertNil(CallsignPrefixResolver.resolve("N4XYZ"))  // district 4 = AL/FL/GA/...
+        XCTAssertNil(CallsignPrefixResolver.resolve("AA1BB"))  // district 1
     }
 
     func testCanadianCallsigns() {
@@ -77,15 +80,26 @@ final class CallsignPrefixResolverTests: XCTestCase {
     }
 
     func testDXCallsigns() {
-        XCTAssertEqual(CallsignPrefixResolver.resolve("G3ABC"), "England")
-        XCTAssertEqual(CallsignPrefixResolver.resolve("DL1XYZ"), "Germany")
-        XCTAssertEqual(CallsignPrefixResolver.resolve("JA1ABC"), "Japan")
-        XCTAssertEqual(CallsignPrefixResolver.resolve("VK2ABC"), "Australia")
+        XCTAssertEqual(CallsignPrefixResolver.resolve("G3ABC"), "GBR")
+        XCTAssertEqual(CallsignPrefixResolver.resolve("DL1XYZ"), "DEU")
+        XCTAssertEqual(CallsignPrefixResolver.resolve("JA1ABC"), "JPN")
+        XCTAssertEqual(CallsignPrefixResolver.resolve("VK2ABC"), "AUS")
     }
 
     func testShortCallsigns() {
         XCTAssertNil(CallsignPrefixResolver.resolve("A"))
         XCTAssertNil(CallsignPrefixResolver.resolve(""))
+    }
+
+    func testAbbreviateKnownCountries() {
+        XCTAssertEqual(CallsignPrefixResolver.abbreviate("Japan"), "JPN")
+        XCTAssertEqual(CallsignPrefixResolver.abbreviate("Germany"), "DEU")
+        XCTAssertEqual(CallsignPrefixResolver.abbreviate("England"), "GBR")
+        XCTAssertEqual(CallsignPrefixResolver.abbreviate("Australia"), "AUS")
+    }
+
+    func testAbbreviateUnknownCountryPassthrough() {
+        XCTAssertEqual(CallsignPrefixResolver.abbreviate("Tonga"), "Tonga")
     }
 }
 

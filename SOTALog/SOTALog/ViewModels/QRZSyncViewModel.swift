@@ -6,7 +6,6 @@ final class QRZSyncViewModel {
     private let database: AppDatabase
     private let qsoRepo: QSORepository
     private let logRepo: LogRepository
-    private let historyRepo: CallsignHistoryRepository
 
     var hasAPIKey = false
     var hasCredentials = false
@@ -23,7 +22,6 @@ final class QRZSyncViewModel {
         self.database = database
         self.qsoRepo = QSORepository(database: database)
         self.logRepo = LogRepository(database: database)
-        self.historyRepo = CallsignHistoryRepository(database: database)
     }
 
     func loadState() async {
@@ -111,9 +109,6 @@ final class QRZSyncViewModel {
         successMessage = nil
 
         do {
-            let result = try await QRZLogbookService.downloadQSOs(apiKey: apiKey)
-            let records = ADIFFormatter.decode(result.adif)
-
             // For downloads, we need a log to attach them to
             // Create or find a "QRZ Import" log
             var importLog: Log
@@ -131,27 +126,38 @@ final class QRZSyncViewModel {
 
             guard let logId = importLog.id else { return }
 
-            var imported = 0
-            for fields in records {
-                // Check for duplicate via LOGID field
-                if let logIdStr = fields["APP_QRZ_LOGID"], let qrzLogId = Int64(logIdStr) {
-                    if try await qsoRepo.existsWithQRZLogId(qrzLogId) {
-                        continue
+            var afterLogId: Int64 = 0
+            var totalImported = 0
+
+            while true {
+                let result = try await QRZLogbookService.downloadQSOs(apiKey: apiKey, afterLogId: afterLogId)
+                let records = ADIFFormatter.decode(result.adif)
+
+                var maxLogId = afterLogId
+                for fields in records {
+                    if let logIdStr = fields["APP_QRZ_LOGID"], let qrzLogId = Int64(logIdStr) {
+                        maxLogId = max(maxLogId, qrzLogId)
+                        if try await qsoRepo.existsWithQRZLogId(qrzLogId) {
+                            continue
+                        }
+                    }
+
+                    if var qso = ADIFFormatter.qsoFromFields(fields, logId: logId) {
+                        qso.syncedToQRZ = true
+                        if let logIdStr = fields["APP_QRZ_LOGID"] {
+                            qso.qrzLogId = Int64(logIdStr)
+                        }
+                        try await qsoRepo.save(&qso)
+                        totalImported += 1
                     }
                 }
 
-                if var qso = ADIFFormatter.qsoFromFields(fields, logId: logId) {
-                    qso.syncedToQRZ = true
-                    if let logIdStr = fields["APP_QRZ_LOGID"] {
-                        qso.qrzLogId = Int64(logIdStr)
-                    }
-                    try await qsoRepo.save(&qso)
-                    imported += 1
-                }
+                downloadedCount = totalImported
+                if result.count < 250 { break }
+                afterLogId = maxLogId
             }
 
-            downloadedCount = imported
-            successMessage = "Imported \(imported) new QSOs"
+            successMessage = "Imported \(totalImported) new QSOs"
             await refreshADIF()
         } catch {
             AppLog.sync.error("Download failed: \(error)")
@@ -162,50 +168,4 @@ final class QRZSyncViewModel {
     }
 
     // MARK: - ADIF Export (pre-computed in loadState)
-
-    // MARK: - QRZ XML Lookup
-
-    func lookupCallsign(_ callsign: String) async -> QRZCallsignResult? {
-        guard let username = KeychainService.load(key: .qrzUsername),
-              let password = KeychainService.load(key: .qrzPassword) else {
-            return nil
-        }
-
-        do {
-            // Try with cached session key first
-            var sessionKey = KeychainService.load(key: .qrzSessionKey)
-
-            if sessionKey == nil {
-                sessionKey = try await QRZXMLService.login(username: username, password: password)
-                try? KeychainService.save(key: .qrzSessionKey, value: sessionKey!)
-            }
-
-            do {
-                let result = try await QRZXMLService.lookup(callsign: callsign, sessionKey: sessionKey!)
-                // Cache result
-                try? await historyRepo.updateFromLookup(
-                    callsign: callsign,
-                    name: result.name,
-                    qth: result.qth,
-                    grid: result.grid
-                )
-                return result
-            } catch QRZXMLService.QRZXMLError.sessionExpired {
-                // Re-authenticate
-                sessionKey = try await QRZXMLService.login(username: username, password: password)
-                try? KeychainService.save(key: .qrzSessionKey, value: sessionKey!)
-                let result = try await QRZXMLService.lookup(callsign: callsign, sessionKey: sessionKey!)
-                try? await historyRepo.updateFromLookup(
-                    callsign: callsign,
-                    name: result.name,
-                    qth: result.qth,
-                    grid: result.grid
-                )
-                return result
-            }
-        } catch {
-            AppLog.network.error("QRZ lookup failed for \(callsign): \(error)")
-            return nil
-        }
-    }
 }

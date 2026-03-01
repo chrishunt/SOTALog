@@ -31,6 +31,7 @@
 		62584B78191D37BC7F3C98FC /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1164680FD822CB549FBF2785 /* AppDatabase.swift */; };
 		6262199275FB8DBC452028DA /* NewLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EC7F7B0ACA429D66488273 /* NewLogView.swift */; };
 		6269F57C8EBC8BC71C2CF91F /* SOTALogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BE3F3C3C986C1EEF0DF930 /* SOTALogTests.swift */; };
+		6DBF96036CFFDB385CE76F83 /* QRZLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B473BAD0C0F22955E4DBFFFB /* QRZLookupService.swift */; };
 		79B22C489E0EA8217109EC64 /* RepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0056E2A70BE433214C4B7C0A /* RepositoryTests.swift */; };
 		7A30847B75520EA883A60C5C /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4266BF0A296CC64D2A95BE5 /* AppLog.swift */; };
 		7A7DD098426D67446D3698D3 /* QRZLogbookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1296CEF3FA1AD3680E5651 /* QRZLogbookService.swift */; };
@@ -139,6 +140,7 @@
 		A5E4CDFB3B9728E8D013069E /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		A994A9FFD8DB698FB83594C6 /* CallPrefixes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CallPrefixes.json; sourceTree = "<group>"; };
 		AD310A8C6A43BFF4883C3707 /* CallsignPrefixResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignPrefixResolver.swift; sourceTree = "<group>"; };
+		B473BAD0C0F22955E4DBFFFB /* QRZLookupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLookupService.swift; sourceTree = "<group>"; };
 		BA205F670A369ACA17F15964 /* LogRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRowView.swift; sourceTree = "<group>"; };
 		C0DE0F435B6A3BB43CEB6E9F /* SpotRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRowView.swift; sourceTree = "<group>"; };
 		C1D9EAAEFE88C5722AEB3DDF /* ADIFFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADIFFormatter.swift; sourceTree = "<group>"; };
@@ -201,6 +203,7 @@
 				6C198756DB82EFF308D1D1BA /* POTAParkService.swift */,
 				9D2F2785E6F2AC0E491F2F08 /* POTASpotService.swift */,
 				0C1296CEF3FA1AD3680E5651 /* QRZLogbookService.swift */,
+				B473BAD0C0F22955E4DBFFFB /* QRZLookupService.swift */,
 				982E2AD75660266C979D8FCD /* QRZXMLService.swift */,
 				65B3EF2E3945E205EAF225D9 /* SOTASpotService.swift */,
 				4C5DC27A55D0CC129F37F4D7 /* SOTASummitService.swift */,
@@ -521,6 +524,7 @@
 				5E57763C0C897C7A9F5BF73B /* QRZCallsignResult.swift in Sources */,
 				7A7DD098426D67446D3698D3 /* QRZLogbookService.swift in Sources */,
 				F8A5F92B2A2F332BCD35396B /* QRZLoginView.swift in Sources */,
+				6DBF96036CFFDB385CE76F83 /* QRZLookupService.swift in Sources */,
 				8AFA61AA74B703F11030D122 /* QRZSyncView.swift in Sources */,
 				8AB642C357671EA021F0D7CC /* QRZSyncViewModel.swift in Sources */,
 				EE9015DC4FE5CB76385617E8 /* QRZXMLService.swift in Sources */,

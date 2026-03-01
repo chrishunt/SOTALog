@@ -37,55 +37,103 @@ enum CallsignPrefixResolver {
         "VY0": "NU",
     ]
 
-    /// Common DX prefixes → country/entity
+    /// Common DX prefixes → ISO 3166-1 alpha-3 country codes
     private static let dxPrefixes: [String: String] = [
-        "G": "England", "M": "England",
-        "F": "France",
-        "DL": "Germany", "DA": "Germany", "DB": "Germany", "DC": "Germany",
-        "DD": "Germany", "DF": "Germany", "DG": "Germany", "DH": "Germany",
-        "DJ": "Germany", "DK": "Germany", "DM": "Germany",
-        "I": "Italy",
-        "EA": "Spain",
-        "JA": "Japan", "JH": "Japan", "JR": "Japan", "JE": "Japan",
-        "JF": "Japan", "JG": "Japan", "JI": "Japan", "JJ": "Japan",
-        "JK": "Japan", "JL": "Japan", "JM": "Japan", "JN": "Japan",
-        "JO": "Japan", "JP": "Japan", "JQ": "Japan", "JS": "Japan",
-        "VK": "Australia",
-        "ZL": "New Zealand",
-        "ZS": "South Africa",
-        "LU": "Argentina",
-        "PY": "Brazil",
-        "UA": "Russia", "RA": "Russia",
-        "OH": "Finland",
-        "SM": "Sweden", "SA": "Sweden",
-        "LA": "Norway",
-        "OZ": "Denmark",
-        "PA": "Netherlands", "PH": "Netherlands", "PE": "Netherlands",
-        "ON": "Belgium",
-        "HB": "Switzerland",
-        "OE": "Austria",
-        "SP": "Poland", "SQ": "Poland",
-        "OK": "Czech Republic",
-        "HA": "Hungary",
-        "YO": "Romania",
-        "LZ": "Bulgaria",
-        "SV": "Greece",
-        "CT": "Portugal",
+        "G": "GBR", "M": "GBR",
+        "F": "FRA",
+        "DL": "DEU", "DA": "DEU", "DB": "DEU", "DC": "DEU",
+        "DD": "DEU", "DF": "DEU", "DG": "DEU", "DH": "DEU",
+        "DJ": "DEU", "DK": "DEU", "DM": "DEU",
+        "I": "ITA",
+        "EA": "ESP",
+        "JA": "JPN", "JH": "JPN", "JR": "JPN", "JE": "JPN",
+        "JF": "JPN", "JG": "JPN", "JI": "JPN", "JJ": "JPN",
+        "JK": "JPN", "JL": "JPN", "JM": "JPN", "JN": "JPN",
+        "JO": "JPN", "JP": "JPN", "JQ": "JPN", "JS": "JPN",
+        "VK": "AUS",
+        "ZL": "NZL",
+        "ZS": "ZAF",
+        "LU": "ARG",
+        "PY": "BRA",
+        "UA": "RUS", "RA": "RUS",
+        "OH": "FIN",
+        "SM": "SWE", "SA": "SWE",
+        "LA": "NOR",
+        "OZ": "DNK",
+        "PA": "NLD", "PH": "NLD", "PE": "NLD",
+        "ON": "BEL",
+        "HB": "CHE",
+        "OE": "AUT",
+        "SP": "POL", "SQ": "POL",
+        "OK": "CZE",
+        "HA": "HUN",
+        "YO": "ROU",
+        "LZ": "BGR",
+        "SV": "GRC",
+        "CT": "PRT",
+    ]
+
+    /// Maps full country names (from QRZ) to ISO 3166-1 alpha-3 codes
+    private static let countryToISO: [String: String] = [
+        "England": "GBR",
+        "Wales": "GBR",
+        "Scotland": "GBR",
+        "Northern Ireland": "GBR",
+        "United Kingdom": "GBR",
+        "France": "FRA",
+        "Germany": "DEU",
+        "Fed. Rep. of Germany": "DEU",
+        "Italy": "ITA",
+        "Spain": "ESP",
+        "Japan": "JPN",
+        "Australia": "AUS",
+        "New Zealand": "NZL",
+        "South Africa": "ZAF",
+        "Argentina": "ARG",
+        "Brazil": "BRA",
+        "Russia": "RUS",
+        "Russian Federation": "RUS",
+        "Finland": "FIN",
+        "Sweden": "SWE",
+        "Norway": "NOR",
+        "Denmark": "DNK",
+        "Netherlands": "NLD",
+        "Belgium": "BEL",
+        "Switzerland": "CHE",
+        "Austria": "AUT",
+        "Poland": "POL",
+        "Czech Republic": "CZE",
+        "Hungary": "HUN",
+        "Romania": "ROU",
+        "Bulgaria": "BGR",
+        "Greece": "GRC",
+        "Portugal": "PRT",
     ]
 
     // MARK: - Public API
 
+    /// Abbreviates a full country name to its ISO 3166-1 alpha-3 code.
+    /// e.g. "Japan" → "JPN", "Germany" → "DEU"
+    /// Returns the original string if no mapping is found.
+    static func abbreviate(_ country: String) -> String {
+        countryToISO[country] ?? country
+    }
+
     /// Resolves a callsign to a likely QTH string.
-    /// Returns state abbreviation for US, province for Canada, country for DX.
+    /// Returns state abbreviation for US, province for Canada, ISO alpha-3 for DX.
     static func resolve(_ callsign: String) -> String? {
         let call = callsign.uppercased()
         guard call.count >= 2 else { return nil }
 
         // Handle US callsigns: K, W, N, AA-AL prefixes
+        // Only return QTH when the call area maps to a single state
         if isUSCallsign(call) {
-            if let digit = extractUSDigit(call) {
-                return usCallAreas[digit]
+            if let digit = extractUSDigit(call),
+               let states = usCallAreas[digit],
+               !states.contains("/") {
+                return states
             }
+            return nil
         }
 
         // Handle Canadian callsigns
