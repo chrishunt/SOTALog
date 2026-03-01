@@ -69,7 +69,7 @@ struct QSOEntryView: View {
         HStack {
             Image(systemName: "pencil.circle.fill")
                 .foregroundStyle(.orange)
-            Text("Editing: \(viewModel.callsign)")
+            Text("Editing: \(viewModel.parsedCallsign)")
                 .font(.subheadline.bold())
                 .foregroundStyle(.orange)
             Spacer()
@@ -90,13 +90,19 @@ struct QSOEntryView: View {
 
     private var callsignRow: some View {
         HStack {
-            TextField("CALLSIGN", text: $viewModel.callsign)
+            TextField("CALLSIGN", text: $viewModel.entryText)
                 .font(.system(size: 44, weight: .bold, design: .monospaced))
+                .minimumScaleFactor(0.6)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .callsign)
-                .onChange(of: viewModel.callsign) { _, newValue in
-                    viewModel.callsign = newValue.sanitizedCallsign
+                .submitLabel(.send)
+                .onSubmit {
+                    submitQSO()
+                }
+                .onChange(of: viewModel.entryText) { _, newValue in
+                    viewModel.entryText = newValue.sanitizedOmnifield
+                    viewModel.parseEntry()
                     viewModel.callsignChanged()
                 }
 
@@ -120,6 +126,10 @@ struct QSOEntryView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 RSTField(value: $viewModel.rstSent)
+                    .onChange(of: focusedField) { _, newValue in
+                        if newValue == .callsign { return }
+                        // If user taps into RST directly, mark manual override
+                    }
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -140,6 +150,11 @@ struct QSOEntryView: View {
                     #endif
                     .focused($focusedField, equals: .frequency)
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: viewModel.frequencyText) { _, _ in
+                        if focusedField == .frequency {
+                            viewModel.markManualOverride("frequency")
+                        }
+                    }
             }
         }
     }
@@ -165,6 +180,11 @@ struct QSOEntryView: View {
                     .textInputAutocapitalization(.characters)
                     .focused($focusedField, equals: .qth)
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: viewModel.qth) { _, _ in
+                        if focusedField == .qth {
+                            viewModel.markManualOverride("qth")
+                        }
+                    }
             }
             .frame(maxWidth: 120)
         }
@@ -185,7 +205,10 @@ struct QSOEntryView: View {
                 .textFieldStyle(.roundedBorder)
                 .font(.body.monospaced())
                 .onChange(of: viewModel.potaRefInput) { _, newValue in
-                    viewModel.potaRefInput = newValue.sanitizedAlphanumeric
+                    if focusedField == .potaRef {
+                        viewModel.markManualOverride("potaRef")
+                        viewModel.potaRefInput = newValue.sanitizedAlphanumeric
+                    }
                     viewModel.validatePOTARef()
                 }
 
@@ -224,7 +247,10 @@ struct QSOEntryView: View {
                 .textFieldStyle(.roundedBorder)
                 .font(.body.monospaced())
                 .onChange(of: viewModel.sotaRefInput) { _, newValue in
-                    viewModel.sotaRefInput = newValue.sanitizedAlphanumeric
+                    if focusedField == .sotaRef {
+                        viewModel.markManualOverride("sotaRef")
+                        viewModel.sotaRefInput = newValue.sanitizedAlphanumeric
+                    }
                     viewModel.validateSOTARef()
                 }
 
@@ -245,14 +271,7 @@ struct QSOEntryView: View {
 
     private var logButton: some View {
         Button {
-            Task {
-                await viewModel.saveQSO()
-                if let saved = viewModel.lastSavedQSO {
-                    editingQSO = nil
-                    onSave(saved)
-                }
-                focusedField = .callsign
-            }
+            submitQSO()
         } label: {
             Text(viewModel.isEditing ? "SAVE QSO" : "LOG QSO")
                 .font(.system(size: 20, weight: .bold))
@@ -260,7 +279,21 @@ struct QSOEntryView: View {
                 .frame(height: 56)
         }
         .buttonStyle(.borderedProminent)
-        .disabled(viewModel.callsign.isEmpty)
+        .disabled(viewModel.parsedCallsign.isEmpty)
         .sensoryFeedback(.success, trigger: viewModel.saveCount)
+    }
+
+    // MARK: - Private
+
+    private func submitQSO() {
+        guard !viewModel.parsedCallsign.isEmpty else { return }
+        Task {
+            await viewModel.saveQSO()
+            if let saved = viewModel.lastSavedQSO {
+                editingQSO = nil
+                onSave(saved)
+            }
+            focusedField = .callsign
+        }
     }
 }
