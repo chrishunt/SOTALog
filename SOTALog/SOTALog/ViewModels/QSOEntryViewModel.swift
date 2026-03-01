@@ -44,6 +44,8 @@ final class QSOEntryViewModel {
         return first.sanitizedCallsign
     }
 
+    var spotLookup: ((String) -> Spot?)?
+
     private var lookupTask: Task<Void, Never>?
 
     init(database: AppDatabase, log: Log) {
@@ -121,6 +123,24 @@ final class QSOEntryViewModel {
                 if let resolved = CallsignPrefixResolver.resolve(call) {
                     await MainActor.run {
                         if qth.isEmpty { qth = resolved }
+                    }
+                }
+            }
+
+            guard !Task.isCancelled else { return }
+
+            // Step 4: Spot lookup (auto-populate references)
+            if let spot = spotLookup?(call) {
+                await MainActor.run {
+                    if log.isPOTA, let ref = spot.potaReference,
+                       !manualOverrides.contains("potaRef"), potaRefInput.isEmpty {
+                        potaRefInput = POTAPark.normalize(ref)
+                        validatePOTARef()
+                    }
+                    if log.isSOTA, let ref = spot.sotaReference,
+                       !manualOverrides.contains("sotaRef"), sotaRefInput.isEmpty {
+                        sotaRefInput = SOTASummit.normalize(ref)
+                        validateSOTARef()
                     }
                 }
             }

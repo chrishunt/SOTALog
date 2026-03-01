@@ -3,14 +3,10 @@ import SwiftUI
 struct SpotsView: View {
     let database: AppDatabase
     @Environment(SpotRouter.self) private var spotRouter
-    @State private var viewModel: SpotsViewModel
-
-    init(database: AppDatabase) {
-        self.database = database
-        self._viewModel = State(initialValue: SpotsViewModel())
-    }
+    @Environment(SpotsViewModel.self) private var viewModel
 
     var body: some View {
+        @Bindable var viewModel = viewModel
         NavigationStack {
             Group {
                 if viewModel.isLoading && viewModel.spots.isEmpty {
@@ -37,12 +33,13 @@ struct SpotsView: View {
                             } header: {
                                 HStack {
                                     Text(section.band)
-                                        .font(.subheadline.monospacedDigit().bold())
+                                        .font(.title3.monospacedDigit().bold())
                                         .foregroundStyle(.primary)
                                     Text("\(section.spots.count)")
-                                        .font(.caption)
+                                        .font(.subheadline)
                                         .foregroundStyle(.secondary)
                                 }
+                                .padding(.top, 8)
                                 .textCase(nil)
                             }
                         }
@@ -64,9 +61,6 @@ struct SpotsView: View {
             }
             .refreshable {
                 await viewModel.refresh()
-            }
-            .task {
-                await viewModel.startAutoRefresh()
             }
         }
     }

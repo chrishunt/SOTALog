@@ -7,6 +7,7 @@ struct QSOEntryView: View {
     @Binding var pendingSpot: Spot?
     let onSave: (QSO) -> Void
 
+    @Environment(SpotsViewModel.self) private var spotsViewModel
     @State private var viewModel: QSOEntryViewModel
     @FocusState private var focusedField: Field?
 
@@ -55,6 +56,7 @@ struct QSOEntryView: View {
         .padding(.horizontal)
         .padding(.vertical, 8)
         .onAppear {
+            viewModel.spotLookup = spotsViewModel.spotForCallsign
             focusedField = .callsign
         }
         .onChange(of: editingQSO) { _, newValue in
