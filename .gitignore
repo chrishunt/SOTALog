@@ -1,19 +1,10 @@
-# Xcode
-SOTALog/SOTALog.xcodeproj/xcuserdata/
-SOTALog/SOTALog.xcodeproj/project.xcworkspace/xcuserdata/
-SOTALog/SOTALog.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
-
-# Build
-SOTALog/.build/
+# Build artifacts
 SOTALog/build/
-DerivedData/
-*.xcresult
+SOTALog/.build/
 
-# SPM
-SOTALog/.swiftpm/
+# Xcode user state
+*.xcuserdata
+xcuserdata/
 
 # macOS
 .DS_Store
-
-# Claude
-.claude/
