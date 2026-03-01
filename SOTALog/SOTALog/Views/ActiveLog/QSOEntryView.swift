@@ -9,6 +9,7 @@ struct QSOEntryView: View {
 
     @Environment(SpotsViewModel.self) private var spotsViewModel
     @State private var viewModel: QSOEntryViewModel
+    @State private var qrzService: QRZLookupService
     @FocusState private var focusedField: Field?
 
     enum Field: Hashable {
@@ -22,6 +23,8 @@ struct QSOEntryView: View {
         self._pendingSpot = pendingSpot
         self.onSave = onSave
         self._viewModel = State(initialValue: QSOEntryViewModel(database: database, log: log))
+        let historyRepo = CallsignHistoryRepository(database: database)
+        self._qrzService = State(initialValue: QRZLookupService(historyRepo: historyRepo))
     }
 
     var body: some View {
@@ -57,6 +60,7 @@ struct QSOEntryView: View {
         .padding(.vertical, 8)
         .onAppear {
             viewModel.spotLookup = spotsViewModel.spotForCallsign
+            viewModel.qrzLookup = qrzService
             focusedField = .callsign
         }
         .onChange(of: editingQSO) { _, newValue in
@@ -191,7 +195,7 @@ struct QSOEntryView: View {
                         }
                     }
             }
-            .layoutPriority(-1)
+            .frame(width: 80)
         }
     }
 

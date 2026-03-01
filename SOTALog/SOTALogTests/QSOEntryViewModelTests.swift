@@ -336,7 +336,70 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         try await Task.sleep(for: .milliseconds(500))
 
-        XCTAssertEqual(vm.qth, "England")
+        XCTAssertEqual(vm.qth, "GBR")
+    }
+
+    func testSpotLookupPopulatesFrequency() async throws {
+        let vm = makeVM()
+        vm.spotLookup = { call in
+            guard call == "K3ABC" else { return nil }
+            return makeSpot(callsign: "K3ABC", frequency: 7.030, potaReference: "US-0001")
+        }
+
+        vm.entryText = "K3ABC"
+        vm.callsignChanged()
+
+        try await Task.sleep(for: .milliseconds(500))
+
+        XCTAssertEqual(vm.frequencyText, "7.030")
+        XCTAssertEqual(vm.potaRefInput, "US0001")
+    }
+
+    func testSpotFrequencyRespectsManualOverride() async throws {
+        let vm = makeVM()
+        vm.frequencyText = "14.060"
+        vm.markManualOverride("frequency")
+
+        vm.spotLookup = { call in
+            guard call == "K3ABC" else { return nil }
+            return makeSpot(callsign: "K3ABC", frequency: 7.030)
+        }
+
+        vm.entryText = "K3ABC"
+        vm.callsignChanged()
+
+        try await Task.sleep(for: .milliseconds(500))
+
+        XCTAssertEqual(vm.frequencyText, "14.060")
+    }
+
+    func testHistoryDoesNotOverwriteExistingFields() async throws {
+        let historyRepo = CallsignHistoryRepository(database: db)
+        try await historyRepo.recordQSO(callsign: "W1AW", name: "Hiram", qth: "CT", grid: nil)
+
+        let vm = makeVM()
+        vm.name = "Manual Name"
+        vm.entryText = "W1AW"
+        vm.callsignChanged()
+
+        try await Task.sleep(for: .milliseconds(500))
+
+        // History is LOW authority — should not overwrite non-empty name
+        XCTAssertEqual(vm.name, "Manual Name")
+        XCTAssertEqual(vm.timesWorked, 1)
+    }
+
+    func testSavePassesGridToHistory() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        vm.name = "Hiram"
+        vm.qth = "CT"
+
+        await vm.saveQSO()
+
+        let historyRepo = CallsignHistoryRepository(database: db)
+        let history = try await historyRepo.fetch(callsign: "W1AW")
+        XCTAssertEqual(history?.timesWorked, 1)
     }
 
     func testShortCallsignClearsLookup() async throws {

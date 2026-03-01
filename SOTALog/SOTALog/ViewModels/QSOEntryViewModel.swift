@@ -45,8 +45,10 @@ final class QSOEntryViewModel {
     }
 
     var spotLookup: ((String) -> Spot?)?
+    var qrzLookup: QRZLookupService?
 
     private var lookupTask: Task<Void, Never>?
+    private var grid: String?
 
     init(database: AppDatabase, log: Log) {
         self.database = database
@@ -103,46 +105,84 @@ final class QSOEntryViewModel {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
 
-            // Step 1: CallsignHistory (instant, local)
-            if let history = try? await historyRepo.fetch(callsign: call) {
-                await MainActor.run {
-                    timesWorked = history.timesWorked
-                    if let n = history.name, !n.isEmpty, name.isEmpty { name = n }
-                    if let q = history.qth, !q.isEmpty, qth.isEmpty { qth = q }
-                }
-            } else {
-                await MainActor.run {
-                    timesWorked = 0
-                }
+            // All sources fire in parallel
+            async let local: Void = resolveLocal(call)
+            async let qrz: Void = resolveQRZ(call)
+            async let spot: Void = resolveSpotData(call)
+            _ = await (local, qrz, spot)
+        }
+    }
+
+    // MARK: - Lookup Sources
+
+    /// History + prefix resolver — LOW authority, only fills empty fields
+    private func resolveLocal(_ call: String) async {
+        if let history = try? await historyRepo.fetch(callsign: call) {
+            await MainActor.run {
+                timesWorked = history.timesWorked
+                if let n = history.name, !n.isEmpty, name.isEmpty { name = n }
+                if let q = history.qth, !q.isEmpty, qth.isEmpty { qth = q }
+                if let g = history.grid, !g.isEmpty, grid == nil { grid = g }
             }
-
-            guard !Task.isCancelled else { return }
-
-            // Step 3: CallsignPrefixResolver (instant, bundled)
-            if qth.isEmpty {
-                if let resolved = CallsignPrefixResolver.resolve(call) {
-                    await MainActor.run {
-                        if qth.isEmpty { qth = resolved }
-                    }
-                }
+        } else {
+            await MainActor.run {
+                timesWorked = 0
             }
+        }
 
-            guard !Task.isCancelled else { return }
+        guard !Task.isCancelled else { return }
 
-            // Step 4: Spot lookup (auto-populate references)
-            if let spot = spotLookup?(call) {
-                await MainActor.run {
-                    if log.isPOTA, let ref = spot.potaReference,
-                       !manualOverrides.contains("potaRef"), potaRefInput.isEmpty {
-                        potaRefInput = POTAPark.normalize(ref)
-                        validatePOTARef()
-                    }
-                    if log.isSOTA, let ref = spot.sotaReference,
-                       !manualOverrides.contains("sotaRef"), sotaRefInput.isEmpty {
-                        sotaRefInput = SOTASummit.normalize(ref)
-                        validateSOTARef()
-                    }
-                }
+        // LOWEST authority — only fills empty qth
+        if let resolved = CallsignPrefixResolver.resolve(call) {
+            await MainActor.run {
+                if qth.isEmpty { qth = resolved }
+            }
+        }
+    }
+
+    /// QRZ network lookup — HIGH authority, overwrites non-manual fields
+    private func resolveQRZ(_ call: String) async {
+        guard let result = await qrzLookup?.lookup(call) else { return }
+        guard !Task.isCancelled else { return }
+
+        let normalizedQTH: String?
+        if let state = result.state, !state.isEmpty {
+            normalizedQTH = state
+        } else if let country = result.country {
+            normalizedQTH = CallsignPrefixResolver.abbreviate(country)
+        } else {
+            normalizedQTH = nil
+        }
+
+        await MainActor.run {
+            if let n = result.name, !n.isEmpty, !manualOverrides.contains("name") {
+                name = n
+            }
+            if let q = normalizedQTH, !q.isEmpty, !manualOverrides.contains("qth") {
+                qth = q
+            }
+            if let g = result.grid, !g.isEmpty {
+                grid = g
+            }
+        }
+    }
+
+    /// Spot lookup — populates frequency and references
+    private func resolveSpotData(_ call: String) async {
+        guard let spot = spotLookup?(call) else { return }
+        await MainActor.run {
+            if !manualOverrides.contains("frequency") {
+                frequencyText = String(format: "%.3f", spot.frequency)
+            }
+            if log.isPOTA, let ref = spot.potaReference,
+               !manualOverrides.contains("potaRef"), potaRefInput.isEmpty {
+                potaRefInput = POTAPark.normalize(ref)
+                validatePOTARef()
+            }
+            if log.isSOTA, let ref = spot.sotaReference,
+               !manualOverrides.contains("sotaRef"), sotaRefInput.isEmpty {
+                sotaRefInput = SOTASummit.normalize(ref)
+                validateSOTARef()
             }
         }
     }
@@ -234,6 +274,8 @@ final class QSOEntryViewModel {
         let frequency = Double(frequencyText)
         let band = frequency.flatMap { BandPlan.band(for: $0) } ?? "20m"
 
+        let resolvedGrid = grid
+
         var qso: QSO
         if let editing = editingQSO {
             // Update existing QSO — preserve id, date, and timeOn
@@ -250,6 +292,7 @@ final class QSOEntryViewModel {
                 rstReceived: rstReceived,
                 name: name.isEmpty ? nil : name,
                 qth: qth.isEmpty ? nil : qth,
+                grid: resolvedGrid,
                 sotaRef: sotaRefValid ? sotaRefFormatted : nil,
                 potaRef: potaRefValid ? potaRefFormatted : nil,
                 qrzLogId: editing.qrzLogId,
@@ -270,6 +313,7 @@ final class QSOEntryViewModel {
                 rstReceived: rstReceived,
                 name: name.isEmpty ? nil : name,
                 qth: qth.isEmpty ? nil : qth,
+                grid: resolvedGrid,
                 sotaRef: sotaRefValid ? sotaRefFormatted : nil,
                 potaRef: potaRefValid ? potaRefFormatted : nil
             )
@@ -285,7 +329,7 @@ final class QSOEntryViewModel {
                     callsign: qso.callsign,
                     name: qso.name,
                     qth: qso.qth,
-                    grid: nil
+                    grid: resolvedGrid
                 )
             } catch {
                 AppLog.database.error("Failed to record callsign history: \(error)")
@@ -328,6 +372,7 @@ final class QSOEntryViewModel {
         timesWorked = 0
         name = ""
         qth = ""
+        grid = nil
     }
 
     private func clearFieldsForNextQSO() {
@@ -344,6 +389,7 @@ final class QSOEntryViewModel {
         sotaRefFormatted = nil
         sotaRefValid = false
         timesWorked = 0
+        grid = nil
         manualOverrides = []
         // frequency persists between QSOs
     }
