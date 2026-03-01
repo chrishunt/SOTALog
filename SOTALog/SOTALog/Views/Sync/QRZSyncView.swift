@@ -86,16 +86,24 @@ struct QRZSyncView: View {
                         if viewModel.isDownloading {
                             HStack {
                                 ProgressView()
-                                Text("Downloading...")
+                                Text(viewModel.downloadProgress.map { "Downloading... \($0)" } ?? "Downloading...")
                             }
                         } else {
                             Label("Check for new QSOs", systemImage: "arrow.down.circle")
                         }
                     }
-                    .disabled(viewModel.isDownloading)
+                    .disabled(viewModel.isDownloading || viewModel.isUploading)
 
-                    if let count = viewModel.downloadedCount {
-                        Text("Found \(count) new QSOs")
+                    Button(role: .destructive) {
+                        Task { await viewModel.resetSync() }
+                    } label: {
+                        Label("Re-download All", systemImage: "arrow.counterclockwise")
+                    }
+                    .disabled(viewModel.isDownloading || viewModel.isUploading)
+
+                    if let date = viewModel.lastSyncDate {
+                        Text("Last synced: \(date.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }

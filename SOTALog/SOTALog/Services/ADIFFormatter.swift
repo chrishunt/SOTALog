@@ -153,7 +153,7 @@ enum ADIFFormatter {
     }
 
     /// Converts parsed ADIF fields into a QSO record.
-    static func qsoFromFields(_ fields: [String: String], logId: Int64) -> QSO? {
+    static func qsoFromFields(_ fields: [String: String], logId: Int64? = nil) -> QSO? {
         guard let callsign = fields["CALL"],
               let date = fields["QSO_DATE"],
               let timeOn = fields["TIME_ON"] else {

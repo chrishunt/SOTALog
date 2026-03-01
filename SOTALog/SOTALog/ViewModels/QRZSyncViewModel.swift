@@ -13,9 +13,10 @@ final class QRZSyncViewModel {
     var isUploading = false
     var isDownloading = false
     var uploadProgress = 0
-    var downloadedCount: Int?
+    var downloadProgress: String?
     var errorMessage: String?
     var successMessage: String?
+    var lastSyncDate: Date?
     var adifExport: String = ""
 
     // Credential testing
@@ -38,6 +39,7 @@ final class QRZSyncViewModel {
         hasAPIKey = KeychainService.load(key: .qrzAPIKey) != nil
         hasCredentials = KeychainService.load(key: .qrzUsername) != nil
         unsyncedCount = (try? await qsoRepo.fetchUnsynced().count) ?? 0
+        lastSyncDate = try? await qsoRepo.lastSyncDate()
         await refreshADIF()
     }
 
@@ -124,7 +126,7 @@ final class QRZSyncViewModel {
             })
 
             for qso in unsynced {
-                let log = logMap[qso.logId]
+                let log = qso.logId.flatMap { logMap[$0] }
                 let adif = ADIFFormatter.encode(qso: qso, log: log)
 
                 if let qrzLogId = try await QRZLogbookService.uploadQSO(apiKey: apiKey, adifRecord: adif) {
@@ -153,67 +155,133 @@ final class QRZSyncViewModel {
         guard let apiKey = KeychainService.load(key: .qrzAPIKey) else { return }
 
         isDownloading = true
-        downloadedCount = nil
+        downloadProgress = nil
         errorMessage = nil
         successMessage = nil
 
         do {
-            // For downloads, we need a log to attach them to
-            // Create or find a "QRZ Import" log
-            var importLog: Log
-            let allLogs = try await logRepo.fetchAll()
-            if let existing = allLogs.first(where: { $0.notes == "QRZ Import" }) {
-                importLog = existing
-            } else {
-                importLog = Log(
-                    date: Date().adifDate,
-                    myCallsign: KeychainService.load(key: .myCallsign) ?? "IMPORT",
-                    notes: "QRZ Import"
-                )
-                try await logRepo.save(&importLog)
-            }
-
-            guard let logId = importLog.id else { return }
-
-            var afterLogId: Int64 = 0
-            var totalImported = 0
+            var afterLogId = try await qsoRepo.lastSyncedQRZLogId()
+            var totalNew = 0
+            var totalUpdated = 0
+            var totalChecked = 0
+            var maxLogId = afterLogId
 
             while true {
                 let result = try await QRZLogbookService.downloadQSOs(apiKey: apiKey, afterLogId: afterLogId)
                 let records = ADIFFormatter.decode(result.adif)
 
-                var maxLogId = afterLogId
                 for fields in records {
-                    if let logIdStr = fields["APP_QRZ_LOGID"], let qrzLogId = Int64(logIdStr) {
-                        maxLogId = max(maxLogId, qrzLogId)
-                        if try await qsoRepo.existsWithQRZLogId(qrzLogId) {
-                            continue
-                        }
+                    totalChecked += 1
+                    downloadProgress = "\(totalChecked) checked, \(totalNew) new, \(totalUpdated) updated"
+
+                    guard let qrzLogIdStr = fields["APP_QRZ_LOGID"],
+                          let qrzLogId = Int64(qrzLogIdStr) else { continue }
+
+                    maxLogId = max(maxLogId, qrzLogId)
+
+                    guard var incoming = ADIFFormatter.qsoFromFields(fields) else { continue }
+                    incoming.syncedToQRZ = true
+                    incoming.qrzLogId = qrzLogId
+
+                    // Tier 1: Exact match by qrzLogId
+                    if var existing = try await qsoRepo.fetchByQRZLogId(qrzLogId) {
+                        existing.callsign = incoming.callsign
+                        existing.date = incoming.date
+                        existing.timeOn = incoming.timeOn
+                        existing.frequency = incoming.frequency
+                        existing.band = incoming.band
+                        existing.mode = incoming.mode
+                        existing.rstSent = incoming.rstSent
+                        existing.rstReceived = incoming.rstReceived
+                        existing.name = incoming.name
+                        existing.qth = incoming.qth
+                        existing.grid = incoming.grid
+                        existing.sotaRef = incoming.sotaRef
+                        existing.potaRef = incoming.potaRef
+                        existing.notes = incoming.notes
+                        existing.syncedToQRZ = true
+                        try await qsoRepo.save(&existing)
+                        totalUpdated += 1
+                        continue
                     }
 
-                    if var qso = ADIFFormatter.qsoFromFields(fields, logId: logId) {
-                        qso.syncedToQRZ = true
-                        if let logIdStr = fields["APP_QRZ_LOGID"] {
-                            qso.qrzLogId = Int64(logIdStr)
-                        }
-                        try await qsoRepo.save(&qso)
-                        totalImported += 1
+                    // Tier 2: Semantic match (callsign + band + date + timeOn ±5 min)
+                    if var matched = try await qsoRepo.findSemanticMatch(
+                        callsign: incoming.callsign,
+                        band: incoming.band,
+                        date: incoming.date,
+                        timeOn: incoming.timeOn
+                    ) {
+                        matched.qrzLogId = qrzLogId
+                        matched.frequency = incoming.frequency ?? matched.frequency
+                        matched.name = incoming.name ?? matched.name
+                        matched.qth = incoming.qth ?? matched.qth
+                        matched.grid = incoming.grid ?? matched.grid
+                        matched.sotaRef = incoming.sotaRef ?? matched.sotaRef
+                        matched.potaRef = incoming.potaRef ?? matched.potaRef
+                        matched.notes = incoming.notes ?? matched.notes
+                        matched.syncedToQRZ = true
+                        try await qsoRepo.save(&matched)
+                        totalUpdated += 1
+                        continue
                     }
+
+                    // Tier 3: No match — insert unattached
+                    try await qsoRepo.save(&incoming)
+                    totalNew += 1
                 }
 
-                downloadedCount = totalImported
                 if result.count < 250 { break }
                 afterLogId = maxLogId
             }
 
-            successMessage = "Imported \(totalImported) new QSOs"
+            // Persist cursor only after full success
+            try await qsoRepo.saveLastSyncedQRZLogId(maxLogId)
+            lastSyncDate = Date()
+
+            if totalNew == 0 && totalUpdated == 0 {
+                successMessage = "Already up to date"
+            } else {
+                var parts: [String] = []
+                if totalNew > 0 { parts.append("\(totalNew) new") }
+                if totalUpdated > 0 { parts.append("\(totalUpdated) updated") }
+                successMessage = "Imported \(parts.joined(separator: ", ")) QSOs"
+            }
+
+            unsyncedCount = (try? await qsoRepo.fetchUnsynced().count) ?? 0
             await refreshADIF()
         } catch {
             AppLog.sync.error("Download failed: \(error)")
             errorMessage = error.localizedDescription
         }
 
+        downloadProgress = nil
         isDownloading = false
+    }
+
+    // MARK: - Reset
+
+    func resetSync() async {
+        isDownloading = true
+        downloadProgress = nil
+        errorMessage = nil
+        successMessage = nil
+
+        do {
+            try await qsoRepo.deleteAllUnattached()
+            try await qsoRepo.clearAllSyncState()
+            try await qsoRepo.saveLastSyncedQRZLogId(0)
+            lastSyncDate = nil
+        } catch {
+            AppLog.sync.error("Reset failed: \(error)")
+            errorMessage = error.localizedDescription
+            isDownloading = false
+            return
+        }
+
+        // Trigger a fresh download
+        isDownloading = false
+        await downloadNew()
     }
 
     // MARK: - ADIF Export (pre-computed in loadState)

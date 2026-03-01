@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 struct QSOEntryView: View {
@@ -58,6 +59,15 @@ struct QSOEntryView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
+        #if os(iOS)
+        .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { notification in
+            if let textField = notification.object as? UITextField {
+                DispatchQueue.main.async {
+                    textField.selectAll(nil)
+                }
+            }
+        }
+        #endif
         .onAppear {
             viewModel.spotLookup = spotsViewModel.spotForCallsign
             viewModel.qrzLookup = qrzService
