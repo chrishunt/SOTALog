@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.appDatabase) private var database
     @State private var spotRouter = SpotRouter()
+    @State private var spotsViewModel = SpotsViewModel()
     @State private var selectedTab = 0
 
     var body: some View {
@@ -27,6 +28,8 @@ struct ContentView: View {
                     .tag(2)
             }
             .environment(spotRouter)
+            .environment(spotsViewModel)
+            .task { await spotsViewModel.startAutoRefresh() }
             .onChange(of: spotRouter.pendingSpot) { _, newValue in
                 if newValue != nil {
                     selectedTab = 0
