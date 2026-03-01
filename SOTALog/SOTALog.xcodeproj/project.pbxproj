@@ -28,6 +28,7 @@
 		62584B78191D37BC7F3C98FC /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1164680FD822CB549FBF2785 /* AppDatabase.swift */; };
 		6262199275FB8DBC452028DA /* NewLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EC7F7B0ACA429D66488273 /* NewLogView.swift */; };
 		6269F57C8EBC8BC71C2CF91F /* SOTALogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BE3F3C3C986C1EEF0DF930 /* SOTALogTests.swift */; };
+		7A30847B75520EA883A60C5C /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4266BF0A296CC64D2A95BE5 /* AppLog.swift */; };
 		7A7DD098426D67446D3698D3 /* QRZLogbookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1296CEF3FA1AD3680E5651 /* QRZLogbookService.swift */; };
 		8AB642C357671EA021F0D7CC /* QRZSyncViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 025CBED62E6E2183E9969582 /* QRZSyncViewModel.swift */; };
 		8AFA61AA74B703F11030D122 /* QRZSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8565B3F633C46D7384840515 /* QRZSyncView.swift */; };
@@ -117,6 +118,7 @@
 		9B1E56F233DBEBBA1F87E4E2 /* SOTASummit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummit.swift; sourceTree = "<group>"; };
 		9D2F2785E6F2AC0E491F2F08 /* POTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTASpotService.swift; sourceTree = "<group>"; };
 		A1EFB5E0766D441B59BDE42C /* QRZCallsignResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZCallsignResult.swift; sourceTree = "<group>"; };
+		A4266BF0A296CC64D2A95BE5 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		A5E4CDFB3B9728E8D013069E /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		A994A9FFD8DB698FB83594C6 /* CallPrefixes.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CallPrefixes.json; sourceTree = "<group>"; };
 		AD310A8C6A43BFF4883C3707 /* CallsignPrefixResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignPrefixResolver.swift; sourceTree = "<group>"; };
@@ -249,6 +251,7 @@
 			isa = PBXGroup;
 			children = (
 				1164680FD822CB549FBF2785 /* AppDatabase.swift */,
+				A4266BF0A296CC64D2A95BE5 /* AppLog.swift */,
 				4F19C56AAA3C51D233A4CF61 /* SOTALogApp.swift */,
 			);
 			path = App;
@@ -465,6 +468,7 @@
 				5AD435F02D6504F060E3D9CA /* ActiveLogView.swift in Sources */,
 				A8CB0DAAB739D05D117B3A5A /* ActiveLogViewModel.swift in Sources */,
 				62584B78191D37BC7F3C98FC /* AppDatabase.swift in Sources */,
+				7A30847B75520EA883A60C5C /* AppLog.swift in Sources */,
 				15FCD238FFF1E83EBF333ADF /* BandPlan.swift in Sources */,
 				9E9653E9C8C93A1061C5CE62 /* CallsignField.swift in Sources */,
 				A600AFC63E0367C8F477ABFB /* CallsignHistory.swift in Sources */,

@@ -280,12 +280,16 @@ final class QSOEntryViewModel {
             lastSavedQSO = qso
 
             // Update callsign history
-            try? await historyRepo.recordQSO(
-                callsign: qso.callsign,
-                name: qso.name,
-                qth: qso.qth,
-                grid: nil
-            )
+            do {
+                try await historyRepo.recordQSO(
+                    callsign: qso.callsign,
+                    name: qso.name,
+                    qth: qso.qth,
+                    grid: nil
+                )
+            } catch {
+                AppLog.database.error("Failed to record callsign history: \(error)")
+            }
 
             // Clear fields but keep frequency
             await MainActor.run {
@@ -294,7 +298,7 @@ final class QSOEntryViewModel {
                 clearFieldsForNextQSO()
             }
         } catch {
-            // TODO: show error
+            AppLog.database.error("Failed to save QSO: \(error)")
         }
     }
 

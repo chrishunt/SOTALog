@@ -4,7 +4,11 @@ struct ContentView: View {
     @Environment(\.appDatabase) private var database
     @State private var spotRouter = SpotRouter()
     @State private var spotsViewModel = SpotsViewModel()
-    @State private var selectedTab = 0
+    @State private var selectedTab = Tab.logs
+
+    enum Tab {
+        case logs, spots, tools
+    }
 
     var body: some View {
         if let db = database {
@@ -13,28 +17,34 @@ struct ContentView: View {
                     .tabItem {
                         Label("Logs", systemImage: "list.bullet.rectangle")
                     }
-                    .tag(0)
+                    .tag(Tab.logs)
 
                 SpotsView(database: db)
                     .tabItem {
                         Label("Spots", systemImage: "antenna.radiowaves.left.and.right")
                     }
-                    .tag(1)
+                    .tag(Tab.spots)
 
                 QRZSyncView(database: db)
                     .tabItem {
-                        Label("Sync", systemImage: "arrow.triangle.2.circlepath")
+                        Label("Tools", systemImage: "wrench.and.screwdriver")
                     }
-                    .tag(2)
+                    .tag(Tab.tools)
             }
             .environment(spotRouter)
             .environment(spotsViewModel)
             .task { await spotsViewModel.startAutoRefresh() }
             .onChange(of: spotRouter.pendingSpot) { _, newValue in
                 if newValue != nil {
-                    selectedTab = 0
+                    selectedTab = .logs
                 }
             }
+        } else {
+            ContentUnavailableView(
+                "Database Error",
+                systemImage: "exclamationmark.triangle",
+                description: Text("Unable to open the database. Try restarting the app.")
+            )
         }
     }
 }

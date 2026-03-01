@@ -19,16 +19,18 @@ struct QSORowView: View {
 
             Spacer()
 
-            if qso.potaRef != nil {
+            if let potaRef = qso.potaRef {
                 Image(systemName: "tree")
                     .font(.caption)
                     .foregroundStyle(.green)
+                    .accessibilityLabel("Park to park \(potaRef)")
             }
 
-            if qso.sotaRef != nil {
+            if let sotaRef = qso.sotaRef {
                 Image(systemName: "mountain.2")
                     .font(.caption)
                     .foregroundStyle(.blue)
+                    .accessibilityLabel("Summit to summit \(sotaRef)")
             }
         }
         .contentShape(Rectangle())

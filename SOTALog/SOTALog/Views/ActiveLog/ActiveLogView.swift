@@ -64,6 +64,15 @@ struct ActiveLogView: View {
 
     private var qsoList: some View {
         List {
+            if viewModel.qsos.isEmpty {
+                Text("Logged contacts appear here")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity)
+                    .listRowSeparator(.hidden)
+                    .padding(.top, 24)
+            }
+
             ForEach(viewModel.qsos) { qso in
                 Button {
                     editingQSO = qso
