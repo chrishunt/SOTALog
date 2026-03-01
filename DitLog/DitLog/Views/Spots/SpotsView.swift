@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpotsView: View {
     let database: AppDatabase
+    @Environment(SpotRouter.self) private var spotRouter
     @State private var viewModel: SpotsViewModel
 
     init(database: AppDatabase) {
@@ -25,8 +26,13 @@ struct SpotsView: View {
                         ForEach(viewModel.spotsByBand, id: \.band) { section in
                             Section(section.band) {
                                 ForEach(section.spots) { spot in
-                                    SpotRowView(spot: spot)
-                                        .listRowBackground(spotBackground(spot))
+                                    Button {
+                                        spotRouter.pendingSpot = spot
+                                    } label: {
+                                        SpotRowView(spot: spot)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
                         }
@@ -53,11 +59,5 @@ struct SpotsView: View {
                 await viewModel.startAutoRefresh()
             }
         }
-    }
-
-    private func spotBackground(_ spot: Spot) -> Color {
-        if spot.isQRT { return Color.red.opacity(0.05) }
-        if spot.isExpired() { return Color.gray.opacity(0.1) }
-        return .clear
     }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0235B177E0B7E1A77F0735E7 /* SpotRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690B1350B3529F19E972997A /* SpotRouter.swift */; };
 		063058F1B6370B682AA240F7 /* SpotsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C99DC52A68FAB765FEB6C9A /* SpotsViewModel.swift */; };
 		0727A9677BCBDBED7AC6A1A3 /* BandPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26E65D3068C76DBCCB2BA79 /* BandPlan.swift */; };
 		0A9F6178CAA479A22F79163D /* SOTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918D692E4ED91047A119F564 /* SOTASpotService.swift */; };
@@ -99,6 +100,7 @@
 		6321A9786E3D57AC124ABFF5 /* DitLogTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DitLogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		656A7B5A24568C74E6C541A3 /* POTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTASpotService.swift; sourceTree = "<group>"; };
 		659D53AC0D59F7E308C8FA93 /* ActiveLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveLogView.swift; sourceTree = "<group>"; };
+		690B1350B3529F19E972997A /* SpotRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRouter.swift; sourceTree = "<group>"; };
 		6C99DC52A68FAB765FEB6C9A /* SpotsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsViewModel.swift; sourceTree = "<group>"; };
 		72D1499B0053C0F731380498 /* QRZXMLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZXMLService.swift; sourceTree = "<group>"; };
 		746A8EE12235B5F34892635C /* CallsignPrefixResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignPrefixResolver.swift; sourceTree = "<group>"; };
@@ -176,6 +178,7 @@
 				BEE4B9D6D3173F509BC8C64A /* ReferenceMetadata.swift */,
 				864F7D3E215CCCE0136BA766 /* SOTASummit.swift */,
 				B8A4E92DA231E4DF03BE39CA /* Spot.swift */,
+				690B1350B3529F19E972997A /* SpotRouter.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -514,6 +517,7 @@
 				74687078132E6F61ACCAED36 /* SOTASummit.swift in Sources */,
 				C38AA3FBD6D9C798D0B45D66 /* SOTASummitService.swift in Sources */,
 				B93A9418EBB8DCB723994198 /* Spot.swift in Sources */,
+				0235B177E0B7E1A77F0735E7 /* SpotRouter.swift in Sources */,
 				72A21599F6D1D8345CCAFD26 /* SpotRowView.swift in Sources */,
 				B93DB62CC5EBCD00DD9D6E48 /* SpotsView.swift in Sources */,
 				063058F1B6370B682AA240F7 /* SpotsViewModel.swift in Sources */,

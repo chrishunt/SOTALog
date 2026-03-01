@@ -41,6 +41,7 @@ struct QSORowView: View {
                     .foregroundStyle(.blue)
             }
         }
+        .contentShape(Rectangle())
         .padding(.vertical, 2)
     }
 }

@@ -8,8 +8,6 @@ struct SpotRowView: View {
             HStack {
                 Text(spot.activatorCallsign)
                     .font(.headline.monospaced())
-                    .strikethrough(spot.isQRT)
-                    .opacity(spot.isExpired() ? 0.5 : 1.0)
 
                 Spacer()
 
@@ -28,15 +26,6 @@ struct SpotRowView: View {
                 referenceInfo
 
                 Spacer()
-
-                if spot.isQRT {
-                    Text("QRT")
-                        .font(.caption2.bold())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.red, in: Capsule())
-                }
 
                 Text("\(spot.timestamp.utcTimeDisplay) (\(spot.ageMinutes)m)")
                     .font(.caption2)

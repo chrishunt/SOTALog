@@ -14,7 +14,7 @@ final class SpotsViewModel {
 
     /// Spots consolidated (one per callsign), grouped by band, sorted by frequency then time.
     var spotsByBand: [(band: String, spots: [Spot])] {
-        let consolidated = consolidatedSpots(spots)
+        let consolidated = consolidatedSpots(spots).filter { !$0.isQRT && !$0.isExpired() }
 
         let filtered: [Spot]
         switch sourceFilter {
@@ -29,10 +29,9 @@ final class SpotsViewModel {
             grouped[spot.band, default: []].append(spot)
         }
 
-        // Sort spots within each band: non-QRT first, then frequency ascending, then time descending
+        // Sort spots within each band by frequency ascending, then newest first
         for (band, bandSpots) in grouped {
             grouped[band] = bandSpots.sorted { a, b in
-                if a.isQRT != b.isQRT { return !a.isQRT }
                 if a.frequency != b.frequency { return a.frequency < b.frequency }
                 return a.timestamp > b.timestamp
             }

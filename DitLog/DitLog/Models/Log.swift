@@ -46,29 +46,12 @@ struct Log: Codable, Identifiable, Equatable, Hashable {
     /// Whether this activation is a SOTA activation
     var isSOTA: Bool { sotaReference != nil }
 
-    /// Display name for the activation reference
+    /// Display name for the activation reference (shows both for dual activations)
     var referenceDisplay: String? {
-        if let ref = potaReference {
-            return parkName.map { "\(ref) \($0)" } ?? ref
-        }
-        if let ref = sotaReference {
-            return summitName.map { "\(ref) \($0)" } ?? ref
-        }
-        return nil
-    }
-
-    /// The activation threshold for this log type
-    var activationThreshold: Int {
-        if isSOTA { return 4 }
-        if isPOTA { return 10 }
-        return 0
-    }
-
-    /// Label for the threshold display
-    var thresholdLabel: String {
-        if isSOTA { return "SOTA" }
-        if isPOTA { return "POTA" }
-        return ""
+        var parts: [String] = []
+        if let ref = potaReference { parts.append(ref) }
+        if let ref = sotaReference { parts.append(ref) }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 }
 

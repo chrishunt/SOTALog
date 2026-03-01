@@ -4,6 +4,7 @@ struct QSOEntryView: View {
     let database: AppDatabase
     let log: Log
     @Binding var editingQSO: QSO?
+    @Binding var pendingSpot: Spot?
     let onSave: (QSO) -> Void
 
     @State private var viewModel: QSOEntryViewModel
@@ -13,10 +14,11 @@ struct QSOEntryView: View {
         case callsign, frequency, name, qth, sotaRef, potaRef
     }
 
-    init(database: AppDatabase, log: Log, editingQSO: Binding<QSO?>, onSave: @escaping (QSO) -> Void) {
+    init(database: AppDatabase, log: Log, editingQSO: Binding<QSO?>, pendingSpot: Binding<Spot?>, onSave: @escaping (QSO) -> Void) {
         self.database = database
         self.log = log
         self._editingQSO = editingQSO
+        self._pendingSpot = pendingSpot
         self.onSave = onSave
         self._viewModel = State(initialValue: QSOEntryViewModel(database: database, log: log))
     }
@@ -58,6 +60,13 @@ struct QSOEntryView: View {
         .onChange(of: editingQSO) { _, newValue in
             if let qso = newValue {
                 viewModel.loadForEditing(qso)
+                focusedField = .callsign
+            }
+        }
+        .onChange(of: pendingSpot) { _, newValue in
+            if let spot = newValue {
+                viewModel.prefillFromSpot(spot)
+                pendingSpot = nil
                 focusedField = .callsign
             }
         }

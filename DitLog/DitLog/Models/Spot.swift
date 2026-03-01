@@ -61,8 +61,8 @@ struct Spot: Identifiable, Equatable {
         BandPlan.band(for: frequency) ?? "?"
     }
 
-    /// Age of the spot in minutes
+    /// Age of the spot in minutes (minimum 1 — a visible spot is never truly 0m old)
     var ageMinutes: Int {
-        Int(Date().timeIntervalSince(timestamp) / 60)
+        max(1, Int(Date().timeIntervalSince(timestamp) / 60))
     }
 }
