@@ -41,15 +41,11 @@ struct QSOEntryView: View {
             // Name + QTH row
             nameQTHRow
 
-            // P2P field (only if at a park)
-            if log.isPOTA {
-                p2pRow
-            }
+            // Other station's park reference
+            p2pRow
 
-            // S2S field (only if at a summit)
-            if log.isSOTA {
-                s2sRow
-            }
+            // Other station's summit reference
+            s2sRow
 
             // Callsign omnibox — dominant element, directly above keyboard
             callsignRow
@@ -208,11 +204,7 @@ struct QSOEntryView: View {
 
     private var p2pRow: some View {
         HStack {
-            Text("P2P")
-                .font(.callout.bold())
-                .foregroundStyle(.secondary)
-
-            TextField("Park (e.g. US4431)", text: $viewModel.potaRefInput)
+            TextField(log.isPOTA ? "P2P Park (e.g. US4431)" : "Their Park (e.g. US4431)", text: $viewModel.potaRefInput)
                 .textContentType(.none)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
@@ -254,11 +246,7 @@ struct QSOEntryView: View {
 
     private var s2sRow: some View {
         HStack {
-            Text("S2S")
-                .font(.callout.bold())
-                .foregroundStyle(.secondary)
-
-            TextField("Summit (e.g. W4CCM001)", text: $viewModel.sotaRefInput)
+            TextField(log.isSOTA ? "S2S Summit (e.g. W4CCM001)" : "Their Summit (e.g. W4CCM001)", text: $viewModel.sotaRefInput)
                 .textContentType(.none)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()

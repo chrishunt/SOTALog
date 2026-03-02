@@ -186,15 +186,12 @@ final class QSOEntryViewModel {
     private func resolveSpotData(_ call: String) async {
         guard let spot = spotLookup?(call) else { return }
         await MainActor.run {
-            if !manualOverrides.contains("frequency") {
-                frequencyText = String(format: "%.3f", spot.frequency)
-            }
-            if log.isPOTA, let ref = spot.potaReference,
+            if let ref = spot.potaReference,
                !manualOverrides.contains("potaRef"), potaRefInput.isEmpty {
                 potaRefInput = POTAPark.normalize(ref)
                 validatePOTARef()
             }
-            if log.isSOTA, let ref = spot.sotaReference,
+            if let ref = spot.sotaReference,
                !manualOverrides.contains("sotaRef"), sotaRefInput.isEmpty {
                 sotaRefInput = SOTASummit.normalize(ref)
                 validateSOTARef()

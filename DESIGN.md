@@ -47,7 +47,7 @@ The operator is sitting on a cold summit or crouched at a picnic table in a park
 
 3. **Sensible defaults** — Frequency persists from the previous QSO (you're on the same frequency). RST defaults to 599. Band is derived from frequency. Date and time are stamped at save.
 
-4. **Contextual fields** — P2P (park-to-park) row only shows during POTA activations. S2S (summit-to-summit) row only shows during SOTA activations. Don't show fields that aren't relevant.
+4. **Contextual fields** — Park and Summit reference rows always show, since the other station may be at a park or summit regardless of your activation type. Labels adapt: "P2P Park" during POTA activations, "Their Park" otherwise; "S2S Summit" during SOTA activations, "Their Summit" otherwise.
 
 5. **Save** — Keyboard Send from any field. Haptic fires. Fields clear. Focus returns to callsign. Frequency is preserved. The operator is immediately ready for the next contact.
 
