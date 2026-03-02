@@ -98,6 +98,16 @@ struct QSORepository {
         }
     }
 
+    /// Count all QSOs for a callsign on a given date (any log, including unattached)
+    func countForCallsignOnDate(_ callsign: String, date: String) async throws -> Int {
+        try await database.dbWriter.read { db in
+            try Int.fetchOne(db, sql: """
+                SELECT COUNT(*) FROM qso
+                WHERE callsign = ? AND date = ?
+                """, arguments: [callsign, date]) ?? 0
+        }
+    }
+
     /// Delete all unattached QSOs (logId IS NULL)
     func deleteAllUnattached() async throws {
         try await database.dbWriter.write { db in

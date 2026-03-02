@@ -133,6 +133,7 @@ struct QSOEntryView: View {
         CallsignField(
             text: $viewModel.entryText,
             timesWorked: viewModel.timesWorked,
+            workedToday: viewModel.workedToday,
             sanitizer: { $0.sanitizedOmnifield }
         )
         .focused($focusedField, equals: .callsign)

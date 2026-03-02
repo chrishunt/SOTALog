@@ -35,6 +35,7 @@ final class QSOEntryViewModel {
 
     // Lookup state
     var timesWorked: Int = 0
+    var workedToday: Int = 0
     var lastSavedQSO: QSO?
     var saveCount: Int = 0
 
@@ -120,7 +121,8 @@ final class QSOEntryViewModel {
             async let local: Void = resolveLocal(call)
             async let qrz: Void = resolveQRZ(call)
             async let spot: Void = resolveSpotData(call)
-            _ = await (local, qrz, spot)
+            async let today: Void = resolveWorkedToday(call)
+            _ = await (local, qrz, spot, today)
         }
     }
 
@@ -195,6 +197,16 @@ final class QSOEntryViewModel {
                 sotaRefInput = SOTASummit.normalize(ref)
                 validateSOTARef()
             }
+        }
+    }
+
+    /// How many times this callsign appears in any QSO today (all logs + unattached)
+    private func resolveWorkedToday(_ call: String) async {
+        let today = Date().adifDate
+        let count = (try? await qsoRepo.countForCallsignOnDate(call, date: today)) ?? 0
+        guard !Task.isCancelled else { return }
+        await MainActor.run {
+            workedToday = count
         }
     }
 
@@ -392,6 +404,7 @@ final class QSOEntryViewModel {
         sotaRefFormatted = nil
         sotaRefValid = false
         timesWorked = 0
+        workedToday = 0
         grid = nil
         manualOverrides = []
         // frequency persists between QSOs
@@ -399,6 +412,7 @@ final class QSOEntryViewModel {
 
     private func clearLookupFields() {
         timesWorked = 0
+        workedToday = 0
         name = ""
         qth = ""
         grid = nil
@@ -418,6 +432,7 @@ final class QSOEntryViewModel {
         sotaRefFormatted = nil
         sotaRefValid = false
         timesWorked = 0
+        workedToday = 0
         grid = nil
         manualOverrides = []
         // frequency persists between QSOs
