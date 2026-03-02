@@ -21,7 +21,7 @@ struct CallsignField: View {
 
     var body: some View {
         HStack {
-            TextField("CALLSIGN", text: $text)
+            TextField("W1AW 59 59 CA W6SD133", text: $text)
                 .font(.system(size: max(fontSize, 44), weight: .bold, design: .monospaced))
                 .foregroundStyle(Color.appTextPrimary)
                 .minimumScaleFactor(0.6)

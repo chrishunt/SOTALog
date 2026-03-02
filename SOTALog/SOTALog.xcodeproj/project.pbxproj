@@ -21,6 +21,7 @@
 		274E5B921756A30E83925A34 /* SyncImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F759C6D173DACA136AB14AE1 /* SyncImporterTests.swift */; };
 		352EFF0FDFBC50BD0E37167D /* ADIFFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D9EAAEFE88C5722AEB3DDF /* ADIFFormatter.swift */; };
 		355CB528D730A23D7F18FFDF /* SOTASummit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1E56F233DBEBBA1F87E4E2 /* SOTASummit.swift */; };
+		382766C60A6B8E257DD7AD48 /* MetadataStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2220B6EA473F41D18C821368 /* MetadataStrip.swift */; };
 		40E28C6FA185AF2703E4177B /* POTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2F2785E6F2AC0E491F2F08 /* POTASpotService.swift */; };
 		465D9912F46AE61BBF04DC49 /* NumberKeyRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1282C3A8871D73E842E74FBB /* NumberKeyRow.swift */; };
 		4943BC7245C8E868920E22A8 /* ReferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E509603AB3965292400E7ECB /* ReferenceRepository.swift */; };
@@ -104,6 +105,7 @@
 		19AE2C7FED08C032565C93F1 /* QSOEntryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSOEntryViewModelTests.swift; sourceTree = "<group>"; };
 		2109A78A0125A9C5642F3983 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2147B1EE2BF76717A81C2A73 /* QRZLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLoginView.swift; sourceTree = "<group>"; };
+		2220B6EA473F41D18C821368 /* MetadataStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataStrip.swift; sourceTree = "<group>"; };
 		26180B1539A33ED3751C8038 /* LogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRepository.swift; sourceTree = "<group>"; };
 		276873C316FE8259B1240F70 /* Date+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Formatting.swift"; sourceTree = "<group>"; };
 		2A082D27F6F1343A8E4B9B8C /* LogListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogListView.swift; sourceTree = "<group>"; };
@@ -246,6 +248,7 @@
 			children = (
 				F862FE197B64B0016382DF6A /* ActivationStatusView.swift */,
 				FF57CB92C22800727995AF0F /* CallsignField.swift */,
+				2220B6EA473F41D18C821368 /* MetadataStrip.swift */,
 				1282C3A8871D73E842E74FBB /* NumberKeyRow.swift */,
 				F8F3DBE8648806AE711D1149 /* RSTField.swift */,
 			);
@@ -528,6 +531,7 @@
 				0913A27CF8E446091B33974C /* LogRepository.swift in Sources */,
 				D67D8D836A41E7D0E0F4B210 /* LogRowView.swift in Sources */,
 				E56CB67EB62F1F699C01AD5E /* MaidenheadConverter.swift in Sources */,
+				382766C60A6B8E257DD7AD48 /* MetadataStrip.swift in Sources */,
 				6262199275FB8DBC452028DA /* NewLogView.swift in Sources */,
 				967EAEA58A46C0C22DB21533 /* NewLogViewModel.swift in Sources */,
 				465D9912F46AE61BBF04DC49 /* NumberKeyRow.swift in Sources */,

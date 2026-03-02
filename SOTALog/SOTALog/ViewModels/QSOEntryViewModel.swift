@@ -91,6 +91,39 @@ final class QSOEntryViewModel {
             markManualOverride("sotaRef")
             validateSOTARef()
         }
+
+        consumeTokens(parsed)
+    }
+
+    /// Strip consumed tokens (frequency, QTH, park ref, summit ref) from entryText
+    /// once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
+    private func consumeTokens(_ parsed: ParsedEntry) {
+        let tokens = parsed.tokens
+        guard tokens.count > 1 else { return }
+
+        let endsWithSpace = entryText.hasSuffix(" ")
+
+        var kept: [String] = []
+        for (index, classified) in tokens.enumerated() {
+            let isLast = index == tokens.count - 1
+            let isConfirmed = !isLast || endsWithSpace
+
+            switch classified.kind {
+            case .callsign, .rst, .unrecognized:
+                kept.append(classified.text)
+            case .frequency, .qth, .potaRef, .sotaRef:
+                if !isConfirmed {
+                    kept.append(classified.text)
+                }
+            }
+        }
+
+        var rebuilt = kept.joined(separator: " ")
+        if endsWithSpace { rebuilt += " " }
+
+        if rebuilt != entryText {
+            entryText = rebuilt
+        }
     }
 
     func markManualOverride(_ field: String) {
