@@ -18,6 +18,19 @@ struct QSORowView: View {
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary)
 
+            if let qth = qso.qth, !qth.isEmpty {
+                Text(qth)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let name = qso.name, !name.isEmpty {
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
             Spacer()
 
             if let potaRef = qso.potaRef {

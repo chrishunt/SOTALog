@@ -27,7 +27,11 @@ struct LogListView: View {
                     List {
                         ForEach(viewModel.logs) { log in
                             NavigationLink(value: log) {
-                                LogRowView(log: log, qsoCount: viewModel.qsoCounts[log.id ?? 0] ?? 0)
+                                LogRowView(
+                                    log: log,
+                                    qsoCount: viewModel.qsoCounts[log.id ?? 0] ?? 0,
+                                    bands: viewModel.bandsByLog[log.id ?? 0] ?? []
+                                )
                             }
                             .listRowBackground(Color.clear)
                         }
