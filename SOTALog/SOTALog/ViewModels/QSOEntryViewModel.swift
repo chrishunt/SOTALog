@@ -36,6 +36,7 @@ final class QSOEntryViewModel {
     // Lookup state
     var timesWorked: Int = 0
     var workedToday: Int = 0
+    var isDupe: Bool = false
     var lastSavedQSO: QSO?
     var saveCount: Int = 0
 
@@ -122,7 +123,8 @@ final class QSOEntryViewModel {
             async let qrz: Void = resolveQRZ(call)
             async let spot: Void = resolveSpotData(call)
             async let today: Void = resolveWorkedToday(call)
-            _ = await (local, qrz, spot, today)
+            async let dupe: Void = resolveDupe(call)
+            _ = await (local, qrz, spot, today, dupe)
         }
     }
 
@@ -197,6 +199,33 @@ final class QSOEntryViewModel {
                 sotaRefInput = SOTASummit.normalize(ref)
                 validateSOTARef()
             }
+        }
+    }
+
+    /// Check if this callsign+band is a duplicate within the current activation
+    private func resolveDupe(_ call: String) async {
+        guard let logId = log.id else { return }
+        let band = Double(frequencyText).flatMap { BandPlan.band(for: $0) }
+        guard let band else {
+            await MainActor.run { isDupe = false }
+            return
+        }
+        let dupe = (try? await qsoRepo.isDuplicate(
+            callsign: call.uppercased(),
+            band: band,
+            logId: logId,
+            excludingId: editingQSO?.id
+        )) ?? false
+        guard !Task.isCancelled else { return }
+        await MainActor.run { isDupe = dupe }
+    }
+
+    /// Re-check dupe status when frequency (band) changes
+    func frequencyChanged() {
+        let call = parsedCallsign
+        guard call.count >= 3 else { return }
+        Task {
+            await resolveDupe(call)
         }
     }
 
@@ -405,6 +434,7 @@ final class QSOEntryViewModel {
         sotaRefValid = false
         timesWorked = 0
         workedToday = 0
+        isDupe = false
         grid = nil
         manualOverrides = []
         // frequency persists between QSOs
@@ -413,6 +443,7 @@ final class QSOEntryViewModel {
     private func clearLookupFields() {
         timesWorked = 0
         workedToday = 0
+        isDupe = false
         name = ""
         qth = ""
         grid = nil
@@ -433,6 +464,7 @@ final class QSOEntryViewModel {
         sotaRefValid = false
         timesWorked = 0
         workedToday = 0
+        isDupe = false
         grid = nil
         manualOverrides = []
         // frequency persists between QSOs

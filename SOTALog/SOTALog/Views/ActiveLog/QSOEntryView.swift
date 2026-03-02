@@ -134,6 +134,7 @@ struct QSOEntryView: View {
             text: $viewModel.entryText,
             timesWorked: viewModel.timesWorked,
             workedToday: viewModel.workedToday,
+            isDupe: viewModel.isDupe,
             sanitizer: { $0.sanitizedOmnifield }
         )
         .focused($focusedField, equals: .callsign)
@@ -173,6 +174,7 @@ struct QSOEntryView: View {
                     if focusedField == .frequency {
                         viewModel.markManualOverride("frequency")
                     }
+                    viewModel.frequencyChanged()
                 }
         }
     }
