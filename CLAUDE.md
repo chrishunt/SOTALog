@@ -118,6 +118,10 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
 10. In App Store Connect, add "What to Test" notes from the changelog
 11. Verify build appears in TestFlight for beta testers
 
+## Workflow
+
+- After completing a change, always build for the simulator, install, and launch the app so the user can test. Follow the "iOS Simulator build, install, and launch" steps above.
+
 ## Commit Standards
 
 - Short subject lines following standard git conventions

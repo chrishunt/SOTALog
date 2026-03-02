@@ -49,6 +49,7 @@
 		967EAEA58A46C0C22DB21533 /* NewLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B334E220D0F01E18FE2A918 /* NewLogViewModel.swift */; };
 		9A78CD351C544206476BC57E /* SpotsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F10CE560B1CC278BF354031 /* SpotsViewModelTests.swift */; };
 		9E9653E9C8C93A1061C5CE62 /* CallsignField.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF57CB92C22800727995AF0F /* CallsignField.swift */; };
+		9F4B8A91AC4EBD14CA2FEC23 /* ReferenceDownloadRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60642B7DA833062F673FEDAE /* ReferenceDownloadRow.swift */; };
 		A18331906A4110FD6FFC56AF /* CallsignHistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 875D8FD75A8FB9B08FED76DE /* CallsignHistoryRepository.swift */; };
 		A49DEA6B8D1F9048D531E8AC /* CallPrefixes.json in Resources */ = {isa = PBXBuildFile; fileRef = A994A9FFD8DB698FB83594C6 /* CallPrefixes.json */; };
 		A600AFC63E0367C8F477ABFB /* CallsignHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 164D78E44F1B4610746D0EB2 /* CallsignHistory.swift */; };
@@ -124,6 +125,7 @@
 		464F722351D19F7CE9BB99C0 /* MaidenheadConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaidenheadConverter.swift; sourceTree = "<group>"; };
 		4C5DC27A55D0CC129F37F4D7 /* SOTASummitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummitService.swift; sourceTree = "<group>"; };
 		4F19C56AAA3C51D233A4CF61 /* SOTALogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTALogApp.swift; sourceTree = "<group>"; };
+		60642B7DA833062F673FEDAE /* ReferenceDownloadRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceDownloadRow.swift; sourceTree = "<group>"; };
 		65B3EF2E3945E205EAF225D9 /* SOTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASpotService.swift; sourceTree = "<group>"; };
 		65F47BB11F7B3A59DD4E0DAF /* Spot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spot.swift; sourceTree = "<group>"; };
 		6C198756DB82EFF308D1D1BA /* POTAParkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTAParkService.swift; sourceTree = "<group>"; };
@@ -250,6 +252,7 @@
 				FF57CB92C22800727995AF0F /* CallsignField.swift */,
 				2220B6EA473F41D18C821368 /* MetadataStrip.swift */,
 				1282C3A8871D73E842E74FBB /* NumberKeyRow.swift */,
+				60642B7DA833062F673FEDAE /* ReferenceDownloadRow.swift */,
 				F8F3DBE8648806AE711D1149 /* RSTField.swift */,
 			);
 			path = Components;
@@ -552,6 +555,7 @@
 				E8E4D588292B38EB7CA00456 /* QSORepository.swift in Sources */,
 				A6C44D5177C39B3F1BD49913 /* QSORowView.swift in Sources */,
 				B3BE645B29EE8BE06DCD153B /* RSTField.swift in Sources */,
+				9F4B8A91AC4EBD14CA2FEC23 /* ReferenceDownloadRow.swift in Sources */,
 				BA30BA6E3CB871D12CDA4132 /* ReferenceManagerView.swift in Sources */,
 				F41EC452D9247C3DB62C06BE /* ReferenceMetadata.swift in Sources */,
 				4943BC7245C8E868920E22A8 /* ReferenceRepository.swift in Sources */,
