@@ -11,6 +11,7 @@ struct QSORowView: View {
 
             Text(qso.callsign)
                 .font(.body.monospaced().bold())
+                .foregroundStyle(Color.appTextPrimary)
                 .frame(minWidth: 100, alignment: .leading)
 
             Text(qso.band)

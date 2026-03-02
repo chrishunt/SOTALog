@@ -29,6 +29,7 @@ struct SpotsView: View {
                                             .contentShape(Rectangle())
                                     }
                                     .buttonStyle(.plain)
+                                    .listRowBackground(Color.clear)
                                 }
                             } header: {
                                 HStack {
@@ -45,9 +46,15 @@ struct SpotsView: View {
                         }
                     }
                     .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.appBackground)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            #if os(iOS)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Picker("Source", selection: $viewModel.sourceFilter) {

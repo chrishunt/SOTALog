@@ -29,6 +29,7 @@ struct LogListView: View {
                             NavigationLink(value: log) {
                                 LogRowView(log: log, qsoCount: viewModel.qsoCounts[log.id ?? 0] ?? 0)
                             }
+                            .listRowBackground(Color.clear)
                         }
                         .onDelete { offsets in
                             Task {
@@ -41,9 +42,15 @@ struct LogListView: View {
                             }
                         }
                     }
+                    .scrollContentBackground(.hidden)
+                    .background(Color.appBackground)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            #if os(iOS)
+            .toolbarBackground(Color.appBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            #endif
             .navigationDestination(for: Log.self) { log in
                 ActiveLogView(database: database, log: log)
             }

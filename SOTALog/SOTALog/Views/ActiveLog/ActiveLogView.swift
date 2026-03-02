@@ -38,9 +38,12 @@ struct ActiveLogView: View {
                     )
                 }
         }
+        .background(Color.appBackground)
         .navigationTitle(log.myCallsign)
         .navigationBarTitleDisplayMode(.inline)
         #if os(iOS)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
@@ -73,12 +76,14 @@ struct ActiveLogView: View {
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity)
                     .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                     .padding(.top, 24)
             }
 
             ForEach(viewModel.qsos) { qso in
                 if qso.syncedToQRZ {
                     QSORowView(qso: qso)
+                        .listRowBackground(Color.clear)
                 } else {
                     Button {
                         editingQSO = qso
@@ -86,6 +91,7 @@ struct ActiveLogView: View {
                         QSORowView(qso: qso)
                     }
                     .buttonStyle(.plain)
+                    .listRowBackground(Color.clear)
                 }
             }
             .onDelete { offsets in
@@ -99,5 +105,6 @@ struct ActiveLogView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 }

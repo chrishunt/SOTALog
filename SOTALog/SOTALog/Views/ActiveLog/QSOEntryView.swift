@@ -67,7 +67,7 @@ struct QSOEntryView: View {
         .animation(.easeInOut(duration: 0.15), value: focusedField)
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(Material.bar)
+        .background(Color.appSurface)
         .overlay(alignment: .top) { Divider() }
         #if os(iOS)
         .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { notification in

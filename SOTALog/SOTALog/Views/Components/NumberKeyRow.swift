@@ -15,8 +15,7 @@ struct NumberKeyRow: View {
                     Text(key)
                         .font(.title3.monospacedDigit())
                         .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 5))
-                        .shadow(color: .black.opacity(0.25), radius: 0, y: 1)
+                        .background(Color.appSurfaceRaised, in: RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
             }

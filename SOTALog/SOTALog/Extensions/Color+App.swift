@@ -28,11 +28,48 @@ extension Color {
             ? UIColor(red: 255/255, green: 119/255, blue: 51/255, alpha: 1)   // #FF7733
             : UIColor(red: 213/255, green: 94/255, blue: 0/255, alpha: 1)     // #D55E00
     })
+
+    // MARK: - Semantic surface & text tokens
+
+    static let appBackground = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 20/255, green: 20/255, blue: 20/255, alpha: 1)     // #141414
+            : .systemBackground
+    })
+
+    static let appSurface = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 30/255, green: 30/255, blue: 32/255, alpha: 1)     // #1E1E20
+            : .secondarySystemBackground
+    })
+
+    static let appSurfaceRaised = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 44/255, green: 44/255, blue: 46/255, alpha: 1)     // #2C2C2E
+            : UIColor(red: 232/255, green: 232/255, blue: 234/255, alpha: 1)  // #E8E8EA
+    })
+
+    static let appTextPrimary = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 235/255, green: 235/255, blue: 235/255, alpha: 1)  // #EBEBEB
+            : .label
+    })
+
+    static let appTextSecondary = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 160/255, green: 160/255, blue: 160/255, alpha: 1)  // #A0A0A0
+            : .secondaryLabel
+    })
     #else
     // macOS SPM build fallback — static colors (light mode values)
     static let appOrange = Color(red: 230/255, green: 159/255, blue: 0/255)
     static let appGreen = Color(red: 0/255, green: 158/255, blue: 115/255)
     static let appBlue = Color(red: 0/255, green: 114/255, blue: 178/255)
     static let appRed = Color(red: 213/255, green: 94/255, blue: 0/255)
+    static let appBackground = Color(red: 20/255, green: 20/255, blue: 20/255)
+    static let appSurface = Color(red: 30/255, green: 30/255, blue: 32/255)
+    static let appSurfaceRaised = Color(red: 44/255, green: 44/255, blue: 46/255)
+    static let appTextPrimary = Color(red: 235/255, green: 235/255, blue: 235/255)
+    static let appTextSecondary = Color(red: 160/255, green: 160/255, blue: 160/255)
     #endif
 }

@@ -95,6 +95,8 @@ struct QRZSyncView: View {
                 ReferenceManagerView(database: database)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
         .sheet(isPresented: $showLogin) {
             QRZLoginView(viewModel: viewModel)
         }
