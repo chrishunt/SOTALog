@@ -293,6 +293,7 @@ final class QSOEntryViewModel {
     // MARK: - Editing
 
     func loadForEditing(_ qso: QSO) {
+        guard !qso.syncedToQRZ else { return }
         editingQSO = qso
         entryText = qso.callsign
         rstSent = qso.rstSent

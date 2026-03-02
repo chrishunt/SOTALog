@@ -7,23 +7,36 @@ final class QRZSyncViewModel {
     private let qsoRepo: QSORepository
     private let logRepo: LogRepository
     private let historyRepo: CallsignHistoryRepository
+    private let refRepo: ReferenceRepository
 
     var hasAPIKey = false
     var hasCredentials = false
     var unsyncedCount = 0
-    var isUploading = false
-    var isDownloading = false
-    var uploadProgress = 0
-    var downloadProgress: String?
-    var errorMessage: String?
-    var successMessage: String?
+    var syncStatus: SyncStatus = .idle
     var lastSyncDate: Date?
     var adifExport: String = ""
-    var lastAction: SyncAction?
 
-    enum SyncAction {
-        case upload
-        case download
+    enum SyncStatus: Equatable {
+        case idle
+        case synced
+        case uploading(Int, Int)        // (done, total)
+        case preparingReferences        // auto-fetching POTA/SOTA ref data
+        case downloading(Int)           // QSOs fetched so far
+        case importing                  // writing to DB
+        case error(String)
+    }
+
+    var isBusy: Bool {
+        switch syncStatus {
+        case .idle, .synced, .error: return false
+        default: return true
+        }
+    }
+
+    var isAllSynced: Bool {
+        if case .synced = syncStatus { return true }
+        if case .idle = syncStatus { return unsyncedCount == 0 }
+        return false
     }
 
     // Credential testing
@@ -41,6 +54,7 @@ final class QRZSyncViewModel {
         self.qsoRepo = QSORepository(database: database)
         self.logRepo = LogRepository(database: database)
         self.historyRepo = CallsignHistoryRepository(database: database)
+        self.refRepo = ReferenceRepository(database: database)
     }
 
     func loadState() async {
@@ -48,6 +62,9 @@ final class QRZSyncViewModel {
         hasCredentials = KeychainService.load(key: .qrzUsername) != nil
         unsyncedCount = (try? await qsoRepo.fetchUnsynced().count) ?? 0
         lastSyncDate = try? await qsoRepo.lastSyncDate()
+        if unsyncedCount == 0, lastSyncDate != nil {
+            syncStatus = .synced
+        }
         await refreshADIF()
     }
 
@@ -66,7 +83,6 @@ final class QRZSyncViewModel {
     }
 
     func saveCredentials(apiKey: String, username: String, password: String) async {
-        // Save to Keychain first (instant, offline-safe)
         if !apiKey.isEmpty {
             try? KeychainService.save(key: .qrzAPIKey, value: apiKey)
             hasAPIKey = true
@@ -79,7 +95,6 @@ final class QRZSyncViewModel {
             try? KeychainService.save(key: .qrzPassword, value: password)
         }
 
-        // Test credentials
         isTestingCredentials = true
         apiKeyTestResult = nil
         xmlLoginTestResult = nil
@@ -123,19 +138,25 @@ final class QRZSyncViewModel {
     func uploadAll() async {
         guard let apiKey = KeychainService.load(key: .qrzAPIKey) else { return }
 
-        lastAction = .upload
-        isUploading = true
-        uploadProgress = 0
-        errorMessage = nil
-        successMessage = nil
+        let unsynced: [QSO]
+        do {
+            unsynced = try await qsoRepo.fetchUnsynced()
+        } catch {
+            syncStatus = .error(error.localizedDescription)
+            return
+        }
+
+        guard !unsynced.isEmpty else { return }
+
+        syncStatus = .uploading(0, unsynced.count)
 
         do {
-            let unsynced = try await qsoRepo.fetchUnsynced()
             let logs = try await logRepo.fetchAll()
             let logMap = Dictionary(uniqueKeysWithValues: logs.compactMap { log in
                 log.id.map { ($0, log) }
             })
 
+            var done = 0
             for qso in unsynced {
                 let log = qso.logId.flatMap { logMap[$0] }
                 let adif = ADIFFormatter.encode(qso: qso, log: log)
@@ -146,114 +167,139 @@ final class QRZSyncViewModel {
                     }
                 }
 
-                uploadProgress += 1
+                done += 1
+                syncStatus = .uploading(done, unsynced.count)
             }
 
             unsyncedCount = 0
-            successMessage = "Uploaded \(uploadProgress) QSOs"
+            syncStatus = .synced
             await refreshADIF()
         } catch {
             AppLog.sync.error("Upload failed: \(error)")
-            errorMessage = error.localizedDescription
+            syncStatus = .error(error.localizedDescription)
         }
-
-        isUploading = false
     }
 
-    // MARK: - Download
+    // MARK: - Refresh from QRZ
 
-    func downloadNew() async {
+    func refreshFromQRZ() async {
         guard let apiKey = KeychainService.load(key: .qrzAPIKey) else { return }
 
-        lastAction = .download
-        isDownloading = true
-        downloadProgress = "Checking..."
-        errorMessage = nil
-        successMessage = nil
+        // 0. Pre-check: ensure reference data is available
+        do {
+            try await ensureReferencesLoaded()
+        } catch {
+            AppLog.sync.error("Reference fetch failed: \(error)")
+            syncStatus = .error("Failed to fetch reference data: \(error.localizedDescription)")
+            return
+        }
+
+        // 1. Download phase: paginate all QSOs from QRZ
+        syncStatus = .downloading(0)
+        var allRecords: [[String: String]] = []
 
         do {
-            var afterLogId = try await qsoRepo.lastSyncedQRZLogId()
-            var totalNew = 0
-            var totalUpdated = 0
-            var totalChecked = 0
+            var afterLogId: Int64 = 0
             var previousMaxLogId: Int64 = -1
 
             for _ in 0..<200 {
                 let result = try await QRZLogbookService.downloadQSOs(apiKey: apiKey, afterLogId: afterLogId)
                 let records = ADIFFormatter.decode(result.adif)
+                allRecords.append(contentsOf: records)
 
-                let pageResult = try await qsoRepo.importPage(records)
-                totalChecked += result.count
-                totalNew += pageResult.newCount
-                totalUpdated += pageResult.updatedCount
-
-                // Update progress
-                if totalNew + totalUpdated > 0 {
-                    downloadProgress = "Checking... \(totalChecked) QSOs, \(totalNew + totalUpdated) new"
-                } else {
-                    downloadProgress = "Checking... \(totalChecked) QSOs"
-                }
+                syncStatus = .downloading(allRecords.count)
                 await Task.yield()
 
                 if result.count < 250 { break }
 
-                // Advance cursor using per-record APP_QRZLOG_LOGID (now properly parsed)
-                if pageResult.maxLogId == 0 || pageResult.maxLogId == previousMaxLogId { break }
-                previousMaxLogId = pageResult.maxLogId
-                afterLogId = pageResult.maxLogId + 1
+                // Advance cursor using per-record APP_QRZLOG_LOGID
+                let pageMaxLogId = records.compactMap { $0["APP_QRZLOG_LOGID"].flatMap(Int64.init) }.max() ?? 0
+                if pageMaxLogId == 0 || pageMaxLogId == previousMaxLogId { break }
+                previousMaxLogId = pageMaxLogId
+                afterLogId = pageMaxLogId + 1
             }
-
-            // Persist cursor only after full success
-            let finalCursor = max(previousMaxLogId, afterLogId)
-            if finalCursor > 0 {
-                try await qsoRepo.saveLastSyncedQRZLogId(finalCursor)
-            }
-            lastSyncDate = Date()
-            try await historyRepo.rebuildFromQSOTable()
-
-            if totalNew == 0 && totalUpdated == 0 {
-                successMessage = "Already up to date"
-            } else {
-                var parts: [String] = []
-                if totalNew > 0 { parts.append("\(totalNew) new") }
-                if totalUpdated > 0 { parts.append("\(totalUpdated) updated") }
-                successMessage = "Imported \(parts.joined(separator: ", ")) QSOs"
-            }
-
-            unsyncedCount = (try? await qsoRepo.fetchUnsynced().count) ?? 0
-            await refreshADIF()
         } catch {
             AppLog.sync.error("Download failed: \(error)")
-            errorMessage = error.localizedDescription
-        }
-
-        downloadProgress = nil
-        isDownloading = false
-    }
-
-    // MARK: - Reset
-
-    func resetSync() async {
-        isDownloading = true
-        downloadProgress = nil
-        errorMessage = nil
-        successMessage = nil
-
-        do {
-            try await qsoRepo.deleteAllUnattached()
-            try await qsoRepo.clearAllSyncState()
-            try await qsoRepo.saveLastSyncedQRZLogId(0)
-            lastSyncDate = nil
-        } catch {
-            AppLog.sync.error("Reset failed: \(error)")
-            errorMessage = error.localizedDescription
-            isDownloading = false
+            syncStatus = .error(error.localizedDescription)
             return
         }
 
-        // Trigger a fresh download
-        isDownloading = false
-        await downloadNew()
+        // 2. Group phase: load validation dictionaries and group records
+        let validPotaRefs: [String: String]
+        let validSotaCodes: [String: String]
+        do {
+            validPotaRefs = try await qsoRepo.loadValidPotaRefs()
+            validSotaCodes = try await qsoRepo.loadValidSotaCodes()
+        } catch {
+            syncStatus = .error("Failed to load reference data")
+            return
+        }
+
+        let fallbackCallsign = KeychainService.load(key: .qrzUsername)?.uppercased()
+        let grouped = SyncImporter.groupByActivation(
+            records: allRecords,
+            fallbackCallsign: fallbackCallsign,
+            validPotaRefs: validPotaRefs,
+            validSotaCodes: validSotaCodes
+        )
+
+        // 3. Import phase: atomic write
+        syncStatus = .importing
+        do {
+            let result = try await qsoRepo.fullRefreshImport(
+                groupedQSOs: grouped.activations,
+                unattachedQSOs: grouped.unattached
+            )
+            AppLog.sync.info("Refresh complete: \(result.importedCount) QSOs, \(result.activationsCreated) new activations, \(result.activationsReused) reused")
+
+            // 4. Post-import
+            try await historyRepo.rebuildFromQSOTable()
+            try await qsoRepo.saveLastSyncedQRZLogId(0)
+            lastSyncDate = Date()
+
+            unsyncedCount = (try? await qsoRepo.fetchUnsynced().count) ?? 0
+            syncStatus = unsyncedCount == 0 ? .synced : .idle
+            await refreshADIF()
+        } catch {
+            AppLog.sync.error("Import failed: \(error)")
+            syncStatus = .error(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Reference Data
+
+    private func ensureReferencesLoaded() async throws {
+        let potaMeta = try await refRepo.fetchMetadata(key: "potaParks")
+        let sotaMeta = try await refRepo.fetchMetadata(key: "sotaSummits")
+
+        let needsPota = (potaMeta?.recordCount ?? 0) == 0
+        let needsSota = (sotaMeta?.recordCount ?? 0) == 0
+
+        guard needsPota || needsSota else { return }
+
+        syncStatus = .preparingReferences
+
+        if needsPota {
+            let parks = try await POTAParkService.fetchAllParks()
+            try await refRepo.deleteAllParks()
+            try await refRepo.importParks(parks)
+            try await refRepo.saveMetadata(ReferenceMetadata(
+                key: "potaParks",
+                lastRefreshed: Date(),
+                recordCount: parks.count
+            ))
+        }
+
+        if needsSota {
+            let summits = try await SOTASummitService.fetchSummits()
+            try await refRepo.deleteAllSummits()
+            try await refRepo.importSummits(summits)
+            try await refRepo.saveMetadata(ReferenceMetadata(
+                key: "sotaSummits",
+                lastRefreshed: Date(),
+                recordCount: summits.count
+            ))
+        }
     }
 
     // MARK: - ADIF Export (pre-computed in loadState)

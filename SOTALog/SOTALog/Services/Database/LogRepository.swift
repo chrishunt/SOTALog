@@ -8,7 +8,7 @@ struct LogRepository {
 
     func fetchAll() async throws -> [Log] {
         try await database.dbWriter.read { db in
-            try Log.order(Column("createdAt").desc).fetchAll(db)
+            try Log.order(Column("date").desc).fetchAll(db)
         }
     }
 
@@ -43,7 +43,7 @@ struct LogRepository {
     /// Starts observing all logs, calling the handler on each change.
     func observeAll(in writer: any DatabaseWriter, onChange: @escaping ([Log]) -> Void) -> AnyDatabaseCancellable {
         let observation = ValueObservation.tracking { db in
-            try Log.order(Column("createdAt").desc).fetchAll(db)
+            try Log.order(Column("date").desc).fetchAll(db)
         }
         return observation.start(
             in: writer,

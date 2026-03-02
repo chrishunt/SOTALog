@@ -10,20 +10,6 @@ struct QRZSyncView: View {
         self._viewModel = State(initialValue: QRZSyncViewModel(database: database))
     }
 
-    @ViewBuilder
-    private func statusMessage(for action: QRZSyncViewModel.SyncAction) -> some View {
-        if viewModel.lastAction == action {
-            if let error = viewModel.errorMessage {
-                Text(error)
-                    .foregroundStyle(Color.appRed)
-            }
-            if let success = viewModel.successMessage {
-                Text(success)
-                    .foregroundStyle(Color.appGreen)
-            }
-        }
-    }
-
     var body: some View {
         List {
             // QRZ Account
@@ -66,64 +52,31 @@ struct QRZSyncView: View {
             }
 
             if viewModel.hasAPIKey {
-                // Upload
-                Section("Upload to QRZ") {
-                    HStack {
-                        Text("Unsynced QSOs")
-                        Spacer()
-                        Text("\(viewModel.unsyncedCount)")
-                            .foregroundStyle(.secondary)
-                    }
+                // Sync
+                Section("Sync") {
+                    syncStatusRow
 
                     if viewModel.unsyncedCount > 0 {
                         Button {
                             Task { await viewModel.uploadAll() }
                         } label: {
-                            if viewModel.isUploading {
-                                HStack {
-                                    ProgressView()
-                                    Text("Uploading \(viewModel.uploadProgress)/\(viewModel.unsyncedCount)...")
-                                }
-                            } else {
-                                Label("Upload \(viewModel.unsyncedCount) QSOs", systemImage: "arrow.up.circle")
-                            }
+                            Label("Upload \(viewModel.unsyncedCount) QSOs", systemImage: "arrow.up.circle")
                         }
-                        .disabled(viewModel.isUploading)
+                        .disabled(viewModel.isBusy)
                     }
 
-                    statusMessage(for: .upload)
-                }
-
-                // Download
-                Section("Download from QRZ") {
-                    if viewModel.isDownloading {
-                        HStack {
-                            ProgressView()
-                            Text(viewModel.downloadProgress ?? "Downloading...")
-                        }
-                    } else {
-                        Button {
-                            Task { await viewModel.downloadNew() }
-                        } label: {
-                            Label("Check for new QSOs", systemImage: "arrow.down.circle")
-                        }
-                        .disabled(viewModel.isUploading)
-                    }
-
-                    Button(role: .destructive) {
-                        Task { await viewModel.resetSync() }
+                    Button {
+                        Task { await viewModel.refreshFromQRZ() }
                     } label: {
-                        Label("Re-download All", systemImage: "arrow.counterclockwise")
+                        Label("Refresh from QRZ", systemImage: "arrow.triangle.2.circlepath")
                     }
-                    .disabled(viewModel.isDownloading || viewModel.isUploading)
+                    .disabled(viewModel.isBusy)
 
                     if let date = viewModel.lastSyncDate {
                         Text("Last synced: \(date.formatted(date: .abbreviated, time: .shortened))")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-
-                    statusMessage(for: .download)
                 }
             }
 
@@ -147,6 +100,58 @@ struct QRZSyncView: View {
         }
         .task {
             await viewModel.loadState()
+        }
+    }
+
+    // MARK: - Status Row
+
+    @ViewBuilder
+    private var syncStatusRow: some View {
+        switch viewModel.syncStatus {
+        case .synced, .idle:
+            if viewModel.unsyncedCount == 0 {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Color.appGreen)
+                    Text("All synced")
+                        .foregroundStyle(Color.appGreen)
+                }
+            } else {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(.orange)
+                    Text("\(viewModel.unsyncedCount) QSOs not uploaded")
+                        .foregroundStyle(.orange)
+                }
+            }
+
+        case .uploading(let done, let total):
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Uploading \(done)/\(total)...")
+            }
+
+        case .preparingReferences:
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Fetching reference data...")
+            }
+
+        case .downloading(let count):
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Downloading... \(count) QSOs")
+            }
+
+        case .importing:
+            HStack(spacing: 8) {
+                ProgressView()
+                Text("Importing...")
+            }
+
+        case .error(let message):
+            Text(message)
+                .foregroundStyle(Color.appRed)
         }
     }
 }

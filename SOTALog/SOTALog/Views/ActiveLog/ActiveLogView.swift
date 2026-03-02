@@ -77,20 +77,23 @@ struct ActiveLogView: View {
             }
 
             ForEach(viewModel.qsos) { qso in
-                Button {
-                    editingQSO = qso
-                } label: {
+                if qso.syncedToQRZ {
                     QSORowView(qso: qso)
+                } else {
+                    Button {
+                        editingQSO = qso
+                    } label: {
+                        QSORowView(qso: qso)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .onDelete { offsets in
                 Task {
                     for offset in offsets {
                         let qso = viewModel.qsos[offset]
-                        if let id = qso.id {
-                            try? await viewModel.deleteQSO(id: id)
-                        }
+                        guard !qso.syncedToQRZ, let id = qso.id else { continue }
+                        try? await viewModel.deleteQSO(id: id)
                     }
                 }
             }
