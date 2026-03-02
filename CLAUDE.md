@@ -12,36 +12,47 @@ cd SOTALog && swift build
 
 ### iOS Simulator build, install, and launch
 
+All commands below run from `SOTALog/` (the subdirectory containing the Xcode project and `project.yml`).
+
 The Xcode project is generated via XcodeGen. Regenerate before building if project.yml or file structure changed:
 
 ```sh
-xcodegen generate   # from repo root — creates SOTALog/SOTALog.xcodeproj
+xcodegen generate
 ```
 
-Build for the simulator (run from `SOTALog/`):
+Look up the simulator device ID (the UUID varies per machine):
+
+```sh
+DEVICE=$(xcrun simctl list devices available | grep "iPhone 17 Pro" | head -1 | grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}')
+```
+
+Build for the simulator:
 
 ```sh
 xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
   -sdk iphonesimulator \
-  -destination 'id=F16D6510-431D-4274-8C97-206C2EAA6359' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -derivedDataPath build \
   build
 ```
 
-Install and launch:
+Boot the simulator, open the Simulator app, install, and launch:
 
 ```sh
-xcrun simctl install F16D6510-431D-4274-8C97-206C2EAA6359 \
-  SOTALog/build/Build/Products/Debug-iphonesimulator/SOTALog.app
+xcrun simctl boot "$DEVICE" 2>/dev/null || true   # no-op if already booted
+open -a Simulator                                  # bring window to front
 
-xcrun simctl launch F16D6510-431D-4274-8C97-206C2EAA6359 com.sotalog.app
+xcrun simctl install "$DEVICE" \
+  build/Build/Products/Debug-iphonesimulator/SOTALog.app
+
+xcrun simctl launch "$DEVICE" com.sotalog.app
 ```
 
 Key details:
-- **Simulator**: iPhone 17 Pro (`F16D6510-431D-4274-8C97-206C2EAA6359`)
+- **Simulator**: iPhone 17 Pro (look up device UUID dynamically — it varies per machine)
 - **Bundle ID**: `com.sotalog.app` (not `com.huntca.SOTALog`)
-- **Derived data**: `-derivedDataPath build` puts output in `SOTALog/build/` (paths are relative to where xcodebuild runs)
-- **App bundle path**: `SOTALog/build/Build/Products/Debug-iphonesimulator/SOTALog.app`
+- **Derived data**: `-derivedDataPath build` puts output in `build/` relative to `SOTALog/`
+- **App bundle path**: `build/Build/Products/Debug-iphonesimulator/SOTALog.app` (relative to `SOTALog/`)
 
 ### TestFlight deployment
 
