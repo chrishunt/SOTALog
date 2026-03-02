@@ -98,6 +98,20 @@ struct QSORepository {
         }
     }
 
+    /// Check if a callsign+band combination already exists in this log
+    func isDuplicate(callsign: String, band: String, logId: Int64, excludingId: Int64?) async throws -> Bool {
+        try await database.dbWriter.read { db in
+            var sql = "SELECT COUNT(*) FROM qso WHERE callsign = ? AND band = ? AND logId = ?"
+            var args: [any DatabaseValueConvertible] = [callsign, band, logId]
+            if let excludingId {
+                sql += " AND id != ?"
+                args.append(excludingId)
+            }
+            let count = try Int.fetchOne(db, sql: sql, arguments: StatementArguments(args)) ?? 0
+            return count > 0
+        }
+    }
+
     /// Count all QSOs for a callsign on a given date (any log, including unattached)
     func countForCallsignOnDate(_ callsign: String, date: String) async throws -> Int {
         try await database.dbWriter.read { db in

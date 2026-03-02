@@ -6,19 +6,17 @@ struct CallsignField: View {
     @Binding var text: String
     var timesWorked: Int = 0
     var workedToday: Int = 0
+    var isDupe: Bool = false
     var sanitizer: ((String) -> String)? = nil
 
     @ScaledMetric(relativeTo: .largeTitle) private var fontSize: CGFloat = 44
 
     private var badgeText: String? {
-        if workedToday > 0 && timesWorked > 0 {
-            return "\(workedToday) today · x\(timesWorked)"
-        } else if workedToday > 0 {
-            return "\(workedToday) today"
-        } else if timesWorked > 0 {
-            return "x\(timesWorked)"
-        }
-        return nil
+        if isDupe { return "DUPE" }
+        var parts: [String] = []
+        if workedToday > 0 { parts.append("\(workedToday) today") }
+        if timesWorked > 0 { parts.append("x\(timesWorked)") }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     var body: some View {
