@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Compact metadata display for QSO entry. Two lines:
-/// Line 1 (always): RST sent · RST received · frequency [· park ref ✓] [· summit ref ✓]
+/// Line 1 (always): frequency · RST sent · RST received [· park ref ✓] [· summit ref ✓]
 /// Line 2 (when populated): name · QTH
 /// Tap any segment to edit inline. Send saves the QSO.
 struct MetadataStrip: View {
@@ -68,11 +68,11 @@ struct MetadataStrip: View {
 
     private var line1Display: some View {
         HStack(spacing: 0) {
+            segment(frequencyText, field: .frequency)
+            dot
             segment(rstSent, field: .rstSent)
             dot
             segment(rstReceived, field: .rstReceived)
-            dot
-            segment(frequencyText, field: .frequency)
 
             if potaRefValid, let ref = potaRefFormatted {
                 dot
