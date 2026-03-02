@@ -48,14 +48,20 @@ struct NewLogView: View {
                             Button {
                                 viewModel.selectPark(park)
                             } label: {
-                                VStack(alignment: .leading) {
-                                    Text(park.reference)
-                                        .font(.headline.monospaced())
-                                    Text(park.name)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                HStack(spacing: 6) {
+                                    Image(systemName: "tree")
+                                        .foregroundStyle(Color.appGreen)
+                                    VStack(alignment: .leading) {
+                                        Text(park.reference)
+                                            .font(.headline.monospaced())
+                                            .foregroundStyle(Color.appTextPrimary)
+                                        Text(park.name)
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appTextSecondary)
+                                    }
                                 }
                             }
+                            .buttonStyle(.plain)
                         }
                     }
 
@@ -76,14 +82,20 @@ struct NewLogView: View {
                             Button {
                                 viewModel.selectSummit(summit)
                             } label: {
-                                VStack(alignment: .leading) {
-                                    Text(summit.code)
-                                        .font(.headline.monospaced())
-                                    Text("\(summit.name) (\(summit.points ?? 0)pt)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                HStack(spacing: 6) {
+                                    Image(systemName: "mountain.2")
+                                        .foregroundStyle(Color.appBlue)
+                                    VStack(alignment: .leading) {
+                                        Text(summit.code)
+                                            .font(.headline.monospaced())
+                                            .foregroundStyle(Color.appTextPrimary)
+                                        Text("\(summit.name) (\(summit.points ?? 0)pt)")
+                                            .font(.caption)
+                                            .foregroundStyle(Color.appTextSecondary)
+                                    }
                                 }
                             }
+                            .buttonStyle(.plain)
                         }
                     }
 
