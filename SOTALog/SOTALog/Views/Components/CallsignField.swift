@@ -23,6 +23,7 @@ struct CallsignField: View {
         HStack {
             TextField("CALLSIGN", text: $text)
                 .font(.system(size: max(fontSize, 44), weight: .bold, design: .monospaced))
+                .foregroundStyle(Color.appTextPrimary)
                 .minimumScaleFactor(0.6)
                 .textContentType(.none)
                 .textInputAutocapitalization(.characters)

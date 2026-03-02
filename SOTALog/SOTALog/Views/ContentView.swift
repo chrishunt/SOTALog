@@ -31,6 +31,9 @@ struct ContentView: View {
                     }
                     .tag(Tab.tools)
             }
+            #if os(iOS)
+            .toolbarBackground(Color.appBackground, for: .tabBar)
+            #endif
             .environment(spotRouter)
             .environment(spotsViewModel)
             .task { await spotsViewModel.startAutoRefresh() }

@@ -8,6 +8,7 @@ struct SpotRowView: View {
             HStack {
                 Text(spot.activatorCallsign)
                     .font(.headline.monospaced())
+                    .foregroundStyle(Color.appTextPrimary)
 
                 Spacer()
 
