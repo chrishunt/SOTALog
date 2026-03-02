@@ -32,6 +32,13 @@ struct QSORowView: View {
                     .foregroundStyle(Color.appBlue)
                     .accessibilityLabel("Summit to summit \(sotaRef)")
             }
+
+            if qso.syncedToQRZ {
+                Image(systemName: "icloud.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .accessibilityLabel("Synced to QRZ")
+            }
         }
         .contentShape(Rectangle())
         .padding(.vertical, 2)

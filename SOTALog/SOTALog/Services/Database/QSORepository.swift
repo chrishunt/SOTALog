@@ -36,47 +36,7 @@ struct QSORepository {
         }
     }
 
-    /// Fetch a QSO by its QRZ log ID (exact match for merge)
-    func fetchByQRZLogId(_ qrzLogId: Int64) async throws -> QSO? {
-        try await database.dbWriter.read { db in
-            try QSO.filter(Column("qrzLogId") == qrzLogId).fetchOne(db)
-        }
-    }
-
-    /// Find a semantic match: same callsign + band + date, timeOn within ±5 minutes
-    func findSemanticMatch(callsign: String, band: String, date: String, timeOn: String) async throws -> QSO? {
-        guard timeOn.count >= 4,
-              let hh = Int(timeOn.prefix(2)),
-              let mm = Int(timeOn.dropFirst(2).prefix(2)) else { return nil }
-
-        let totalMinutes = hh * 60 + mm
-        let lo = max(totalMinutes - 5, 0)
-        let hi = min(totalMinutes + 5, 24 * 60 - 1)
-
-        let loStr = String(format: "%02d%02d", lo / 60, lo % 60)
-        let hiStr = String(format: "%02d%02d", hi / 60, hi % 60)
-
-        return try await database.dbWriter.read { db in
-            try QSO.fetchOne(db, sql: """
-                SELECT * FROM qso
-                WHERE callsign = ? AND band = ? AND date = ?
-                  AND timeOn BETWEEN ? AND ?
-                LIMIT 1
-                """, arguments: [callsign, band, date, loStr, hiStr])
-        }
-    }
-
-    /// Read sync cursor (last QRZ log ID we've seen)
-    func lastSyncedQRZLogId() async throws -> Int64 {
-        try await database.dbWriter.read { db in
-            let row = try Row.fetchOne(db, sql: """
-                SELECT recordCount FROM referenceMetadata WHERE key = 'qrzSync'
-                """)
-            return row?["recordCount"] as? Int64 ?? 0
-        }
-    }
-
-    /// Persist sync cursor after successful download
+    /// Persist sync date after successful sync
     func saveLastSyncedQRZLogId(_ qrzLogId: Int64) async throws {
         try await database.dbWriter.write { db in
             try db.execute(sql: """
@@ -122,151 +82,161 @@ struct QSORepository {
         }
     }
 
-    /// Delete all unattached QSOs (logId IS NULL)
-    func deleteAllUnattached() async throws {
-        try await database.dbWriter.write { db in
-            try db.execute(sql: "DELETE FROM qso WHERE logId IS NULL")
+    // MARK: - Full Refresh Import
+
+    struct FullRefreshResult {
+        var importedCount: Int
+        var activationsCreated: Int
+        var activationsReused: Int
+    }
+
+    /// Loads POTA reference validation dictionary: normalizedRef → formattedRef
+    func loadValidPotaRefs() async throws -> [String: String] {
+        try await database.dbWriter.read { db in
+            var dict: [String: String] = [:]
+            let rows = try Row.fetchAll(db, sql: "SELECT reference, referenceNormalized FROM potaPark")
+            for row in rows {
+                if let ref: String = row["reference"],
+                   let norm: String = row["referenceNormalized"] {
+                    dict[norm] = ref
+                }
+            }
+            return dict
         }
     }
 
-    /// Clear all sync state: set qrzLogId=NULL and syncedToQRZ=false on all QSOs
-    func clearAllSyncState() async throws {
-        try await database.dbWriter.write { db in
-            try db.execute(sql: "UPDATE qso SET qrzLogId = NULL, syncedToQRZ = 0")
+    /// Loads SOTA reference validation dictionary: normalizedCode → formattedCode
+    func loadValidSotaCodes() async throws -> [String: String] {
+        try await database.dbWriter.read { db in
+            var dict: [String: String] = [:]
+            let rows = try Row.fetchAll(db, sql: "SELECT code, codeNormalized FROM sotaSummit")
+            for row in rows {
+                if let code: String = row["code"],
+                   let norm: String = row["codeNormalized"] {
+                    dict[norm] = code
+                }
+            }
+            return dict
         }
     }
 
-    // MARK: - Batch Import
-
-    struct ImportResult {
-        var newCount = 0
-        var updatedCount = 0
-        var maxLogId: Int64 = 0
-    }
-
-    /// Imports an entire page of ADIF records in one write transaction.
-    /// Uses 3-tier merge: exact match by qrzLogId → semantic match → insert.
-    /// Per-record qrzLogId (APP_QRZLOG_LOGID) is optional — records without it
-    /// skip tier 1 and go straight to semantic match or insert.
-    func importPage(_ records: [[String: String]]) async throws -> ImportResult {
+    /// Replaces all synced QSOs with fresh data from QRZ, preserving local unsynced QSOs.
+    /// Single atomic transaction: deletes synced QSOs, removes empty logs, creates/reuses
+    /// activations, and inserts all imported QSOs.
+    func fullRefreshImport(
+        groupedQSOs: [(key: SyncImporter.ActivationKey, qsos: [SyncImporter.ParsedQSORecord])],
+        unattachedQSOs: [SyncImporter.ParsedQSORecord]
+    ) async throws -> FullRefreshResult {
         try await database.dbWriter.write { db in
-            var result = ImportResult()
+            // 1. Delete all synced QSOs
+            try db.execute(sql: "DELETE FROM qso WHERE syncedToQRZ = 1")
 
-            for fields in records {
-                let qrzLogId = fields["APP_QRZLOG_LOGID"].flatMap(Int64.init)
-                if let qrzLogId { result.maxLogId = max(result.maxLogId, qrzLogId) }
+            // 2. Delete logs that have no remaining QSOs
+            try db.execute(sql: """
+                DELETE FROM log WHERE id NOT IN (
+                    SELECT DISTINCT logId FROM qso WHERE logId IS NOT NULL
+                )
+                """)
 
-                guard var incoming = ADIFFormatter.qsoFromFields(fields) else { continue }
-                incoming.syncedToQRZ = true
-                incoming.qrzLogId = qrzLogId
+            var importedCount = 0
+            var activationsCreated = 0
+            var activationsReused = 0
 
-                // Tier 1: Exact match by qrzLogId (only if record has one)
-                if let qrzLogId,
-                   var existing = try QSO.filter(Column("qrzLogId") == qrzLogId).fetchOne(db) {
-                    let changed = syncFieldsChanged(existing: existing, incoming: incoming)
-                    existing.callsign = incoming.callsign
-                    existing.date = incoming.date
-                    existing.timeOn = incoming.timeOn
-                    existing.frequency = incoming.frequency
-                    existing.band = incoming.band
-                    existing.mode = incoming.mode
-                    existing.rstSent = incoming.rstSent
-                    existing.rstReceived = incoming.rstReceived
-                    existing.name = incoming.name
-                    existing.qth = incoming.qth
-                    existing.grid = incoming.grid
-                    existing.sotaRef = incoming.sotaRef
-                    existing.potaRef = incoming.potaRef
-                    existing.notes = incoming.notes
-                    existing.syncedToQRZ = true
-                    try existing.save(db)
-                    if changed { result.updatedCount += 1 }
-                    continue
+            // 3. For each activation group: find or create Log
+            for group in groupedQSOs {
+                let key = group.key
+
+                // Try to find existing log matching (date, potaReference, sotaReference)
+                let existingLog: Log?
+                if let potaRef = key.potaReference, let sotaRef = key.sotaReference {
+                    existingLog = try Log.filter(
+                        Column("date") == key.date &&
+                        Column("potaReference") == potaRef &&
+                        Column("sotaReference") == sotaRef
+                    ).fetchOne(db)
+                } else if let potaRef = key.potaReference {
+                    existingLog = try Log.filter(
+                        Column("date") == key.date &&
+                        Column("potaReference") == potaRef &&
+                        Column("sotaReference") == nil
+                    ).fetchOne(db)
+                } else if let sotaRef = key.sotaReference {
+                    existingLog = try Log.filter(
+                        Column("date") == key.date &&
+                        Column("potaReference") == nil &&
+                        Column("sotaReference") == sotaRef
+                    ).fetchOne(db)
+                } else {
+                    existingLog = nil
                 }
 
-                // Tier 2: Semantic match (callsign + band + date + timeOn ±5 min)
-                if var matched = try findSemanticMatchSync(
-                    db: db,
-                    callsign: incoming.callsign,
-                    band: incoming.band,
-                    date: incoming.date,
-                    timeOn: incoming.timeOn
-                ) {
-                    let changed = mergedFieldsChanged(matched: matched, incoming: incoming)
-                    matched.qrzLogId = qrzLogId ?? matched.qrzLogId
-                    matched.frequency = incoming.frequency ?? matched.frequency
-                    matched.name = incoming.name ?? matched.name
-                    matched.qth = incoming.qth ?? matched.qth
-                    matched.grid = incoming.grid ?? matched.grid
-                    matched.sotaRef = incoming.sotaRef ?? matched.sotaRef
-                    matched.potaRef = incoming.potaRef ?? matched.potaRef
-                    matched.notes = incoming.notes ?? matched.notes
-                    matched.syncedToQRZ = true
-                    try matched.save(db)
-                    if changed { result.updatedCount += 1 }
-                    continue
+                let logId: Int64
+                if let existing = existingLog, let id = existing.id {
+                    logId = id
+                    activationsReused += 1
+                } else {
+                    // Look up park/summit names
+                    let parkName: String? = key.potaReference.flatMap { ref in
+                        try? POTAPark.fetchOne(db, id: ref)?.name
+                    }
+                    let summitName: String? = key.sotaReference.flatMap { ref in
+                        try? SOTASummit.fetchOne(db, id: ref)?.name
+                    }
+
+                    // Parse date for createdAt
+                    let createdAt = Self.dateFromADIF(key.date) ?? Date()
+
+                    var newLog = Log(
+                        createdAt: createdAt,
+                        date: key.date,
+                        myCallsign: key.stationCallsign,
+                        myGrid: key.myGrid,
+                        potaReference: key.potaReference,
+                        sotaReference: key.sotaReference,
+                        parkName: parkName,
+                        summitName: summitName
+                    )
+                    try newLog.insert(db)
+                    logId = newLog.id!
+                    activationsCreated += 1
                 }
 
-                // Tier 3: No match — insert unattached
-                try incoming.save(db)
-                result.newCount += 1
+                // 4. Insert all QSOs with correct logId
+                for record in group.qsos {
+                    var qso = record.qso
+                    qso.logId = logId
+                    qso.syncedToQRZ = true
+                    qso.qrzLogId = record.rawFields["APP_QRZLOG_LOGID"].flatMap(Int64.init)
+                    try qso.insert(db)
+                    importedCount += 1
+                }
             }
 
-            return result
+            // 5. Insert unattached QSOs with logId = nil
+            for record in unattachedQSOs {
+                var qso = record.qso
+                qso.logId = nil
+                qso.syncedToQRZ = true
+                qso.qrzLogId = record.rawFields["APP_QRZLOG_LOGID"].flatMap(Int64.init)
+                try qso.insert(db)
+                importedCount += 1
+            }
+
+            return FullRefreshResult(
+                importedCount: importedCount,
+                activationsCreated: activationsCreated,
+                activationsReused: activationsReused
+            )
         }
     }
 
-    /// Returns true if any sync-relevant fields differ between existing and incoming QSOs.
-    private func syncFieldsChanged(existing: QSO, incoming: QSO) -> Bool {
-        existing.callsign != incoming.callsign ||
-        existing.date != incoming.date ||
-        existing.timeOn != incoming.timeOn ||
-        existing.frequency != incoming.frequency ||
-        existing.band != incoming.band ||
-        existing.mode != incoming.mode ||
-        existing.rstSent != incoming.rstSent ||
-        existing.rstReceived != incoming.rstReceived ||
-        existing.name != incoming.name ||
-        existing.qth != incoming.qth ||
-        existing.grid != incoming.grid ||
-        existing.sotaRef != incoming.sotaRef ||
-        existing.potaRef != incoming.potaRef ||
-        existing.notes != incoming.notes
-    }
-
-    /// Returns true if any of the incoming non-nil fields differ from the matched record.
-    private func mergedFieldsChanged(matched: QSO, incoming: QSO) -> Bool {
-        if let v = incoming.qrzLogId, v != matched.qrzLogId { return true }
-        if !matched.syncedToQRZ && incoming.syncedToQRZ { return true }
-        if let v = incoming.frequency, v != matched.frequency { return true }
-        if let v = incoming.name, v != matched.name { return true }
-        if let v = incoming.qth, v != matched.qth { return true }
-        if let v = incoming.grid, v != matched.grid { return true }
-        if let v = incoming.sotaRef, v != matched.sotaRef { return true }
-        if let v = incoming.potaRef, v != matched.potaRef { return true }
-        if let v = incoming.notes, v != matched.notes { return true }
-        return false
-    }
-
-    /// Synchronous semantic match for use inside a GRDB transaction.
-    private func findSemanticMatchSync(db: Database, callsign: String, band: String, date: String, timeOn: String) throws -> QSO? {
-        guard timeOn.count >= 4,
-              let hh = Int(timeOn.prefix(2)),
-              let mm = Int(timeOn.dropFirst(2).prefix(2)) else { return nil }
-
-        let totalMinutes = hh * 60 + mm
-        let lo = max(totalMinutes - 5, 0)
-        let hi = min(totalMinutes + 5, 24 * 60 - 1)
-
-        let loStr = String(format: "%02d%02d", lo / 60, lo % 60)
-        let hiStr = String(format: "%02d%02d", hi / 60, hi % 60)
-
-        return try QSO.fetchOne(db, sql: """
-            SELECT * FROM qso
-            WHERE callsign = ? AND band = ? AND date = ?
-              AND timeOn BETWEEN ? AND ?
-            LIMIT 1
-            """, arguments: [callsign, band, date, loStr, hiStr])
+    /// Converts ADIF date string "YYYYMMDD" to Date
+    private static func dateFromADIF(_ dateStr: String) -> Date? {
+        guard dateStr.count == 8 else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd"
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        return formatter.date(from: dateStr)
     }
 
     // MARK: - Save

@@ -70,6 +70,7 @@ final class NewLogViewModel {
         try? KeychainService.save(key: .myCallsign, value: call)
 
         var log = Log(
+            createdAt: Date(),
             date: Date().adifDate,
             myCallsign: call,
             myGrid: myGrid.isEmpty ? nil : myGrid,
