@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpotRowView: View {
     let spot: Spot
+    var isWorked: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -9,6 +10,7 @@ struct SpotRowView: View {
                 Text(spot.activatorCallsign)
                     .font(.headline.monospaced())
                     .foregroundStyle(Color.appTextPrimary)
+                    .strikethrough(isWorked)
 
                 Spacer()
 
@@ -41,6 +43,7 @@ struct SpotRowView: View {
             }
         }
         .padding(.vertical, 2)
+        .opacity(isWorked ? 0.4 : 1.0)
     }
 
     @ViewBuilder

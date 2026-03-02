@@ -270,6 +270,33 @@ struct QSORepository {
 
     // MARK: - Observation
 
+    /// Observes worked composite keys for a given UTC date.
+    /// Emits a `Set<String>` of keys in the format "DATE|CALL|REF|BAND".
+    func observeWorkedKeys(date: String, in writer: any DatabaseWriter, onChange: @escaping (Set<String>) -> Void) -> AnyDatabaseCancellable {
+        let observation = ValueObservation.tracking { db -> Set<String> in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT callsign, band, potaRef, sotaRef FROM qso WHERE date = ?
+                """, arguments: [date])
+            var keys = Set<String>()
+            for row in rows {
+                guard let callsign: String = row["callsign"],
+                      let band: String = row["band"] else { continue }
+                if let potaRef: String = row["potaRef"] {
+                    keys.insert("\(date)|\(callsign.uppercased())|\(potaRef)|\(band)")
+                }
+                if let sotaRef: String = row["sotaRef"] {
+                    keys.insert("\(date)|\(callsign.uppercased())|\(sotaRef)|\(band)")
+                }
+            }
+            return keys
+        }
+        return observation.start(
+            in: writer,
+            onError: { error in AppLog.database.error("Worked keys observation failed: \(error)") },
+            onChange: onChange
+        )
+    }
+
     /// Starts observing QSOs for a log, calling the handler on each change.
     func observeAll(forLogId logId: Int64, in writer: any DatabaseWriter, onChange: @escaping ([QSO]) -> Void) -> AnyDatabaseCancellable {
         let observation = ValueObservation.tracking { db in
