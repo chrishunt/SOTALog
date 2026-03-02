@@ -41,6 +41,7 @@ struct ActiveLogView: View {
         .navigationTitle(log.myCallsign)
         .navigationBarTitleDisplayMode(.inline)
         #if os(iOS)
+        .toolbar(.hidden, for: .tabBar)
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         #endif

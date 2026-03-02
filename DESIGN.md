@@ -97,7 +97,7 @@ The callsign field is also a command line. Space-separated tokens after the call
 
 ### Manual overrides are respected
 
-If the operator explicitly edits a field (frequency, QTH, references), the auto-populate and OmniField parser won't overwrite it. This resets after each save. The principle: never fight the operator. Their explicit input always wins.
+If the operator explicitly provides a value — whether by editing a field directly or via the OmniField — auto-populate won't overwrite it. This resets after each save. The principle: never fight the operator. The most recent explicit input always wins.
 
 ### Spots feed directly into logging
 
