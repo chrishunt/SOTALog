@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3] - 2026-03-02
+
+### Added
+- Activation progress tracking with worked spot indicators
+- Metadata strip showing token consumption
+- Semantic color tokens for dark theme
+- Icons and themed colors in park/summit search results
+
+### Changed
+- Two-line layout for QSO log rows with capsule band badges
+- Frequency shown first in metadata strip
+- Unified data display across all views
+- Park and summit reference fields always visible
+- Number keys moved from toolbar to inline row
+- Replaced incremental sync with full-refresh import
+
 ## [0.2] - 2026-03-02
 
 ### Added
@@ -43,6 +59,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.2...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.3...HEAD
+[0.3]: https://github.com/chrishunt/Field-Log/compare/v0.2...v0.3
 [0.2]: https://github.com/chrishunt/Field-Log/compare/v0.1...v0.2
 [0.1]: https://github.com/chrishunt/Field-Log/releases/tag/v0.1
