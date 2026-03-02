@@ -4,60 +4,68 @@ struct QSORowView: View {
     let qso: QSO
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(qso.timeOn.insertingTimeSeparator + "Z")
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-
-            Text(qso.callsign)
-                .font(.body.monospaced().bold())
-                .foregroundStyle(Color.appTextPrimary)
-                .frame(minWidth: 100, alignment: .leading)
-
-            Text(qso.band.uppercased())
-                .font(.caption)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Color.accentColor.opacity(0.12), in: Capsule())
-
-            if let qth = qso.qth, !qth.isEmpty {
-                Text(qth)
-                    .font(.caption)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 12) {
+                Text(qso.timeOn.insertingTimeSeparator + "Z")
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
+
+                Text(qso.callsign)
+                    .font(.body.monospaced().bold())
+                    .foregroundStyle(Color.appTextPrimary)
+                    .frame(minWidth: 100, alignment: .leading)
+
+                Spacer()
+
+                if let potaRef = qso.potaRef {
+                    Image(systemName: "tree")
+                        .font(.caption)
+                        .foregroundStyle(Color.appGreen)
+                        .accessibilityLabel("Park to park \(potaRef)")
+                }
+
+                if let sotaRef = qso.sotaRef {
+                    Image(systemName: "mountain.2")
+                        .font(.caption)
+                        .foregroundStyle(Color.appBlue)
+                        .accessibilityLabel("Summit to summit \(sotaRef)")
+                }
+
+                if qso.syncedToQRZ {
+                    Image(systemName: "icloud.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .accessibilityLabel("Synced to QRZ")
+                }
+
+                Text(qso.band.uppercased())
+                    .font(.caption)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.accentColor.opacity(0.12), in: Capsule())
             }
 
-            if let name = qso.name, !name.isEmpty {
-                Text(name)
+            if let detail = detailText {
+                Text(detail)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-            }
-
-            Spacer()
-
-            if let potaRef = qso.potaRef {
-                Image(systemName: "tree")
-                    .font(.caption)
-                    .foregroundStyle(Color.appGreen)
-                    .accessibilityLabel("Park to park \(potaRef)")
-            }
-
-            if let sotaRef = qso.sotaRef {
-                Image(systemName: "mountain.2")
-                    .font(.caption)
-                    .foregroundStyle(Color.appBlue)
-                    .accessibilityLabel("Summit to summit \(sotaRef)")
-            }
-
-            if qso.syncedToQRZ {
-                Image(systemName: "icloud.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .accessibilityLabel("Synced to QRZ")
+                    .padding(.leading, 54)
             }
         }
         .contentShape(Rectangle())
         .padding(.vertical, 2)
+    }
+
+    private var detailText: String? {
+        let name = qso.name?.isEmpty == false ? qso.name : nil
+        let qth = qso.qth?.isEmpty == false ? qso.qth : nil
+        switch (name, qth) {
+        case let (n?, q?): return "\(n) · \(q)"
+        case let (n?, nil): return n
+        case let (nil, q?): return q
+        case (nil, nil): return nil
+        }
     }
 }
 
