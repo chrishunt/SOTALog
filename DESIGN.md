@@ -41,15 +41,15 @@ The operator is sitting on a cold summit or crouched at a picnic table in a park
 
 ### The flow
 
-1. **Callsign entry** — The callsign field is auto-focused on appear. It's the dominant visual element — big, bold, monospaced. The operator types the callsign they just worked. Additional tokens (RST, frequency, QTH, references) can be space-separated in the same field via the OmniField.
+1. **Callsign entry** — The callsign field is auto-focused on appear. It's the dominant visual element — big, bold, monospaced. The operator types the callsign they just worked. Additional tokens (RST, frequency, QTH, references) can be space-separated in the same field via the OmniField. The placeholder shows a realistic example (`W1AW 59 59 CA W6SD133`) so operators discover the OmniField's capabilities.
 
 2. **Auto-populate** — Name and QTH fill from history of previous contacts. QTH fills from the callsign prefix if still empty. A "times worked" badge appears for repeat contacts.
 
 3. **Sensible defaults** — Frequency persists from the previous QSO (you're on the same frequency). RST defaults to 599. Band is derived from frequency. Date and time are stamped at save.
 
-4. **Contextual fields** — Park and Summit reference rows always show, since the other station may be at a park or summit regardless of your activation type. Labels adapt: "P2P Park" during POTA activations, "Their Park" otherwise; "S2S Summit" during SOTA activations, "Their Summit" otherwise.
+4. **Metadata strip** — All QSO metadata lives in a compact strip above the callsign. Line 1 (always visible): RST sent · RST received · frequency, plus park/summit references with validation checkmarks when present. Line 2 (auto-populated): name · QTH. Tap any segment to edit it inline. This replaces separate field rows — one component, uniform interaction.
 
-5. **Save** — Keyboard Send from any field. Haptic fires. Fields clear. Focus returns to callsign. Frequency is preserved. The operator is immediately ready for the next contact.
+5. **Save** — Keyboard Send from any field (callsign or metadata strip). Haptic fires. Fields clear. Focus returns to callsign. Frequency is preserved. The operator is immediately ready for the next contact.
 
 ### What to protect
 
@@ -81,7 +81,7 @@ New UI elements should follow these meanings. Don't use color for decoration.
 
 ### Field conditions drive sizing
 
-Touch targets must be large enough for cold, gloved, one-handed operation. RST is a tap-to-pick popover, not a keyboard field. List rows are full-width tap targets. The entry panel is pinned at the bottom of the screen, directly above the keyboard, where thumbs naturally rest.
+Touch targets must be large enough for cold, gloved, one-handed operation. The metadata strip segments are tappable — each opens an inline text field for editing. List rows are full-width tap targets. The entry panel is pinned at the bottom of the screen, directly above the keyboard, where thumbs naturally rest.
 
 ### Haptic as confirmation
 
@@ -94,6 +94,8 @@ A success haptic on save is the only confirmation. No toasts, no banners, no mod
 ### The OmniField
 
 The callsign field is also a command line. Space-separated tokens after the callsign are parsed as RST, frequency, QTH, or P2P/S2S references. This lets a skilled operator log an entire QSO without leaving a single text field. Unrecognized tokens are silently ignored — never show parse errors in the logging flow.
+
+**Token consumption:** When the parser recognizes a token (frequency, QTH, park ref, summit ref) and the operator types a space after it, the token is consumed — stripped from the callsign field and "moved" to the metadata strip. The callsign and RST tokens always remain in the field. This keeps the omnibox clean: type `W1AW 59 55 14.060 NC ` and the field shows `W1AW 59 55` while the metadata strip displays the consumed values.
 
 ### Manual overrides are respected
 

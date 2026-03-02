@@ -1,6 +1,15 @@
 import Foundation
 
 struct ParsedEntry {
+    enum TokenKind {
+        case callsign, rst, frequency, qth, potaRef, sotaRef, unrecognized
+    }
+
+    struct ClassifiedToken {
+        let text: String
+        let kind: TokenKind
+    }
+
     var callsign: String = ""
     var rstSent: String?
     var rstReceived: String?
@@ -8,6 +17,7 @@ struct ParsedEntry {
     var qth: String?
     var potaRef: String?
     var sotaRef: String?
+    var tokens: [ClassifiedToken] = []
 }
 
 enum OmniFieldParser {
@@ -17,6 +27,7 @@ enum OmniFieldParser {
         guard let first = tokens.first else { return ParsedEntry() }
 
         var result = ParsedEntry(callsign: first)
+        result.tokens.append(.init(text: first, kind: .callsign))
         var rstCount = 0
 
         for token in tokens.dropFirst() {
@@ -27,16 +38,22 @@ enum OmniFieldParser {
                     result.rstReceived = rst
                 }
                 rstCount += 1
+                result.tokens.append(.init(text: token, kind: .rst))
             } else if isFrequency(token) {
                 result.frequency = token
+                result.tokens.append(.init(text: token, kind: .frequency))
             } else if isQTH(token) {
                 result.qth = token.uppercased()
+                result.tokens.append(.init(text: token, kind: .qth))
             } else if isPOTACandidate(token) {
                 result.potaRef = token.uppercased()
+                result.tokens.append(.init(text: token, kind: .potaRef))
             } else if isSOTACandidate(token) {
                 result.sotaRef = token.uppercased()
+                result.tokens.append(.init(text: token, kind: .sotaRef))
+            } else {
+                result.tokens.append(.init(text: token, kind: .unrecognized))
             }
-            // Unrecognized tokens are silently ignored
         }
 
         return result
