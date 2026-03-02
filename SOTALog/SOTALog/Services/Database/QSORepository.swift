@@ -139,6 +139,7 @@ struct QSORepository {
                 // Tier 1: Exact match by qrzLogId (only if record has one)
                 if let qrzLogId,
                    var existing = try QSO.filter(Column("qrzLogId") == qrzLogId).fetchOne(db) {
+                    let changed = syncFieldsChanged(existing: existing, incoming: incoming)
                     existing.callsign = incoming.callsign
                     existing.date = incoming.date
                     existing.timeOn = incoming.timeOn
@@ -155,7 +156,7 @@ struct QSORepository {
                     existing.notes = incoming.notes
                     existing.syncedToQRZ = true
                     try existing.save(db)
-                    result.updatedCount += 1
+                    if changed { result.updatedCount += 1 }
                     continue
                 }
 
@@ -167,6 +168,7 @@ struct QSORepository {
                     date: incoming.date,
                     timeOn: incoming.timeOn
                 ) {
+                    let changed = mergedFieldsChanged(matched: matched, incoming: incoming)
                     matched.qrzLogId = qrzLogId ?? matched.qrzLogId
                     matched.frequency = incoming.frequency ?? matched.frequency
                     matched.name = incoming.name ?? matched.name
@@ -177,7 +179,7 @@ struct QSORepository {
                     matched.notes = incoming.notes ?? matched.notes
                     matched.syncedToQRZ = true
                     try matched.save(db)
-                    result.updatedCount += 1
+                    if changed { result.updatedCount += 1 }
                     continue
                 }
 
@@ -188,6 +190,36 @@ struct QSORepository {
 
             return result
         }
+    }
+
+    /// Returns true if any sync-relevant fields differ between existing and incoming QSOs.
+    private func syncFieldsChanged(existing: QSO, incoming: QSO) -> Bool {
+        existing.callsign != incoming.callsign ||
+        existing.date != incoming.date ||
+        existing.timeOn != incoming.timeOn ||
+        existing.frequency != incoming.frequency ||
+        existing.band != incoming.band ||
+        existing.mode != incoming.mode ||
+        existing.rstSent != incoming.rstSent ||
+        existing.rstReceived != incoming.rstReceived ||
+        existing.name != incoming.name ||
+        existing.qth != incoming.qth ||
+        existing.grid != incoming.grid ||
+        existing.sotaRef != incoming.sotaRef ||
+        existing.potaRef != incoming.potaRef ||
+        existing.notes != incoming.notes
+    }
+
+    /// Returns true if any of the incoming non-nil fields differ from the matched record.
+    private func mergedFieldsChanged(matched: QSO, incoming: QSO) -> Bool {
+        if let v = incoming.frequency, v != matched.frequency { return true }
+        if let v = incoming.name, v != matched.name { return true }
+        if let v = incoming.qth, v != matched.qth { return true }
+        if let v = incoming.grid, v != matched.grid { return true }
+        if let v = incoming.sotaRef, v != matched.sotaRef { return true }
+        if let v = incoming.potaRef, v != matched.potaRef { return true }
+        if let v = incoming.notes, v != matched.notes { return true }
+        return false
     }
 
     /// Synchronous semantic match for use inside a GRDB transaction.

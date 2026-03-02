@@ -37,6 +37,23 @@ struct CallsignHistoryRepository {
         }
     }
 
+    /// Rebuilds callsignHistory from the QSO table, setting timesWorked to the true count.
+    /// Preserves richer name/qth/grid from prior QRZ XML lookups via COALESCE.
+    func rebuildFromQSOTable() async throws {
+        try await database.dbWriter.write { db in
+            try db.execute(sql: """
+                INSERT INTO callsignHistory (callsign, timesWorked, name, qth, grid)
+                SELECT UPPER(callsign), COUNT(*), MAX(name), MAX(qth), MAX(grid)
+                FROM qso GROUP BY UPPER(callsign)
+                ON CONFLICT(callsign) DO UPDATE SET
+                    timesWorked = excluded.timesWorked,
+                    name = COALESCE(callsignHistory.name, excluded.name),
+                    qth = COALESCE(callsignHistory.qth, excluded.qth),
+                    grid = COALESCE(callsignHistory.grid, excluded.grid)
+                """)
+        }
+    }
+
     /// Updates history with data from QRZ lookup (without incrementing count)
     func updateFromLookup(callsign: String, name: String?, qth: String?, grid: String?) async throws {
         try await database.dbWriter.write { db in

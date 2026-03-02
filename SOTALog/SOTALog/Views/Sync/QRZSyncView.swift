@@ -10,6 +10,20 @@ struct QRZSyncView: View {
         self._viewModel = State(initialValue: QRZSyncViewModel(database: database))
     }
 
+    @ViewBuilder
+    private func statusMessage(for action: QRZSyncViewModel.SyncAction) -> some View {
+        if viewModel.lastAction == action {
+            if let error = viewModel.errorMessage {
+                Text(error)
+                    .foregroundStyle(Color.appRed)
+            }
+            if let success = viewModel.successMessage {
+                Text(success)
+                    .foregroundStyle(Color.appGreen)
+            }
+        }
+    }
+
     var body: some View {
         List {
             // QRZ Account
@@ -76,6 +90,8 @@ struct QRZSyncView: View {
                         }
                         .disabled(viewModel.isUploading)
                     }
+
+                    statusMessage(for: .upload)
                 }
 
                 // Download
@@ -106,6 +122,8 @@ struct QRZSyncView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
+
+                    statusMessage(for: .download)
                 }
             }
 
@@ -122,21 +140,6 @@ struct QRZSyncView: View {
             // Reference Databases
             Section("Reference Databases") {
                 ReferenceManagerView(database: database)
-            }
-
-            // Status
-            if let error = viewModel.errorMessage {
-                Section {
-                    Text(error)
-                        .foregroundStyle(Color.appRed)
-                }
-            }
-
-            if let success = viewModel.successMessage {
-                Section {
-                    Text(success)
-                        .foregroundStyle(Color.appGreen)
-                }
             }
         }
         .sheet(isPresented: $showLogin) {
