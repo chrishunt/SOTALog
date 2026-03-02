@@ -14,6 +14,7 @@ struct CallsignField: View {
             TextField("CALLSIGN", text: $text)
                 .font(.system(size: max(fontSize, 44), weight: .bold, design: .monospaced))
                 .minimumScaleFactor(0.6)
+                .textContentType(.none)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 #if os(iOS)

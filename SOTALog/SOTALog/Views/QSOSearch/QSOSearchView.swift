@@ -41,6 +41,8 @@ struct QSOSearchView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                 TextField("Search callsigns", text: $viewModel.searchText)
+                    .textContentType(.none)
+                    .autocorrectionDisabled()
                     #if os(iOS)
                     .textInputAutocapitalization(.characters)
                     #endif

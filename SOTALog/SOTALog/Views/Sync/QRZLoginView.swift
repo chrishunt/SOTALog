@@ -14,6 +14,7 @@ struct QRZLoginView: View {
             Form {
                 Section {
                     SecureField("API Key", text: $apiKey)
+                        .textContentType(.none)
                         .autocorrectionDisabled()
                     if didSave {
                         credentialStatus(result: viewModel.apiKeyTestResult, label: "API key")
@@ -27,8 +28,10 @@ struct QRZLoginView: View {
 
                 Section("Callsign Lookup") {
                     TextField("Callsign", text: $username)
+                        .textContentType(.none)
                         .autocorrectionDisabled()
                     SecureField("Password", text: $password)
+                        .textContentType(.none)
                     if didSave {
                         credentialStatus(result: viewModel.xmlLoginTestResult, label: "Login")
                     }
