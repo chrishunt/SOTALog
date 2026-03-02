@@ -53,7 +53,18 @@ struct QSOEntryView: View {
 
             // Callsign omnibox — dominant element, directly above keyboard
             callsignRow
+
+            #if os(iOS)
+            if focusedField == .callsign {
+                NumberKeyRow { char in
+                    viewModel.entryText.append(char)
+                }
+                .padding(.horizontal, -13)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            #endif
         }
+        .animation(.easeInOut(duration: 0.15), value: focusedField)
         .padding(.horizontal)
         .padding(.vertical, 8)
         .background(Material.bar)
@@ -85,23 +96,6 @@ struct QSOEntryView: View {
                 focusedField = .callsign
             }
         }
-        #if os(iOS)
-        .toolbar {
-            if focusedField == .callsign {
-                ToolbarItemGroup(placement: .keyboard) {
-                    HStack(spacing: 6) {
-                        ForEach(["1","2","3","4","5","6","7","8","9","0","/"], id: \.self) { char in
-                            Button(char) {
-                                viewModel.entryText.append(char)
-                            }
-                            .font(.callout.monospacedDigit())
-                            .frame(minWidth: 28, minHeight: 36)
-                        }
-                    }
-                }
-            }
-        }
-        #endif
     }
 
     // MARK: - Editing Banner
