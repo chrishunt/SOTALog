@@ -18,7 +18,7 @@ final class LogListViewModel {
 
     func startObserving() async {
         let observation = ValueObservation.tracking { db -> ([Log], [Int64: Int]) in
-            let logs = try Log.order(Column("date").desc).fetchAll(db)
+            let logs = try Log.order(Column("date").desc, Column("createdAt").desc).fetchAll(db)
             var counts: [Int64: Int] = [:]
             for log in logs {
                 if let id = log.id {
