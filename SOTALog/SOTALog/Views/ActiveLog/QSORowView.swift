@@ -15,8 +15,10 @@ struct QSORowView: View {
                 .frame(minWidth: 100, alignment: .leading)
 
             Text(qso.band.uppercased())
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+                .font(.caption)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.accentColor.opacity(0.12), in: Capsule())
 
             if let qth = qso.qth, !qth.isEmpty {
                 Text(qth)
