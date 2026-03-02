@@ -63,24 +63,30 @@ final class QSOEntryViewModel {
     func parseEntry() {
         let parsed = OmniFieldParser.parse(entryText)
 
-        if let rst = parsed.rstSent, !manualOverrides.contains("rstSent") {
+        if let rst = parsed.rstSent {
             rstSent = rst
+            markManualOverride("rstSent")
         }
-        if let rst = parsed.rstReceived, !manualOverrides.contains("rstReceived") {
+        if let rst = parsed.rstReceived {
             rstReceived = rst
+            markManualOverride("rstReceived")
         }
-        if let freq = parsed.frequency, !manualOverrides.contains("frequency") {
+        if let freq = parsed.frequency {
             frequencyText = freq
+            markManualOverride("frequency")
         }
-        if let q = parsed.qth, !manualOverrides.contains("qth") {
+        if let q = parsed.qth {
             qth = q
+            markManualOverride("qth")
         }
-        if let ref = parsed.potaRef, !manualOverrides.contains("potaRef") {
+        if let ref = parsed.potaRef {
             potaRefInput = ref
+            markManualOverride("potaRef")
             validatePOTARef()
         }
-        if let ref = parsed.sotaRef, !manualOverrides.contains("sotaRef") {
+        if let ref = parsed.sotaRef {
             sotaRefInput = ref
+            markManualOverride("sotaRef")
             validateSOTARef()
         }
     }

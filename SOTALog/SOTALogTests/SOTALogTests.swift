@@ -176,6 +176,50 @@ final class ADIFFormatterTests: XCTestCase {
         XCTAssertEqual(qso?.qth, "CT")
     }
 
+    func testEncodeFileWithLogContext() {
+        let qso = QSO(logId: 1, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        let log = Log(myCallsign: "K3ABC", myGrid: "FN20", potaReference: "US-4431", parkName: "Prescott NF")
+        let adif = ADIFFormatter.encodeFile(sections: [(log, [qso])])
+        XCTAssertTrue(adif.contains("<STATION_CALLSIGN:5>K3ABC"))
+        XCTAssertTrue(adif.contains("<MY_SIG:4>POTA"))
+        XCTAssertTrue(adif.contains("<MY_SIG_INFO:7>US-4431"))
+        XCTAssertTrue(adif.contains("<MY_GRIDSQUARE:4>FN20"))
+    }
+
+    func testEncodeFileMultipleLogSections() {
+        let qso1 = QSO(logId: 1, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        let log1 = Log(myCallsign: "K3ABC", potaReference: "US-4431", parkName: "Prescott NF")
+
+        let qso2 = QSO(logId: 2, callsign: "VE3XYZ", date: "20240102", timeOn: "0800", band: "40m")
+        let log2 = Log(myCallsign: "K3ABC", sotaReference: "W4C/CM-001", summitName: "Mt Mitchell")
+
+        let adif = ADIFFormatter.encodeFile(sections: [(log1, [qso1]), (log2, [qso2])])
+
+        // Only one header
+        let eohCount = adif.components(separatedBy: "<EOH>").count - 1
+        XCTAssertEqual(eohCount, 1)
+
+        // First QSO gets POTA fields
+        XCTAssertTrue(adif.contains("<MY_SIG:4>POTA"))
+        XCTAssertTrue(adif.contains("<MY_SIG_INFO:7>US-4431"))
+
+        // Second QSO gets SOTA field
+        XCTAssertTrue(adif.contains("<MY_SOTA_REF:10>W4C/CM-001"))
+
+        // Both QSOs present
+        XCTAssertTrue(adif.contains("<CALL:4>W1AW"))
+        XCTAssertTrue(adif.contains("<CALL:6>VE3XYZ"))
+    }
+
+    func testEncodeFileWithoutLogContextOmitsLogFields() {
+        let qso = QSO(logId: 1, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        let adif = ADIFFormatter.encodeFile(qsos: [qso])
+        XCTAssertFalse(adif.contains("STATION_CALLSIGN"))
+        XCTAssertFalse(adif.contains("MY_SIG"))
+        XCTAssertFalse(adif.contains("MY_GRIDSQUARE"))
+        XCTAssertFalse(adif.contains("MY_SOTA_REF"))
+    }
+
     func testRoundTrip() {
         let qso = QSO(
             logId: 1,

@@ -212,6 +212,8 @@ struct QSORepository {
 
     /// Returns true if any of the incoming non-nil fields differ from the matched record.
     private func mergedFieldsChanged(matched: QSO, incoming: QSO) -> Bool {
+        if let v = incoming.qrzLogId, v != matched.qrzLogId { return true }
+        if !matched.syncedToQRZ && incoming.syncedToQRZ { return true }
         if let v = incoming.frequency, v != matched.frequency { return true }
         if let v = incoming.name, v != matched.name { return true }
         if let v = incoming.qth, v != matched.qth { return true }
