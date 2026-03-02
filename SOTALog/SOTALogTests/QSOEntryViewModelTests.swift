@@ -61,27 +61,27 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.sotaRefInput, "W4CCM001")
     }
 
-    // MARK: - Manual Override Contract
+    // MARK: - Omnifield Overrides Manual Fields
 
-    func testManualOverridePreventsParseFrequency() {
+    func testOmnifieldOverridesManualFrequency() {
         let vm = makeVM()
         vm.frequencyText = "7.030"
         vm.markManualOverride("frequency")
         vm.entryText = "W1AW 14.060"
         vm.parseEntry()
-        XCTAssertEqual(vm.frequencyText, "7.030")
+        XCTAssertEqual(vm.frequencyText, "14.060")
     }
 
-    func testManualOverridePreventsParseRST() {
+    func testOmnifieldOverridesManualRST() {
         let vm = makeVM()
         vm.rstSent = "559"
         vm.markManualOverride("rstSent")
         vm.entryText = "W1AW 579"
         vm.parseEntry()
-        XCTAssertEqual(vm.rstSent, "559")
+        XCTAssertEqual(vm.rstSent, "579")
     }
 
-    func testMultipleOverridesRespected() {
+    func testOmnifieldOverridesMultipleManualFields() {
         let vm = makeVM()
         vm.frequencyText = "7.030"
         vm.rstSent = "559"
@@ -89,8 +89,8 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.markManualOverride("rstSent")
         vm.entryText = "W1AW 579 14.060"
         vm.parseEntry()
-        XCTAssertEqual(vm.frequencyText, "7.030")
-        XCTAssertEqual(vm.rstSent, "559")
+        XCTAssertEqual(vm.frequencyText, "14.060")
+        XCTAssertEqual(vm.rstSent, "579")
     }
 
     // MARK: - Save Flow
