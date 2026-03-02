@@ -78,10 +78,34 @@ Key details:
 
 ### Release checklist
 
-1. Update `CHANGELOG.md` — move Unreleased items under a dated version heading
-2. Bump `MARKETING_VERSION` and/or `CURRENT_PROJECT_VERSION` in `project.yml`
-3. Archive and upload (see TestFlight deployment above)
-4. In App Store Connect, paste the changelog entries as "What to Test" notes
+**Pre-release:**
+
+1. Review changes since last tag: `git log <last-tag>..HEAD --oneline`
+2. Update `CHANGELOG.md` — add any missing entries to Unreleased, then move Unreleased items under a dated version heading (e.g. `## [0.3] - 2026-04-01`). Follow [Keep a Changelog](https://keepachangelog.com/) format.
+3. Choose version number — MAJOR.MINOR style. Bump MINOR for features, MAJOR for breaking changes or milestones.
+4. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`
+
+**Build & upload:**
+
+5. Regenerate and archive (run from `SOTALog/`):
+```sh
+xcodegen generate
+xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
+  -sdk iphoneos -configuration Release \
+  -archivePath build/SOTALog.xcarchive \
+  -derivedDataPath build \
+  -allowProvisioningUpdates \
+  archive
+```
+6. Open archive in Xcode Organizer (`open build/SOTALog.xcarchive`), then **Distribute App → TestFlight & App Store → Upload**
+
+**Post-upload:**
+
+7. Commit version bump + changelog: `git commit -m "Release <version>"`
+8. Tag: `git tag v<version>` and push with `git push --tags`
+9. Update comparison links at the bottom of `CHANGELOG.md` to include the new version
+10. In App Store Connect, add "What to Test" notes from the changelog
+11. Verify build appears in TestFlight for beta testers
 
 ## Commit Standards
 
