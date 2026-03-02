@@ -29,16 +29,13 @@ struct QSOEntryView: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             // Editing banner
             if viewModel.isEditing {
                 editingBanner
             }
 
-            // Callsign row
-            callsignRow
-
-            // RST + Frequency row
+            // RST + Frequency + Name + QTH row
             rstFrequencyRow
 
             // Name + QTH row
@@ -54,11 +51,13 @@ struct QSOEntryView: View {
                 s2sRow
             }
 
-            // LOG button
-            logButton
+            // Callsign omnibox — dominant element, directly above keyboard
+            callsignRow
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
+        .background(Material.bar)
+        .overlay(alignment: .top) { Divider() }
         #if os(iOS)
         .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { notification in
             if let textField = notification.object as? UITextField {
@@ -141,6 +140,7 @@ struct QSOEntryView: View {
         .onSubmit {
             submitQSO()
         }
+        .sensoryFeedback(.success, trigger: viewModel.saveCount)
         .onChange(of: viewModel.entryText) { _, _ in
             viewModel.parseEntry()
             viewModel.callsignChanged()
@@ -150,125 +150,101 @@ struct QSOEntryView: View {
     // MARK: - RST + Frequency
 
     private var rstFrequencyRow: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("RST Sent")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                RSTField(value: $viewModel.rstSent)
-                    .onChange(of: focusedField) { _, newValue in
-                        if newValue == .callsign { return }
-                        // If user taps into RST directly, mark manual override
-                    }
-            }
+        HStack(spacing: 8) {
+            RSTField(value: $viewModel.rstSent)
+                .onChange(of: focusedField) { _, newValue in
+                    if newValue == .callsign { return }
+                }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("RST Rcvd")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                RSTField(value: $viewModel.rstReceived)
-            }
+            RSTField(value: $viewModel.rstReceived)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Freq MHz")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                TextField("14.060", text: $viewModel.frequencyText)
-                    .font(.body.monospacedDigit())
-                    #if os(iOS)
-                    .keyboardType(.decimalPad)
-                    #endif
-                    .focused($focusedField, equals: .frequency)
-                    .submitLabel(.send)
-                    .onSubmit { submitQSO() }
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: viewModel.frequencyText) { _, _ in
-                        if focusedField == .frequency {
-                            viewModel.markManualOverride("frequency")
-                        }
+            TextField("14.060", text: $viewModel.frequencyText)
+                .font(.callout.monospacedDigit())
+                #if os(iOS)
+                .keyboardType(.decimalPad)
+                #endif
+                .focused($focusedField, equals: .frequency)
+                .submitLabel(.send)
+                .onSubmit { submitQSO() }
+                .textFieldStyle(.roundedBorder)
+                .onChange(of: viewModel.frequencyText) { _, _ in
+                    if focusedField == .frequency {
+                        viewModel.markManualOverride("frequency")
                     }
-            }
+                }
         }
     }
 
     // MARK: - Name + QTH
 
     private var nameQTHRow: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Name")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                TextField("Name", text: $viewModel.name)
-                    .autocorrectionDisabled()
-                    .focused($focusedField, equals: .name)
-                    .submitLabel(.send)
-                    .onSubmit { submitQSO() }
-                    .textFieldStyle(.roundedBorder)
-            }
+        HStack(spacing: 8) {
+            TextField("Name", text: $viewModel.name)
+                .font(.callout)
+                .autocorrectionDisabled()
+                .focused($focusedField, equals: .name)
+                .submitLabel(.send)
+                .onSubmit { submitQSO() }
+                .textFieldStyle(.roundedBorder)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("QTH")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                TextField("QTH", text: $viewModel.qth)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .focused($focusedField, equals: .qth)
-                    .submitLabel(.send)
-                    .onSubmit { submitQSO() }
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: viewModel.qth) { _, _ in
-                        if focusedField == .qth {
-                            viewModel.markManualOverride("qth")
-                        }
+            TextField("QTH", text: $viewModel.qth)
+                .font(.callout)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+                .focused($focusedField, equals: .qth)
+                .submitLabel(.send)
+                .onSubmit { submitQSO() }
+                .textFieldStyle(.roundedBorder)
+                .onChange(of: viewModel.qth) { _, _ in
+                    if focusedField == .qth {
+                        viewModel.markManualOverride("qth")
                     }
-            }
-            .frame(width: 80)
+                }
+                .frame(width: 80)
         }
     }
 
     // MARK: - P2P
 
     private var p2pRow: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Park to Park")
-                .font(.caption)
+        HStack {
+            Text("P2P")
+                .font(.callout.bold())
                 .foregroundStyle(.secondary)
-            HStack {
-                TextField("Park (e.g. US4431)", text: $viewModel.potaRefInput)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .focused($focusedField, equals: .potaRef)
-                    .submitLabel(.send)
-                    .onSubmit { submitQSO() }
-                    .textFieldStyle(.roundedBorder)
-                    .font(.body.monospaced())
-                    .onChange(of: viewModel.potaRefInput) { _, newValue in
-                        if focusedField == .potaRef {
-                            viewModel.markManualOverride("potaRef")
-                            viewModel.potaRefInput = newValue.sanitizedAlphanumeric
-                        }
-                        viewModel.validatePOTARef()
+
+            TextField("Park (e.g. US4431)", text: $viewModel.potaRefInput)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+                .focused($focusedField, equals: .potaRef)
+                .submitLabel(.send)
+                .onSubmit { submitQSO() }
+                .textFieldStyle(.roundedBorder)
+                .font(.callout.monospaced())
+                .onChange(of: viewModel.potaRefInput) { _, newValue in
+                    if focusedField == .potaRef {
+                        viewModel.markManualOverride("potaRef")
+                        viewModel.potaRefInput = newValue.sanitizedAlphanumeric
                     }
-
-                if let formatted = viewModel.potaRefFormatted {
-                    Text(formatted)
-                        .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
+                    viewModel.validatePOTARef()
                 }
 
-                if let name = viewModel.potaRefName {
-                    Text(name)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+            if let formatted = viewModel.potaRefFormatted {
+                Text(formatted)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+            }
 
-                if viewModel.potaRefValid {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.appGreen)
-                }
+            if viewModel.potaRefValid {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(Color.appGreen)
+                    .font(.callout)
+            }
+
+            if let name = viewModel.potaRefName {
+                Text(name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }
     }
@@ -276,57 +252,39 @@ struct QSOEntryView: View {
     // MARK: - S2S
 
     private var s2sRow: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Summit to Summit")
-                .font(.caption)
+        HStack {
+            Text("S2S")
+                .font(.callout.bold())
                 .foregroundStyle(.secondary)
-            HStack {
-                TextField("Summit (e.g. W4CCM001)", text: $viewModel.sotaRefInput)
-                    .textInputAutocapitalization(.characters)
-                    .autocorrectionDisabled()
-                    .focused($focusedField, equals: .sotaRef)
-                    .submitLabel(.send)
-                    .onSubmit { submitQSO() }
-                    .textFieldStyle(.roundedBorder)
-                    .font(.body.monospaced())
-                    .onChange(of: viewModel.sotaRefInput) { _, newValue in
-                        if focusedField == .sotaRef {
-                            viewModel.markManualOverride("sotaRef")
-                            viewModel.sotaRefInput = newValue.sanitizedAlphanumeric
-                        }
-                        viewModel.validateSOTARef()
+
+            TextField("Summit (e.g. W4CCM001)", text: $viewModel.sotaRefInput)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+                .focused($focusedField, equals: .sotaRef)
+                .submitLabel(.send)
+                .onSubmit { submitQSO() }
+                .textFieldStyle(.roundedBorder)
+                .font(.callout.monospaced())
+                .onChange(of: viewModel.sotaRefInput) { _, newValue in
+                    if focusedField == .sotaRef {
+                        viewModel.markManualOverride("sotaRef")
+                        viewModel.sotaRefInput = newValue.sanitizedAlphanumeric
                     }
-
-                if let formatted = viewModel.sotaRefFormatted {
-                    Text(formatted)
-                        .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
+                    viewModel.validateSOTARef()
                 }
 
-                if viewModel.sotaRefValid {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.appGreen)
-                }
+            if let formatted = viewModel.sotaRefFormatted {
+                Text(formatted)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+            }
+
+            if viewModel.sotaRefValid {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(Color.appGreen)
+                    .font(.callout)
             }
         }
-    }
-
-    // MARK: - Log Button
-
-    private var logButton: some View {
-        Button {
-            submitQSO()
-        } label: {
-            Text(viewModel.isEditing ? "SAVE QSO" : "LOG QSO")
-                .font(.title3.bold())
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(viewModel.parsedCallsign.isEmpty)
-        .sensoryFeedback(.success, trigger: viewModel.saveCount)
-        .accessibilityLabel(viewModel.isEditing ? "Save QSO" : "Log QSO")
-        .accessibilityHint("Saves the current contact")
     }
 
     // MARK: - Private
