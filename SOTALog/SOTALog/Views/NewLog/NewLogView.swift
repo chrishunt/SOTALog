@@ -18,12 +18,14 @@ struct NewLogView: View {
             Form {
                 Section("Station") {
                     TextField("My Callsign", text: $viewModel.myCallsign)
+                        .textContentType(.none)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
                         .font(.title2.monospaced())
 
                     HStack {
                         TextField("Grid Square", text: $viewModel.myGrid)
+                            .textContentType(.none)
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
 
@@ -37,6 +39,7 @@ struct NewLogView: View {
 
                 Section("POTA") {
                     TextField("Park Reference (e.g. US-4431)", text: $viewModel.potaReference)
+                        .textContentType(.none)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
 
@@ -64,6 +67,7 @@ struct NewLogView: View {
 
                 Section("SOTA") {
                     TextField("Summit Reference (e.g. W4C/CM-001)", text: $viewModel.sotaReference)
+                        .textContentType(.none)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
 

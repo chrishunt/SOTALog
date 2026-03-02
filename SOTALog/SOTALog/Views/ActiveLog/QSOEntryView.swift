@@ -87,8 +87,8 @@ struct QSOEntryView: View {
         }
         #if os(iOS)
         .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                if focusedField == .callsign {
+            if focusedField == .callsign {
+                ToolbarItemGroup(placement: .keyboard) {
                     HStack(spacing: 6) {
                         ForEach(["1","2","3","4","5","6","7","8","9","0","/"], id: \.self) { char in
                             Button(char) {
@@ -160,6 +160,7 @@ struct QSOEntryView: View {
 
             TextField("14.060", text: $viewModel.frequencyText)
                 .font(.callout.monospacedDigit())
+                .textContentType(.none)
                 #if os(iOS)
                 .keyboardType(.decimalPad)
                 #endif
@@ -181,6 +182,7 @@ struct QSOEntryView: View {
         HStack(spacing: 8) {
             TextField("Name", text: $viewModel.name)
                 .font(.callout)
+                .textContentType(.none)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .name)
                 .submitLabel(.send)
@@ -189,6 +191,7 @@ struct QSOEntryView: View {
 
             TextField("QTH", text: $viewModel.qth)
                 .font(.callout)
+                .textContentType(.none)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .qth)
@@ -213,6 +216,7 @@ struct QSOEntryView: View {
                 .foregroundStyle(.secondary)
 
             TextField("Park (e.g. US4431)", text: $viewModel.potaRefInput)
+                .textContentType(.none)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .potaRef)
@@ -258,6 +262,7 @@ struct QSOEntryView: View {
                 .foregroundStyle(.secondary)
 
             TextField("Summit (e.g. W4CCM001)", text: $viewModel.sotaRefInput)
+                .textContentType(.none)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
                 .focused($focusedField, equals: .sotaRef)
