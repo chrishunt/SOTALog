@@ -37,10 +37,12 @@ struct LogRowView: View {
 
                 Spacer()
 
-                if !bands.isEmpty {
-                    Text(bands.map { $0.uppercased() }.joined(separator: " "))
-                        .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
+                ForEach(bands, id: \.self) { band in
+                    Text(band.uppercased())
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.accentColor.opacity(0.12), in: Capsule())
                 }
             }
         }
