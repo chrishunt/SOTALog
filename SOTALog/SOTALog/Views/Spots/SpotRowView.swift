@@ -9,7 +9,6 @@ struct SpotRowView: View {
             HStack {
                 Text(spot.activatorCallsign)
                     .font(.headline.monospaced())
-                    .foregroundStyle(Color.appTextPrimary)
                     .strikethrough(isWorked)
 
                 Spacer()
@@ -17,22 +16,21 @@ struct SpotRowView: View {
                 Text(String(format: "%.3f", spot.frequency))
                     .font(.subheadline.monospacedDigit())
 
+                Text("\(spot.ageMinutes)m")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: 6) {
+                referenceInfo
+
+                Spacer()
+
                 Text(spot.band.uppercased())
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Color.accentColor.opacity(0.12), in: Capsule())
-            }
-
-            HStack {
-                // Reference icons and labels
-                referenceInfo
-
-                Spacer()
-
-                Text("\(spot.timestamp.utcTimeDisplay) (\(spot.ageMinutes)m)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
             }
 
             if let comments = spot.comments, !comments.isEmpty {
@@ -55,6 +53,7 @@ struct SpotRowView: View {
                 .accessibilityLabel("POTA")
             Text(potaRef)
                 .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
             if let name = spot.potaReferenceName, spot.sotaReference == nil {
                 Text(name)
                     .font(.caption)
@@ -70,6 +69,7 @@ struct SpotRowView: View {
                 .accessibilityLabel("SOTA")
             Text(sotaRef)
                 .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
             if let name = spot.sotaReferenceName, spot.potaReference == nil {
                 Text(name)
                     .font(.caption)

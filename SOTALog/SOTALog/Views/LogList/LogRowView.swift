@@ -20,7 +20,7 @@ struct LogRowView: View {
 
                 Text(log.formattedDate)
                     .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
             }
 
             HStack(spacing: 6) {
@@ -45,8 +45,20 @@ struct LogRowView: View {
                         .background(Color.accentColor.opacity(0.12), in: Capsule())
                 }
             }
+
+            if let names = referenceNames {
+                Text(names)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+            }
         }
         .padding(.vertical, 2)
+    }
+
+    private var referenceNames: String? {
+        let parts = [log.parkName, log.summitName].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     @ViewBuilder
