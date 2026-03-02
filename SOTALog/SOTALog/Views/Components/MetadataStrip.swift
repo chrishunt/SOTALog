@@ -76,7 +76,7 @@ struct MetadataStrip: View {
 
             if potaRefValid, let ref = potaRefFormatted {
                 dot
-                refSegment(ref, field: .potaRef)
+                refSegment(ref, field: .potaRef, color: Color.appGreen)
             } else if !potaRefInput.isEmpty {
                 dot
                 segment(potaRefInput, field: .potaRef)
@@ -84,7 +84,7 @@ struct MetadataStrip: View {
 
             if sotaRefValid, let ref = sotaRefFormatted {
                 dot
-                refSegment(ref, field: .sotaRef)
+                refSegment(ref, field: .sotaRef, color: Color.appBlue)
             } else if !sotaRefInput.isEmpty {
                 dot
                 segment(sotaRefInput, field: .sotaRef)
@@ -235,7 +235,7 @@ struct MetadataStrip: View {
         .buttonStyle(.plain)
     }
 
-    private func refSegment(_ text: String, field: EditField) -> some View {
+    private func refSegment(_ text: String, field: EditField, color: Color) -> some View {
         Button {
             editingField = field
             editFocus = field
@@ -243,7 +243,7 @@ struct MetadataStrip: View {
             HStack(spacing: 3) {
                 Text(text)
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color.appGreen)
+                    .foregroundStyle(color)
             }
         }
         .buttonStyle(.plain)

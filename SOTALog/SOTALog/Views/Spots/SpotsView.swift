@@ -36,7 +36,7 @@ struct SpotsView: View {
                                 }
                             } header: {
                                 HStack {
-                                    Text(section.band)
+                                    Text(section.band.uppercased())
                                         .font(.title3.monospacedDigit().bold())
                                         .foregroundStyle(.primary)
                                     Text("\(section.spots.count)")

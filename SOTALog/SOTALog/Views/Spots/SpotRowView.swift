@@ -17,7 +17,7 @@ struct SpotRowView: View {
                 Text(String(format: "%.3f", spot.frequency))
                     .font(.subheadline.monospacedDigit())
 
-                Text(spot.band)
+                Text(spot.band.uppercased())
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)

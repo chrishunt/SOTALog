@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Inline status display with labeled QSO count and per-reference progress.
 ///
-/// Color is used only on the progress indicator (fraction or checkmark),
-/// keeping references neutral so status pops at a glance.
+/// Reference icons use semantic colors (tree=green, mountain=blue) for
+/// instant recognition. Progress indicators use orange/green/blue.
 ///
 /// - No activation: `5 QSOs` (secondary)
 /// - POTA incomplete: `5 QSOs  🌲 US-4431  5/10` (fraction orange)
@@ -62,7 +62,7 @@ struct ActivationStatusView: View {
         HStack(spacing: 3) {
             Image(systemName: "tree")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.appGreen)
             Text(reference)
                 .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
@@ -82,7 +82,7 @@ struct ActivationStatusView: View {
         HStack(spacing: 3) {
             Image(systemName: "mountain.2")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.appBlue)
             Text(reference)
                 .font(.caption.monospaced())
                 .foregroundStyle(.secondary)

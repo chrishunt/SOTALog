@@ -38,7 +38,7 @@ struct LogRowView: View {
                 Spacer()
 
                 if !bands.isEmpty {
-                    Text(bands.map { $0.lowercased() }.joined(separator: " "))
+                    Text(bands.map { $0.uppercased() }.joined(separator: " "))
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                 }
@@ -53,7 +53,7 @@ struct LogRowView: View {
             HStack(spacing: 3) {
                 Image(systemName: "tree")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.appGreen)
                 Text(ref)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
@@ -73,7 +73,7 @@ struct LogRowView: View {
             HStack(spacing: 3) {
                 Image(systemName: "mountain.2")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.appBlue)
                 Text(ref)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
