@@ -21,24 +21,22 @@ struct ActiveLogView: View {
 
             Divider()
 
-            // QSO Entry Form
-            QSOEntryView(
-                database: database,
-                log: log,
-                editingQSO: $editingQSO,
-                pendingSpot: Binding(
-                    get: { spotRouter.pendingSpot },
-                    set: { spotRouter.pendingSpot = $0 }
-                ),
-                onSave: { qso in
-                    viewModel.qsoSaved()
-                }
-            )
-
-            Divider()
-
             // QSO List
             qsoList
+                .safeAreaInset(edge: .bottom) {
+                    QSOEntryView(
+                        database: database,
+                        log: log,
+                        editingQSO: $editingQSO,
+                        pendingSpot: Binding(
+                            get: { spotRouter.pendingSpot },
+                            set: { spotRouter.pendingSpot = $0 }
+                        ),
+                        onSave: { qso in
+                            viewModel.qsoSaved()
+                        }
+                    )
+                }
         }
         .navigationTitle(log.myCallsign)
         .navigationBarTitleDisplayMode(.inline)

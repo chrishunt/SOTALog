@@ -13,7 +13,7 @@ This is the authoritative reference for SOTA Log's design philosophy and intent.
 - **Instantly usable.** A ham should be able to open this app and start logging without reading a single instruction.
 - **CW only.** We don't support SSB, digital modes, or anything else. Mode is always "CW". RST defaults to 599. Don't add mode selectors.
 - **Offline-first.** Everything works without internet. All data lives in the local GRDB database. Network operations (QRZ sync, spot fetching, reference downloads) happen only when the user explicitly triggers them.
-- **Field-optimized.** Operators use this on summits and in parks, often in cold/wind/rain. Touch targets must be large. Interactions must be minimal. The QSO entry form is the critical path — callsign field auto-focuses, LOG button is full-width, haptic feedback confirms saves.
+- **Field-optimized.** Operators use this on summits and in parks, often in cold/wind/rain. Touch targets must be large. Interactions must be minimal. The QSO entry form is the critical path — callsign field auto-focuses, keyboard Send saves from any field, haptic feedback confirms saves.
 
 ---
 
@@ -25,7 +25,7 @@ Explicit guardrails — if you're considering any of these, stop and reconsider:
 - **Mode selectors.** CW only. The mode field is always "CW".
 - **Complex configuration options.** We choose the right default.
 - **Features that require explanation.** If it needs a tooltip or help text, it's too complex.
-- **Decision points in the logging flow.** The operator's only job is: type callsign, tap LOG.
+- **Decision points in the logging flow.** The operator's only job is: type callsign, press Send.
 - **Automatic background network requests.** The user controls when the radio goes online.
 - **Undo/confirmation dialogs in the save path.** Haptic feedback is the confirmation. Speed matters more than safety nets on a reversible action.
 
@@ -49,11 +49,11 @@ The operator is sitting on a cold summit or crouched at a picnic table in a park
 
 4. **Contextual fields** — P2P (park-to-park) row only shows during POTA activations. S2S (summit-to-summit) row only shows during SOTA activations. Don't show fields that aren't relevant.
 
-5. **LOG QSO** — One tap (or keyboard Send from any field). Haptic fires. Fields clear. Focus returns to callsign. Frequency is preserved. The operator is immediately ready for the next contact.
+5. **Save** — Keyboard Send from any field. Haptic fires. Fields clear. Focus returns to callsign. Frequency is preserved. The operator is immediately ready for the next contact.
 
 ### What to protect
 
-- **No extra taps.** "Contact finished" to "ready for next" must be one tap or one keyboard press.
+- **No extra taps.** "Contact finished" to "ready for next" must be one keyboard press.
 - **No modals or alerts.** Nothing blocks the flow.
 - **Frequency persists.** The operator doesn't re-enter frequency between QSOs.
 - **Focus returns to callsign.** Always. After save, after edit cancel, after spot prefill.
@@ -81,7 +81,7 @@ New UI elements should follow these meanings. Don't use color for decoration.
 
 ### Field conditions drive sizing
 
-Touch targets must be large enough for cold, gloved, one-handed operation. The LOG button is full-width and tall. RST is a tap-to-pick popover, not a keyboard field. List rows are full-width tap targets.
+Touch targets must be large enough for cold, gloved, one-handed operation. RST is a tap-to-pick popover, not a keyboard field. List rows are full-width tap targets. The entry panel is pinned at the bottom of the screen, directly above the keyboard, where thumbs naturally rest.
 
 ### Haptic as confirmation
 

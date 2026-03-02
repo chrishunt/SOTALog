@@ -12,7 +12,7 @@ struct RSTField: View {
             showPicker.toggle()
         } label: {
             Text(value)
-                .font(.title3.monospacedDigit().bold())
+                .font(.body.monospacedDigit().bold())
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
                 .background(Color(.secondarySystemFill), in: RoundedRectangle(cornerRadius: 8))
