@@ -121,9 +121,9 @@ struct QRZSyncView: View {
             } else {
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.appOrange)
                     Text("\(viewModel.unsyncedCount) QSOs not uploaded")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.appOrange)
                 }
             }
 

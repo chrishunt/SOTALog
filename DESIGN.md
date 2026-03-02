@@ -79,6 +79,10 @@ New UI elements should follow these meanings. Don't use color for decoration.
 - Numbers that align (times, frequencies, counts) use monospacedDigit.
 - Labels are small and secondary — visible but never competing with data.
 
+### Data display consistency
+
+The same data type must look the same on every screen. Bands are always uppercase ("20M"). POTA icons are always green; SOTA icons are always blue. Dates, times, frequencies, and references use the same format everywhere they appear. Subtle styling differences (font size, weight) are fine when context demands it, but the data's format and color meaning must not change between views. Always use the app's semantic color tokens (`Color.appOrange`, `Color.appGreen`, etc.) — never raw system colors.
+
 ### Field conditions drive sizing
 
 Touch targets must be large enough for cold, gloved, one-handed operation. The metadata strip segments are tappable — each opens an inline text field for editing. List rows are full-width tap targets. The entry panel is pinned at the bottom of the screen, directly above the keyboard, where thumbs naturally rest.
@@ -107,7 +111,7 @@ Tapping a spot switches to the Logs tab, navigates into the active log, and pref
 
 ### Validation is quiet
 
-POTA and SOTA reference inputs validate against the local database. Valid references show a green checkmark and the resolved name. Invalid references show nothing — no error state, just absence of confirmation. Don't punish the operator for typing.
+POTA and SOTA reference inputs validate against the local database. Valid references show a checkmark in their type color (green for POTA, blue for SOTA) and the resolved name. Invalid references show nothing — no error state, just absence of confirmation. Don't punish the operator for typing.
 
 ### Activation thresholds
 
