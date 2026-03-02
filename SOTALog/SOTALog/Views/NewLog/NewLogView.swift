@@ -38,73 +38,86 @@ struct NewLogView: View {
                 }
 
                 Section("POTA") {
-                    TextField("Park Reference (e.g. US-4431)", text: $viewModel.potaReference)
-                        .textContentType(.none)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
+                    if viewModel.hasPOTAData {
+                        TextField("Park Reference (e.g. US-4431)", text: $viewModel.potaReference)
+                            .textContentType(.none)
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
 
-                    if !viewModel.parkSearchResults.isEmpty {
-                        ForEach(viewModel.parkSearchResults) { park in
-                            Button {
-                                viewModel.selectPark(park)
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "tree")
-                                        .foregroundStyle(Color.appGreen)
-                                    VStack(alignment: .leading) {
-                                        Text(park.reference)
-                                            .font(.headline.monospaced())
-                                            .foregroundStyle(Color.appTextPrimary)
-                                        Text(park.name)
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appTextSecondary)
+                        if !viewModel.parkSearchResults.isEmpty {
+                            ForEach(viewModel.parkSearchResults) { park in
+                                Button {
+                                    viewModel.selectPark(park)
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "tree")
+                                            .foregroundStyle(Color.appGreen)
+                                        VStack(alignment: .leading) {
+                                            Text(park.reference)
+                                                .font(.headline.monospaced())
+                                                .foregroundStyle(Color.appTextPrimary)
+                                            Text(park.name)
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appTextSecondary)
+                                        }
                                     }
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
-                    }
 
-                    if let name = viewModel.parkName {
-                        Text(name)
-                            .foregroundStyle(.secondary)
+                        if let name = viewModel.parkName {
+                            Text(name)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        ReferenceDownloadRow.potaParks(database: database) {
+                            viewModel.hasPOTAData = true
+                        }
                     }
                 }
 
                 Section("SOTA") {
-                    TextField("Summit Reference (e.g. W4C/CM-001)", text: $viewModel.sotaReference)
-                        .textContentType(.none)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
+                    if viewModel.hasSOTAData {
+                        TextField("Summit Reference (e.g. W4C/CM-001)", text: $viewModel.sotaReference)
+                            .textContentType(.none)
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
 
-                    if !viewModel.summitSearchResults.isEmpty {
-                        ForEach(viewModel.summitSearchResults) { summit in
-                            Button {
-                                viewModel.selectSummit(summit)
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "mountain.2")
-                                        .foregroundStyle(Color.appBlue)
-                                    VStack(alignment: .leading) {
-                                        Text(summit.code)
-                                            .font(.headline.monospaced())
-                                            .foregroundStyle(Color.appTextPrimary)
-                                        Text("\(summit.name) (\(summit.points ?? 0)pt)")
-                                            .font(.caption)
-                                            .foregroundStyle(Color.appTextSecondary)
+                        if !viewModel.summitSearchResults.isEmpty {
+                            ForEach(viewModel.summitSearchResults) { summit in
+                                Button {
+                                    viewModel.selectSummit(summit)
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "mountain.2")
+                                            .foregroundStyle(Color.appBlue)
+                                        VStack(alignment: .leading) {
+                                            Text(summit.code)
+                                                .font(.headline.monospaced())
+                                                .foregroundStyle(Color.appTextPrimary)
+                                            Text("\(summit.name) (\(summit.points ?? 0)pt)")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appTextSecondary)
+                                        }
                                     }
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
-                    }
 
-                    if let name = viewModel.summitName {
-                        Text(name)
-                            .foregroundStyle(.secondary)
+                        if let name = viewModel.summitName {
+                            Text(name)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        ReferenceDownloadRow.sotaSummits(database: database) {
+                            viewModel.hasSOTAData = true
+                        }
                     }
                 }
             }
+            .task { await viewModel.checkReferenceData() }
             .navigationTitle("New Activation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

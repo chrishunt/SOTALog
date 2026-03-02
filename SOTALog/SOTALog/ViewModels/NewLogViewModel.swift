@@ -20,6 +20,8 @@ final class NewLogViewModel {
     var summitName: String?
     var parkSearchResults: [POTAPark] = []
     var summitSearchResults: [SOTASummit] = []
+    var hasPOTAData = false
+    var hasSOTAData = false
 
     private var searchTask: Task<Void, Never>?
 
@@ -27,6 +29,13 @@ final class NewLogViewModel {
         self.database = database
         self.logRepo = LogRepository(database: database)
         self.refRepo = ReferenceRepository(database: database)
+    }
+
+    func checkReferenceData() async {
+        let potaMeta = try? await refRepo.fetchMetadata(key: "potaParks")
+        hasPOTAData = (potaMeta?.recordCount ?? 0) > 0
+        let sotaMeta = try? await refRepo.fetchMetadata(key: "sotaSummits")
+        hasSOTAData = (sotaMeta?.recordCount ?? 0) > 0
     }
 
     func loadSavedCallsign() {

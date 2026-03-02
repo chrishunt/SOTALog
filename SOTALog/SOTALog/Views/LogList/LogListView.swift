@@ -46,6 +46,7 @@ struct LogListView: View {
                             }
                         }
                     }
+                    .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                     .background(Color.appBackground)
                 }
