@@ -6,6 +6,7 @@ final class QRZSyncViewModel {
     private let database: AppDatabase
     private let qsoRepo: QSORepository
     private let logRepo: LogRepository
+    private let historyRepo: CallsignHistoryRepository
 
     var hasAPIKey = false
     var hasCredentials = false
@@ -18,6 +19,12 @@ final class QRZSyncViewModel {
     var successMessage: String?
     var lastSyncDate: Date?
     var adifExport: String = ""
+    var lastAction: SyncAction?
+
+    enum SyncAction {
+        case upload
+        case download
+    }
 
     // Credential testing
     var isTestingCredentials = false
@@ -33,6 +40,7 @@ final class QRZSyncViewModel {
         self.database = database
         self.qsoRepo = QSORepository(database: database)
         self.logRepo = LogRepository(database: database)
+        self.historyRepo = CallsignHistoryRepository(database: database)
     }
 
     func loadState() async {
@@ -113,6 +121,7 @@ final class QRZSyncViewModel {
     func uploadAll() async {
         guard let apiKey = KeychainService.load(key: .qrzAPIKey) else { return }
 
+        lastAction = .upload
         isUploading = true
         uploadProgress = 0
         errorMessage = nil
@@ -154,6 +163,7 @@ final class QRZSyncViewModel {
     func downloadNew() async {
         guard let apiKey = KeychainService.load(key: .qrzAPIKey) else { return }
 
+        lastAction = .download
         isDownloading = true
         downloadProgress = "Checking..."
         errorMessage = nil
@@ -197,6 +207,7 @@ final class QRZSyncViewModel {
                 try await qsoRepo.saveLastSyncedQRZLogId(finalCursor)
             }
             lastSyncDate = Date()
+            try await historyRepo.rebuildFromQSOTable()
 
             if totalNew == 0 && totalUpdated == 0 {
                 successMessage = "Already up to date"
