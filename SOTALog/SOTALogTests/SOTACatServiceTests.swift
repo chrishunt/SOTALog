@@ -132,4 +132,20 @@ final class SOTACatServiceTests: XCTestCase {
         vm.updateModeFromRadio(nil)
         XCTAssertEqual(vm.mode, "SSB", "Disconnect should preserve last mode")
     }
+
+    // MARK: - Keyer URL Encoding
+
+    func testKeyerMessageURLEncoding() {
+        // Verify that messages with spaces and slashes encode properly for URL query
+        let message = "CQ SOTA DE W1AW K"
+        let encoded = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        XCTAssertTrue(encoded.contains("CQ%20SOTA"), "Spaces should be percent-encoded")
+        XCTAssertFalse(encoded.contains(" "), "No literal spaces in encoded URL")
+
+        let slashMessage = "W4C/CM-001"
+        let slashEncoded = slashMessage.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        // URL should be constructable with the encoded message
+        let url = URL(string: "http://sotacat.local/api/v1/keyer?message=\(slashEncoded)")
+        XCTAssertNotNil(url, "URL with encoded slash message should be valid")
+    }
 }

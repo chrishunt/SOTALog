@@ -12,6 +12,8 @@ struct QSOEntryView: View {
     @Environment(SOTACatService.self) private var sotaCatService
     @State private var viewModel: QSOEntryViewModel
     @State private var qrzService: QRZLookupService
+    @State private var cwMacros: [CWMacro] = []
+    @State private var editingMacro: CWMacro?
     @FocusState private var focusedField: Field?
 
     enum Field: Hashable {
@@ -56,6 +58,10 @@ struct QSOEntryView: View {
                 onSubmit: { focusedField = .callsign }
             )
 
+            if sotaCatService.isConnected && viewModel.mode == "CW" {
+                cwMacroRow
+            }
+
             callsignRow
 
             #if os(iOS)
@@ -86,6 +92,21 @@ struct QSOEntryView: View {
             }
         }
         #endif
+        .task {
+            await loadMacros()
+        }
+        .sheet(item: $editingMacro) { macro in
+            CWMacroEditView(
+                macro: macro,
+                expandTemplate: { viewModel.expandTemplate($0) },
+                onSave: { updated in
+                    saveMacro(updated)
+                },
+                onReset: {
+                    resetMacro(position: macro.position)
+                }
+            )
+        }
         .onAppear {
             viewModel.spotLookup = spotsViewModel.spotForCallsign
             viewModel.qrzLookup = qrzService
@@ -136,6 +157,35 @@ struct QSOEntryView: View {
         .background(Color.appOrange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
     }
 
+    // MARK: - CW Macro Row
+
+    private var cwMacroRow: some View {
+        HStack(spacing: 8) {
+            ForEach(cwMacros) { macro in
+                let expanded = viewModel.expandTemplate(macro.template)
+                if !expanded.isEmpty {
+                    Button {
+                        viewModel.sendCWMacro(macro.template)
+                    } label: {
+                        Text(macro.label)
+                            .font(.callout)
+                            .lineLimit(1)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .frame(minHeight: 44)
+                            .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Color.appTextSecondary)
+                    .onLongPressGesture {
+                        editingMacro = macro
+                    }
+                }
+            }
+        }
+        .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.keyerSendCount)
+    }
+
     // MARK: - Callsign Row
 
     private var callsignRow: some View {
@@ -159,6 +209,28 @@ struct QSOEntryView: View {
     }
 
     // MARK: - Private
+
+    private func loadMacros() async {
+        let repo = CWMacroRepository(database: database)
+        cwMacros = (try? await repo.fetchAll()) ?? []
+    }
+
+    private func saveMacro(_ macro: CWMacro) {
+        let repo = CWMacroRepository(database: database)
+        Task {
+            var m = macro
+            try? await repo.save(&m)
+            await loadMacros()
+        }
+    }
+
+    private func resetMacro(position: Int) {
+        let repo = CWMacroRepository(database: database)
+        Task {
+            try? await repo.resetOne(position: position)
+            await loadMacros()
+        }
+    }
 
     private func submitQSO() {
         guard !viewModel.parsedCallsign.isEmpty else { return }

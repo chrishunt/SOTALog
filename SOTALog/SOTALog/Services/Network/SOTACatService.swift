@@ -52,6 +52,25 @@ final class SOTACatService {
         }
     }
 
+    // MARK: - CW Keyer
+
+    func sendKeyer(message: String) async -> Bool {
+        guard let encoded = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "\(baseURL)/api/v1/keyer?message=\(encoded)") else { return false }
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.timeoutInterval = 10
+        do {
+            let (_, response) = try await session.data(for: request)
+            if let http = response as? HTTPURLResponse {
+                return (200...299).contains(http.statusCode)
+            }
+            return false
+        } catch {
+            return false
+        }
+    }
+
     // MARK: - Frequency Conversion
 
     static func hzToMHz(_ hz: Int) -> Double {
