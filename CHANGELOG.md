@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4] - 2026-03-03
+
+### Added
+- SOTACat radio integration with auto-discovery, VFO frequency sync, and spot pouncing
+- SOTA Database API with epoch-based polling and CW-filtered spots
+- Inline reference data download prompts in new log view
+- Reusable ReferenceDownloadRow component
+- 2m band (144–148 MHz) to band plan
+- Cascade-delete unsynced QSOs when removing a log
+
+### Changed
+- Migrated spot service to SOTA DB2 API with independent SOTA/POTA spot storage
+- Show park/summit names in log rows below reference badges
+- Spot rows show age instead of full timestamp, band badge moved to reference row
+- ADIF band parsing prefers frequency-derived band over raw BAND field
+
 ## [0.3] - 2026-03-02
 
 ### Added
@@ -59,7 +75,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.3...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.4...HEAD
+[0.4]: https://github.com/chrishunt/Field-Log/compare/v0.3...v0.4
 [0.3]: https://github.com/chrishunt/Field-Log/compare/v0.2...v0.3
 [0.2]: https://github.com/chrishunt/Field-Log/compare/v0.1...v0.2
 [0.1]: https://github.com/chrishunt/Field-Log/releases/tag/v0.1
