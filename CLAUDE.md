@@ -120,7 +120,7 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
 
 ## Workflow
 
-- After completing a change, always build for the simulator, install, and launch the app so the user can test. Follow the "iOS Simulator build, install, and launch" steps above.
+- After completing a change, always run tests first (`swift test` from `SOTALog/`). If tests pass, build for the simulator, install, and launch the app so the user can test. Follow the "iOS Simulator build, install, and launch" steps above.
 
 ## Commit Standards
 

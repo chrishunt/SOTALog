@@ -339,7 +339,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.qth, "GBR")
     }
 
-    func testSpotLookupPopulatesFrequency() async throws {
+    func testSpotLookupPopulatesReferenceButNotFrequency() async throws {
         let vm = makeVM()
         vm.spotLookup = { call in
             guard call == "K3ABC" else { return nil }
@@ -351,7 +351,7 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         try await Task.sleep(for: .milliseconds(500))
 
-        XCTAssertEqual(vm.frequencyText, "7.030")
+        XCTAssertEqual(vm.frequencyText, "14.060", "Spot lookup should not override frequency")
         XCTAssertEqual(vm.potaRefInput, "US0001")
     }
 
