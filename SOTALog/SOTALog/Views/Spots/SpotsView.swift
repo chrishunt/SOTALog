@@ -5,6 +5,7 @@ struct SpotsView: View {
     let database: AppDatabase
     @Environment(SpotRouter.self) private var spotRouter
     @Environment(SpotsViewModel.self) private var viewModel
+    @Environment(SOTACatService.self) private var sotaCatService
     @State private var workedKeys: Set<String> = []
     @State private var workedCancellable: AnyDatabaseCancellable?
 
@@ -68,6 +69,15 @@ struct SpotsView: View {
                     .pickerStyle(.segmented)
                     .frame(width: 180)
                 }
+                #if os(iOS)
+                if sotaCatService.isConnected {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .foregroundStyle(.secondary)
+                            .font(.caption)
+                    }
+                }
+                #endif
             }
             .refreshable {
                 await viewModel.refresh()

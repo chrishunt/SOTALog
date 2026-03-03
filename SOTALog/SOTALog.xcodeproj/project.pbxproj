@@ -39,6 +39,7 @@
 		79B22C489E0EA8217109EC64 /* RepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0056E2A70BE433214C4B7C0A /* RepositoryTests.swift */; };
 		7A30847B75520EA883A60C5C /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4266BF0A296CC64D2A95BE5 /* AppLog.swift */; };
 		7A7DD098426D67446D3698D3 /* QRZLogbookService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1296CEF3FA1AD3680E5651 /* QRZLogbookService.swift */; };
+		838DD3D8FFED652ED234EE6A /* SOTACatServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FA9B1B69B1C0711EA859FD8 /* SOTACatServiceTests.swift */; };
 		8839C0882368ED3B91498F24 /* StringExtensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FE30192C3B58D6BDFC7F5E /* StringExtensionTests.swift */; };
 		8AB642C357671EA021F0D7CC /* QRZSyncViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 025CBED62E6E2183E9969582 /* QRZSyncViewModel.swift */; };
 		8AFA61AA74B703F11030D122 /* QRZSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8565B3F633C46D7384840515 /* QRZSyncView.swift */; };
@@ -53,6 +54,7 @@
 		A18331906A4110FD6FFC56AF /* CallsignHistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 875D8FD75A8FB9B08FED76DE /* CallsignHistoryRepository.swift */; };
 		A49DEA6B8D1F9048D531E8AC /* CallPrefixes.json in Resources */ = {isa = PBXBuildFile; fileRef = A994A9FFD8DB698FB83594C6 /* CallPrefixes.json */; };
 		A600AFC63E0367C8F477ABFB /* CallsignHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 164D78E44F1B4610746D0EB2 /* CallsignHistory.swift */; };
+		A684A51F9F06A7556CFB5AB6 /* SOTACatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2F5A59D839F5D819E31B26 /* SOTACatService.swift */; };
 		A6C44D5177C39B3F1BD49913 /* QSORowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 088CF8DBD47D7CEAF5CF5312 /* QSORowView.swift */; };
 		A77AB34C46CD00E43FBA46C6 /* ModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CA096156392CCD06D0FB2C5 /* ModelTests.swift */; };
 		A8CB0DAAB739D05D117B3A5A /* ActiveLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA2EBE31C6CAA6F5A8528C8 /* ActiveLogViewModel.swift */; };
@@ -113,6 +115,7 @@
 		2A331D02B76CE4173607C5D1 /* SOTALogTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SOTALogTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B1300F1FD26FE79A48BFE94 /* BandPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandPlan.swift; sourceTree = "<group>"; };
 		2F0497472283AB4B46B4C108 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		2FA9B1B69B1C0711EA859FD8 /* SOTACatServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTACatServiceTests.swift; sourceTree = "<group>"; };
 		31B1B64937D68958149905B2 /* QSO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSO.swift; sourceTree = "<group>"; };
 		3220DADE46BD3E468F965B4B /* POTAPark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTAPark.swift; sourceTree = "<group>"; };
 		39BE3F3C3C986C1EEF0DF930 /* SOTALogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTALogTests.swift; sourceTree = "<group>"; };
@@ -134,6 +137,7 @@
 		6F83E887E0D5EBBC43367D8C /* QSOEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSOEntryView.swift; sourceTree = "<group>"; };
 		718654C55006EE5A73C89843 /* SpotsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsViewModel.swift; sourceTree = "<group>"; };
 		79C3A7A1D869D180650E6AC7 /* LogListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogListViewModel.swift; sourceTree = "<group>"; };
+		7A9B553EAF1B3DA6CB45CCAD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7F10CE560B1CC278BF354031 /* SpotsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsViewModelTests.swift; sourceTree = "<group>"; };
 		813299ED126BB9D2F6A717D2 /* OmniFieldParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniFieldParser.swift; sourceTree = "<group>"; };
 		8157582BD387BF9057B364B3 /* ReferenceMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceMetadata.swift; sourceTree = "<group>"; };
@@ -164,6 +168,7 @@
 		E509603AB3965292400E7ECB /* ReferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceRepository.swift; sourceTree = "<group>"; };
 		E7FD4C5547079091555AB9C5 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
 		E83DD32511D2B22A66A3A468 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		EE2F5A59D839F5D819E31B26 /* SOTACatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTACatService.swift; sourceTree = "<group>"; };
 		F759C6D173DACA136AB14AE1 /* SyncImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncImporterTests.swift; sourceTree = "<group>"; };
 		F862FE197B64B0016382DF6A /* ActivationStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationStatusView.swift; sourceTree = "<group>"; };
 		F8F3DBE8648806AE711D1149 /* RSTField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RSTField.swift; sourceTree = "<group>"; };
@@ -217,6 +222,7 @@
 				0C1296CEF3FA1AD3680E5651 /* QRZLogbookService.swift */,
 				B473BAD0C0F22955E4DBFFFB /* QRZLookupService.swift */,
 				982E2AD75660266C979D8FCD /* QRZXMLService.swift */,
+				EE2F5A59D839F5D819E31B26 /* SOTACatService.swift */,
 				65B3EF2E3945E205EAF225D9 /* SOTASpotService.swift */,
 				4C5DC27A55D0CC129F37F4D7 /* SOTASummitService.swift */,
 			);
@@ -275,6 +281,7 @@
 				6CA096156392CCD06D0FB2C5 /* ModelTests.swift */,
 				19AE2C7FED08C032565C93F1 /* QSOEntryViewModelTests.swift */,
 				0056E2A70BE433214C4B7C0A /* RepositoryTests.swift */,
+				2FA9B1B69B1C0711EA859FD8 /* SOTACatServiceTests.swift */,
 				39BE3F3C3C986C1EEF0DF930 /* SOTALogTests.swift */,
 				436A3CAC8A64BCC306950B62 /* SpotModelTests.swift */,
 				7F10CE560B1CC278BF354031 /* SpotsViewModelTests.swift */,
@@ -394,6 +401,7 @@
 		F28874EB7B3B8BEF9DE9CCA2 /* SOTALog */ = {
 			isa = PBXGroup;
 			children = (
+				7A9B553EAF1B3DA6CB45CCAD /* Info.plist */,
 				879CCCBC8D7BD9BB7030F85D /* App */,
 				F04FE33C498835E77F0B151D /* Extensions */,
 				B8741AD147C620BB73E95F93 /* Models */,
@@ -559,6 +567,7 @@
 				BA30BA6E3CB871D12CDA4132 /* ReferenceManagerView.swift in Sources */,
 				F41EC452D9247C3DB62C06BE /* ReferenceMetadata.swift in Sources */,
 				4943BC7245C8E868920E22A8 /* ReferenceRepository.swift in Sources */,
+				A684A51F9F06A7556CFB5AB6 /* SOTACatService.swift in Sources */,
 				CDF1399DF8523800A29E56A6 /* SOTALogApp.swift in Sources */,
 				C4F96E00ED134810334A6103 /* SOTASpotService.swift in Sources */,
 				355CB528D730A23D7F18FFDF /* SOTASummit.swift in Sources */,
@@ -583,6 +592,7 @@
 				A77AB34C46CD00E43FBA46C6 /* ModelTests.swift in Sources */,
 				C0D32487F86B08323771A99A /* QSOEntryViewModelTests.swift in Sources */,
 				79B22C489E0EA8217109EC64 /* RepositoryTests.swift in Sources */,
+				838DD3D8FFED652ED234EE6A /* SOTACatServiceTests.swift in Sources */,
 				6269F57C8EBC8BC71C2CF91F /* SOTALogTests.swift in Sources */,
 				0EDF258F9D08765569BF9FEE /* SpotModelTests.swift in Sources */,
 				9A78CD351C544206476BC57E /* SpotsViewModelTests.swift in Sources */,
@@ -612,6 +622,7 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 8CV6QZZ6BE;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SOTALog/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SOTA Log uses your location to calculate your Maidenhead grid square for logging.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -639,6 +650,7 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 8CV6QZZ6BE;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SOTALog/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SOTA Log uses your location to calculate your Maidenhead grid square for logging.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

@@ -9,6 +9,7 @@ struct QSOEntryView: View {
     let onSave: (QSO) -> Void
 
     @Environment(SpotsViewModel.self) private var spotsViewModel
+    @Environment(SOTACatService.self) private var sotaCatService
     @State private var viewModel: QSOEntryViewModel
     @State private var qrzService: QRZLookupService
     @FocusState private var focusedField: Field?
@@ -86,7 +87,11 @@ struct QSOEntryView: View {
         .onAppear {
             viewModel.spotLookup = spotsViewModel.spotForCallsign
             viewModel.qrzLookup = qrzService
+            viewModel.sotaCatService = sotaCatService
             focusedField = .callsign
+        }
+        .onChange(of: sotaCatService.radioFrequency) { _, newValue in
+            viewModel.updateFromRadio(frequencyMHz: newValue)
         }
         .onChange(of: editingQSO) { _, newValue in
             if let qso = newValue {

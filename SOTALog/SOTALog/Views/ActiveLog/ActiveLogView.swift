@@ -5,6 +5,7 @@ struct ActiveLogView: View {
     let log: Log
 
     @Environment(SpotRouter.self) private var spotRouter
+    @Environment(SOTACatService.self) private var sotaCatService
     @State private var viewModel: ActiveLogViewModel
     @State private var editingQSO: QSO?
 
@@ -41,6 +42,17 @@ struct ActiveLogView: View {
         .background(Color.appBackground)
         .navigationTitle(log.myCallsign)
         .navigationBarTitleDisplayMode(.inline)
+        #if os(iOS)
+        .toolbar {
+            if sotaCatService.isConnected {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            }
+        }
+        #endif
         #if os(iOS)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)

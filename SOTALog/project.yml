@@ -25,6 +25,13 @@ targets:
     resources:
       - path: SOTALog/Resources/Assets.xcassets
       - path: SOTALog/Resources/CallPrefixes.json
+    info:
+      path: SOTALog/Info.plist
+      properties:
+        NSAppTransportSecurity:
+          NSExceptionDomains:
+            sotacat.local:
+              NSExceptionAllowsInsecureHTTPLoads: true
     settings:
       base:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
