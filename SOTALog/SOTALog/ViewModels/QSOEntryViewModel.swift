@@ -48,6 +48,7 @@ final class QSOEntryViewModel {
 
     var spotLookup: ((String) -> Spot?)?
     var qrzLookup: QRZLookupService?
+    var sotaCatService: SOTACatService?
 
     private var lookupTask: Task<Void, Never>?
     private var grid: String?
@@ -248,6 +249,17 @@ final class QSOEntryViewModel {
         )) ?? false
         guard !Task.isCancelled else { return }
         await MainActor.run { isDupe = dupe }
+    }
+
+    /// Update frequency from radio VFO, respecting manual overrides
+    func updateFromRadio(frequencyMHz: Double?) {
+        guard let mhz = frequencyMHz else { return }
+        guard !manualOverrides.contains("frequency") else { return }
+        let formatted = String(format: "%.3f", mhz)
+        if frequencyText != formatted {
+            frequencyText = formatted
+            frequencyChanged()
+        }
     }
 
     /// Re-check dupe status when frequency (band) changes

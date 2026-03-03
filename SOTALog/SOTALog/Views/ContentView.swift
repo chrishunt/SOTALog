@@ -4,6 +4,7 @@ struct ContentView: View {
     @Environment(\.appDatabase) private var database
     @State private var spotRouter = SpotRouter()
     @State private var spotsViewModel = SpotsViewModel()
+    @State private var sotaCatService = SOTACatService()
     @State private var selectedTab = Tab.logs
 
     enum Tab {
@@ -36,8 +37,13 @@ struct ContentView: View {
             #endif
             .environment(spotRouter)
             .environment(spotsViewModel)
+            .environment(sotaCatService)
             .task { await spotsViewModel.startAutoRefresh() }
+            .task { sotaCatService.startMonitoring() }
             .onChange(of: spotRouter.pendingSpot) { _, newValue in
+                if let spot = newValue, sotaCatService.isConnected {
+                    sotaCatService.tune(frequencyMHz: spot.frequency)
+                }
                 if newValue != nil {
                     selectedTab = .logs
                 }
