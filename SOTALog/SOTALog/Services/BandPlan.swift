@@ -20,6 +20,7 @@ enum BandPlan {
         BandEntry(name: "12m",  lower: 24.890, upper: 24.990),
         BandEntry(name: "10m",  lower: 28.000, upper: 29.700),
         BandEntry(name: "6m",   lower: 50.000, upper: 54.000),
+        BandEntry(name: "2m",   lower: 144.000, upper: 148.000),
     ]
 
     /// Returns the band name for a given frequency in MHz, or nil if out of range.
@@ -41,6 +42,7 @@ enum BandPlan {
         case "12m":  return 24.910
         case "10m":  return 28.060
         case "6m":   return 50.060
+        case "2m":   return 144.060
         default:     return nil
         }
     }

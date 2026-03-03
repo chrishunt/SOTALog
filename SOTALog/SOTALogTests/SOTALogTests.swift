@@ -15,6 +15,7 @@ final class BandPlanTests: XCTestCase {
         XCTAssertEqual(BandPlan.band(for: 50.060), "6m")
         XCTAssertEqual(BandPlan.band(for: 18.080), "17m")
         XCTAssertEqual(BandPlan.band(for: 24.910), "12m")
+        XCTAssertEqual(BandPlan.band(for: 144.060), "2m")
     }
 
     func testOutOfBand() {

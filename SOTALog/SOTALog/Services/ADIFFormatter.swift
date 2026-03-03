@@ -177,9 +177,13 @@ enum ADIFFormatter {
             return nil
         }
 
-        let band = fields["BAND"] ?? {
-            if let freqStr = fields["FREQ"], let freq = Double(freqStr) {
-                return BandPlan.band(for: freq) ?? "20m"
+        let band: String = {
+            if let freqStr = fields["FREQ"], let freq = Double(freqStr),
+               let derived = BandPlan.band(for: freq) {
+                return derived
+            }
+            if let raw = fields["BAND"], BandPlan.allBands.contains(raw) {
+                return raw
             }
             return "20m"
         }()
