@@ -12,6 +12,10 @@ final class SpotsViewModel {
     var isLoading = false
     var errorMessage: String?
 
+    private var sotaEpoch: String?
+    private var sotaSpots: [Spot] = []
+    private var potaSpots: [Spot] = []
+
     /// Spots consolidated (one per callsign), grouped by band, sorted by frequency then time.
     var spotsByBand: [(band: String, spots: [Spot])] {
         let consolidated = consolidatedSpots(spots).filter { !$0.isQRT && !$0.isExpired() }
@@ -49,11 +53,14 @@ final class SpotsViewModel {
         defer { isLoading = false }
 
         do {
-            async let potaSpots = POTASpotService.fetchSpots()
-            async let sotaSpots = SOTASpotService.fetchSpots()
+            async let pota = POTASpotService.fetchSpots()
+            async let sota = SOTASpotService.fetchSpots()
 
-            let (pota, sota) = try await (potaSpots, sotaSpots)
-            spots = pota + sota
+            let (potaResult, sotaResult) = try await (pota, sota)
+            potaSpots = potaResult
+            sotaSpots = sotaResult
+            sotaEpoch = nil  // Reset epoch so next poll fetches fresh
+            spots = potaSpots + sotaSpots
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -61,13 +68,36 @@ final class SpotsViewModel {
     }
 
     func startAutoRefresh() async {
+        // Initial full fetch of both sources
         await refresh()
 
-        // Auto-refresh every 60 seconds
+        var tickCount = 0
+
+        // Poll every 20 seconds
         while !Task.isCancelled {
-            try? await Task.sleep(for: .seconds(60))
+            try? await Task.sleep(for: .seconds(20))
             guard !Task.isCancelled else { break }
-            await refresh()
+
+            tickCount += 1
+
+            do {
+                // Every tick: check SOTA epoch, fetch only if changed
+                let epoch = try await SOTASpotService.fetchEpoch()
+                if epoch != sotaEpoch {
+                    sotaSpots = try await SOTASpotService.fetchSpots()
+                    sotaEpoch = epoch
+                }
+
+                // Every 3rd tick (~60s): also fetch POTA
+                if tickCount % 3 == 0 {
+                    potaSpots = try await POTASpotService.fetchSpots()
+                }
+
+                spots = potaSpots + sotaSpots
+                errorMessage = nil
+            } catch {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 

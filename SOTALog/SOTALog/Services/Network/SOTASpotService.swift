@@ -1,9 +1,23 @@
 import Foundation
 
 enum SOTASpotService {
-    /// Fetches current SOTA spots (last 60 spots, all modes, then filtered to CW).
+    private static let baseURL = "https://api-db2.sota.org.uk"
+
+    /// Fetches the current SOTA spots epoch. Returns a UUID string that changes when spots are updated.
+    static func fetchEpoch() async throws -> String {
+        let url = URL(string: "\(baseURL)/api/spots/epoch")!
+        var request = URLRequest(url: url)
+        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        // Epoch endpoint returns a plain UUID string (possibly quoted)
+        let raw = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines.union(.init(charactersIn: "\""))) ?? ""
+        return raw
+    }
+
+    /// Fetches current SOTA CW spots (last 1 hour, all bands, CW only).
     static func fetchSpots() async throws -> [Spot] {
-        let url = URL(string: "https://api2.sota.org.uk/api/spots/60/all")!
+        let url = URL(string: "\(baseURL)/api/spots/-1/all/cw")!
         var request = URLRequest(url: url)
         request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
 
@@ -11,27 +25,26 @@ enum SOTASpotService {
         let decoded = try JSONDecoder().decode([SOTASpotDTO].self, from: data)
 
         return decoded.compactMap { dto -> Spot? in
-            guard dto.mode?.uppercased() == "CW" else { return nil }
+            guard let freqMHz = dto.frequency, freqMHz > 0 else { return nil }
 
-            let freqMHz: Double
-            if let f = Double(dto.frequency ?? "") {
-                freqMHz = f > 1000 ? f / 1000.0 : f
+            // Prepend "QRT" to comments if the spot type is QRT, so existing isQRT logic works
+            let comments: String?
+            if dto.type?.uppercased() == "QRT" {
+                let existing = dto.comments ?? ""
+                comments = existing.uppercased().contains("QRT") ? existing : "QRT \(existing)".trimmingCharacters(in: .whitespaces)
             } else {
-                return nil
+                comments = dto.comments
             }
-
-            let sotaRef = dto.associationCode.map { "\($0)/\(dto.summitCode ?? "")" }
-                ?? dto.summitCode ?? ""
 
             return Spot(
                 id: "sota-\(dto.id ?? 0)-\(dto.activatorCallsign ?? "")",
                 activatorCallsign: dto.activatorCallsign ?? "",
                 frequency: freqMHz,
                 mode: "CW",
-                sotaReference: sotaRef,
-                sotaReferenceName: dto.summitDetails,
+                sotaReference: dto.summitCode ?? "",
+                sotaReferenceName: dto.summitName,
                 spotterCallsign: dto.callsign,
-                comments: dto.comments,
+                comments: comments,
                 timestamp: dto.parsedTimestamp ?? Date()
             )
         }
@@ -40,14 +53,14 @@ enum SOTASpotService {
     private struct SOTASpotDTO: Decodable {
         let id: Int?
         let activatorCallsign: String?
-        let associationCode: String?
         let summitCode: String?
-        let summitDetails: String?
-        let frequency: String?
+        let summitName: String?
+        let frequency: Double?
         let mode: String?
         let callsign: String?  // spotter
         let comments: String?
         let timeStamp: String?
+        let type: String?
 
         var parsedTimestamp: Date? {
             guard let timeStamp = timeStamp else { return nil }
