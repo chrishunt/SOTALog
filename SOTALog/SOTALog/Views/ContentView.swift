@@ -16,7 +16,7 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 LogListView(database: db)
                     .tabItem {
-                        Label("Activations", systemImage: "list.bullet.rectangle")
+                        Label("Activations", systemImage: "mountain.2.fill")
                     }
                     .tag(Tab.activations)
 
