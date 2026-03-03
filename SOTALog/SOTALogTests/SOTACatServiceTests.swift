@@ -92,4 +92,44 @@ final class SOTACatServiceTests: XCTestCase {
         vm.updateFromRadio(frequencyMHz: SOTACatService.hzToMHz(14_062_500))
         XCTAssertEqual(vm.frequencyText, "14.062")
     }
+
+    // MARK: - Radio Mode Sync
+
+    func testRadioModeUpdatesMode() {
+        let vm = makeVM()
+        XCTAssertEqual(vm.mode, "CW")
+
+        vm.updateModeFromRadio("SSB")
+        XCTAssertEqual(vm.mode, "SSB")
+    }
+
+    func testManualModeOverridePreventsRadioSync() {
+        let vm = makeVM()
+        vm.toggleMode()  // manual override to SSB
+
+        vm.updateModeFromRadio("CW")
+        XCTAssertEqual(vm.mode, "SSB", "Manual override should prevent radio mode sync")
+    }
+
+    func testModeOverrideResetsAfterSave() async throws {
+        let vm = makeVM()
+        vm.toggleMode()  // manual override to SSB
+        vm.entryText = "W1AW"
+
+        await vm.saveQSO()
+
+        // After save, overrides are cleared — radio sync should work
+        vm.updateModeFromRadio("CW")
+        XCTAssertEqual(vm.mode, "CW")
+    }
+
+    func testDisconnectPreservesLastMode() {
+        let vm = makeVM()
+        vm.updateModeFromRadio("SSB")
+        XCTAssertEqual(vm.mode, "SSB")
+
+        // nil mode (disconnect) should not change mode
+        vm.updateModeFromRadio(nil)
+        XCTAssertEqual(vm.mode, "SSB", "Disconnect should preserve last mode")
+    }
 }

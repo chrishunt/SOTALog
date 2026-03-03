@@ -16,6 +16,7 @@ final class QSOEntryViewModel {
     var rstSent: String = "599"
     var rstReceived: String = "599"
     var frequencyText: String = "14.060"
+    var mode: String = "CW"
     var name: String = ""
     var qth: String = ""
     var potaRefInput: String = ""
@@ -46,6 +47,11 @@ final class QSOEntryViewModel {
         return first.sanitizedCallsign
     }
 
+    /// Default RST based on current mode
+    var defaultRST: String {
+        mode == "SSB" ? "59" : "599"
+    }
+
     var spotLookup: ((String) -> Spot?)?
     var qrzLookup: QRZLookupService?
     var sotaCatService: SOTACatService?
@@ -61,22 +67,80 @@ final class QSOEntryViewModel {
         self.refRepo = ReferenceRepository(database: database)
     }
 
+    // MARK: - Mode
+
+    /// Toggles between CW and SSB, marks as manual override, updates RST defaults
+    func toggleMode() {
+        mode = mode == "CW" ? "SSB" : "CW"
+        markManualOverride("mode")
+        updateRSTForMode()
+        recheckDupe()
+    }
+
+    /// Auto-derives mode from frequency when mode is not manually overridden
+    func updateModeFromFrequency() {
+        guard !manualOverrides.contains("mode") else { return }
+        guard let freq = Double(frequencyText),
+              let derived = BandPlan.mode(for: freq) else { return }
+        if mode != derived {
+            mode = derived
+            updateRSTForMode()
+        }
+    }
+
+    /// Updates mode from SOTACat radio poll, respecting manual overrides
+    func updateModeFromRadio(_ radioMode: String?) {
+        guard let radioMode, !radioMode.isEmpty else { return }
+        guard !manualOverrides.contains("mode") else { return }
+        let upper = radioMode.uppercased()
+        guard upper == "CW" || upper == "SSB" else { return }
+        if mode != upper {
+            mode = upper
+            updateRSTForMode()
+        }
+    }
+
+    /// Updates RST defaults when mode changes (only if not manually overridden)
+    private func updateRSTForMode() {
+        if !manualOverrides.contains("rstSent") {
+            rstSent = defaultRST
+        }
+        if !manualOverrides.contains("rstReceived") {
+            rstReceived = defaultRST
+        }
+    }
+
+    /// Expands a parsed RST value based on current mode: for CW, 2-digit → append "9"
+    private func expandRST(_ raw: String) -> String {
+        if raw.count == 2 && mode == "CW" {
+            return raw + "9"
+        }
+        return raw
+    }
+
     // MARK: - Omnifield Parsing
 
     func parseEntry() {
         let parsed = OmniFieldParser.parse(entryText)
 
+        if let parsedMode = parsed.mode {
+            mode = parsedMode
+            markManualOverride("mode")
+            updateRSTForMode()
+        }
+
         if let rst = parsed.rstSent {
-            rstSent = rst
+            rstSent = expandRST(rst)
             markManualOverride("rstSent")
         }
         if let rst = parsed.rstReceived {
-            rstReceived = rst
+            rstReceived = expandRST(rst)
             markManualOverride("rstReceived")
         }
         if let freq = parsed.frequency {
             frequencyText = freq
             markManualOverride("frequency")
+            updateModeFromFrequency()
         }
         if let q = parsed.qth {
             qth = q
@@ -96,7 +160,7 @@ final class QSOEntryViewModel {
         consumeTokens(parsed)
     }
 
-    /// Strip consumed tokens (frequency, QTH, park ref, summit ref) from entryText
+    /// Strip consumed tokens (frequency, mode, QTH, park ref, summit ref) from entryText
     /// once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
     private func consumeTokens(_ parsed: ParsedEntry) {
         let tokens = parsed.tokens
@@ -112,7 +176,7 @@ final class QSOEntryViewModel {
             switch classified.kind {
             case .callsign, .rst, .unrecognized:
                 kept.append(classified.text)
-            case .frequency, .qth, .potaRef, .sotaRef:
+            case .frequency, .mode, .qth, .potaRef, .sotaRef:
                 if !isConfirmed {
                     kept.append(classified.text)
                 }
@@ -216,7 +280,7 @@ final class QSOEntryViewModel {
         }
     }
 
-    /// Spot lookup — populates frequency and references
+    /// Spot lookup — populates references (not frequency or mode)
     private func resolveSpotData(_ call: String) async {
         guard let spot = spotLookup?(call) else { return }
         await MainActor.run {
@@ -233,7 +297,7 @@ final class QSOEntryViewModel {
         }
     }
 
-    /// Check if this callsign+band is a duplicate within the current activation
+    /// Check if this callsign+band+mode is a duplicate within the current activation
     private func resolveDupe(_ call: String) async {
         guard let logId = log.id else { return }
         let band = Double(frequencyText).flatMap { BandPlan.band(for: $0) }
@@ -244,6 +308,7 @@ final class QSOEntryViewModel {
         let dupe = (try? await qsoRepo.isDuplicate(
             callsign: call.uppercased(),
             band: band,
+            mode: mode,
             logId: logId,
             excludingId: editingQSO?.id
         )) ?? false
@@ -262,8 +327,13 @@ final class QSOEntryViewModel {
         }
     }
 
-    /// Re-check dupe status when frequency (band) changes
+    /// Re-check dupe status and auto-derive mode when frequency (band) changes
     func frequencyChanged() {
+        updateModeFromFrequency()
+        recheckDupe()
+    }
+
+    private func recheckDupe() {
         let call = parsedCallsign
         guard call.count >= 3 else { return }
         Task {
@@ -340,6 +410,7 @@ final class QSOEntryViewModel {
         entryText = qso.callsign
         rstSent = qso.rstSent
         rstReceived = qso.rstReceived
+        mode = qso.mode
         if let freq = qso.frequency {
             frequencyText = String(format: "%.3f", freq)
         }
@@ -382,7 +453,7 @@ final class QSOEntryViewModel {
                 timeOn: editing.timeOn,
                 frequency: frequency,
                 band: band,
-                mode: "CW",
+                mode: mode,
                 rstSent: rstSent,
                 rstReceived: rstReceived,
                 name: name.isEmpty ? nil : name,
@@ -403,7 +474,7 @@ final class QSOEntryViewModel {
                 timeOn: now.adifTime,
                 frequency: frequency,
                 band: band,
-                mode: "CW",
+                mode: mode,
                 rstSent: rstSent,
                 rstReceived: rstReceived,
                 name: name.isEmpty ? nil : name,
@@ -430,7 +501,7 @@ final class QSOEntryViewModel {
                 AppLog.database.error("Failed to record callsign history: \(error)")
             }
 
-            // Clear fields but keep frequency
+            // Clear fields but keep frequency and mode
             await MainActor.run {
                 editingQSO = nil
                 saveCount += 1
@@ -449,6 +520,9 @@ final class QSOEntryViewModel {
 
         entryText = spot.activatorCallsign.uppercased()
         frequencyText = String(format: "%.3f", spot.frequency)
+        mode = spot.mode
+        rstSent = defaultRST
+        rstReceived = defaultRST
 
         if let ref = spot.potaReference {
             potaRefInput = POTAPark.normalize(ref)
@@ -464,8 +538,8 @@ final class QSOEntryViewModel {
     // MARK: - Private
 
     private func clearAllFields() {
-        rstSent = "599"
-        rstReceived = "599"
+        rstSent = defaultRST
+        rstReceived = defaultRST
         name = ""
         qth = ""
         potaRefInput = ""
@@ -480,7 +554,7 @@ final class QSOEntryViewModel {
         isDupe = false
         grid = nil
         manualOverrides = []
-        // frequency persists between QSOs
+        // frequency and mode persist between QSOs
     }
 
     private func clearLookupFields() {
@@ -494,8 +568,8 @@ final class QSOEntryViewModel {
 
     private func clearFieldsForNextQSO() {
         entryText = ""
-        rstSent = "599"
-        rstReceived = "599"
+        rstSent = defaultRST
+        rstReceived = defaultRST
         name = ""
         qth = ""
         potaRefInput = ""
@@ -510,6 +584,6 @@ final class QSOEntryViewModel {
         isDupe = false
         grid = nil
         manualOverrides = []
-        // frequency persists between QSOs
+        // frequency and mode persist between QSOs
     }
 }

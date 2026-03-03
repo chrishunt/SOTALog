@@ -42,7 +42,7 @@ struct ContentView: View {
             .task { sotaCatService.startMonitoring() }
             .onChange(of: spotRouter.pendingSpot) { _, newValue in
                 if let spot = newValue, sotaCatService.isConnected {
-                    sotaCatService.tune(frequencyMHz: spot.frequency)
+                    sotaCatService.tune(frequencyMHz: spot.frequency, mode: spot.mode)
                 }
                 if newValue != nil {
                     selectedTab = .logs

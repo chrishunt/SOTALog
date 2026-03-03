@@ -11,7 +11,7 @@ This is the authoritative reference for SOTA Log's design philosophy and intent.
 - **One happy path, perfected.** No settings screen. No user-configurable options. We make the right choice so the operator doesn't have to.
 - **Elegant, not minimal.** Simple doesn't mean ugly or bare. It means the right information at the right time with zero friction.
 - **Instantly usable.** A ham should be able to open this app and start logging without reading a single instruction.
-- **CW only.** We don't support SSB, digital modes, or anything else. Mode is always "CW". RST defaults to 599. Don't add mode selectors.
+- **CW and SSB.** Mode auto-derives from frequency (CW sub-band vs SSB sub-band). RST defaults adjust to match (599 for CW, 59 for SSB). Don't add support for other modes.
 - **Offline-first.** Everything works without internet. All data lives in the local GRDB database. Network operations (QRZ sync, spot fetching, reference downloads) happen only when the user explicitly triggers them.
 - **Field-optimized.** Operators use this on summits and in parks, often in cold/wind/rain. Touch targets must be large. Interactions must be minimal. The QSO entry form is the critical path — callsign field auto-focuses, keyboard Send saves from any field, haptic feedback confirms saves.
 
@@ -22,7 +22,7 @@ This is the authoritative reference for SOTA Log's design philosophy and intent.
 Explicit guardrails — if you're considering any of these, stop and reconsider:
 
 - **Settings or preferences screens.** There's nothing to configure.
-- **Mode selectors.** CW only. The mode field is always "CW".
+- **Mode pickers or multi-select.** Mode is a simple CW↔SSB toggle — never a dropdown or multi-option selector.
 - **Complex configuration options.** We choose the right default.
 - **Features that require explanation.** If it needs a tooltip or help text, it's too complex.
 - **Decision points in the logging flow.** The operator's only job is: type callsign, press Send.
@@ -45,7 +45,7 @@ The operator is sitting on a cold summit or crouched at a picnic table in a park
 
 2. **Auto-populate** — Name and QTH fill from history of previous contacts. QTH fills from the callsign prefix if still empty. A "times worked" badge appears for repeat contacts.
 
-3. **Sensible defaults** — Frequency persists from the previous QSO (you're on the same frequency). RST defaults to 599. Band is derived from frequency. Date and time are stamped at save.
+3. **Sensible defaults** — Frequency persists from the previous QSO (you're on the same frequency). Mode is derived from frequency (CW sub-band vs SSB sub-band). RST defaults to 599 for CW, 59 for SSB. Band is derived from frequency. Date and time are stamped at save.
 
 4. **Metadata strip** — All QSO metadata lives in a compact strip above the callsign. Line 1 (always visible): RST sent · RST received · frequency, plus park/summit references with validation checkmarks when present. Line 2 (auto-populated): name · QTH. Tap any segment to edit it inline. This replaces separate field rows — one component, uniform interaction.
 
@@ -97,7 +97,7 @@ A success haptic on save is the only confirmation. No toasts, no banners, no mod
 
 ### The OmniField
 
-The callsign field is also a command line. Space-separated tokens after the callsign are parsed as RST, frequency, QTH, or P2P/S2S references. This lets a skilled operator log an entire QSO without leaving a single text field. Unrecognized tokens are silently ignored — never show parse errors in the logging flow.
+The callsign field is also a command line. Space-separated tokens after the callsign are parsed as RST, frequency, mode (CW/SSB), QTH, or P2P/S2S references. This lets a skilled operator log an entire QSO without leaving a single text field. Unrecognized tokens are silently ignored — never show parse errors in the logging flow.
 
 **Token consumption:** When the parser recognizes a token (frequency, QTH, park ref, summit ref) and the operator types a space after it, the token is consumed — stripped from the callsign field and "moved" to the metadata strip. The callsign and RST tokens always remain in the field. This keeps the omnibox clean: type `W1AW 59 55 14.060 NC ` and the field shows `W1AW 59 55` while the metadata strip displays the consumed values.
 
@@ -137,4 +137,4 @@ Before proposing any change, run it through these questions:
 
 7. **Does it affect one-handed operation?** The operator might be holding a paddle, a clipboard, or bracing against wind. Touch targets must be reachable and large.
 
-8. **Is it CW-specific?** We don't build for hypothetical future modes. If it's not useful for CW operations, it doesn't belong.
+8. **Is it relevant to CW/SSB operations?** We don't build for hypothetical future modes. If it's not useful for CW or SSB operations, it doesn't belong.

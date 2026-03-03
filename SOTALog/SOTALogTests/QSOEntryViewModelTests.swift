@@ -106,6 +106,21 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.lastSavedQSO?.mode, "CW")
     }
 
+    func testSaveCreatesQSOWithSSBMode() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        vm.frequencyText = "14.260"
+        vm.mode = "SSB"
+        vm.rstSent = "59"
+        vm.rstReceived = "59"
+
+        await vm.saveQSO()
+
+        XCTAssertNotNil(vm.lastSavedQSO)
+        XCTAssertEqual(vm.lastSavedQSO?.mode, "SSB")
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "59")
+    }
+
     func testSaveUppercasesCallsign() async throws {
         let vm = makeVM()
         vm.entryText = "w1aw"
@@ -489,5 +504,159 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.callsignChanged()
 
         XCTAssertEqual(vm.frequencyText, "7.030", "Custom frequency should persist through clear")
+    }
+
+    // MARK: - Mode Tests
+
+    func testDefaultMode() {
+        let vm = makeVM()
+        XCTAssertEqual(vm.mode, "CW")
+        XCTAssertEqual(vm.defaultRST, "599")
+    }
+
+    func testToggleMode() {
+        let vm = makeVM()
+        XCTAssertEqual(vm.mode, "CW")
+
+        vm.toggleMode()
+        XCTAssertEqual(vm.mode, "SSB")
+        XCTAssertEqual(vm.rstSent, "59")
+        XCTAssertEqual(vm.rstReceived, "59")
+
+        vm.toggleMode()
+        XCTAssertEqual(vm.mode, "CW")
+        XCTAssertEqual(vm.rstSent, "599")
+        XCTAssertEqual(vm.rstReceived, "599")
+    }
+
+    func testModeAutoDerivesFromFrequency() {
+        let vm = makeVM()
+        XCTAssertEqual(vm.mode, "CW")
+
+        vm.frequencyText = "14.260"
+        vm.frequencyChanged()
+        XCTAssertEqual(vm.mode, "SSB")
+        XCTAssertEqual(vm.rstSent, "59")
+
+        vm.frequencyText = "14.060"
+        vm.frequencyChanged()
+        XCTAssertEqual(vm.mode, "CW")
+        XCTAssertEqual(vm.rstSent, "599")
+    }
+
+    func testManualModeOverridePreventsAutoDerivation() {
+        let vm = makeVM()
+        vm.toggleMode()  // manual override to SSB
+        XCTAssertEqual(vm.mode, "SSB")
+
+        vm.frequencyText = "14.060"  // CW sub-band
+        vm.frequencyChanged()
+        XCTAssertEqual(vm.mode, "SSB", "Manual mode override should prevent auto-derivation")
+    }
+
+    func testOmnifieldModeTokenSetsMode() {
+        let vm = makeVM()
+        vm.entryText = "W1AW SSB "
+        vm.parseEntry()
+        XCTAssertEqual(vm.mode, "SSB")
+        XCTAssertEqual(vm.rstSent, "59")
+    }
+
+    func testOmnifieldRSTExpandedForCW() {
+        let vm = makeVM()
+        XCTAssertEqual(vm.mode, "CW")
+        vm.entryText = "W1AW 55"
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "559", "2-digit RST should expand to 3-digit for CW")
+    }
+
+    func testOmnifieldRSTNotExpandedForSSB() {
+        let vm = makeVM()
+        vm.mode = "SSB"
+        vm.entryText = "W1AW 55"
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "55", "2-digit RST should stay 2-digit for SSB")
+    }
+
+    func testPrefillFromSpotSetsMode() {
+        let vm = makeVM()
+        let spot = makeSpot(callsign: "K3ABC", frequency: 14.260, mode: "SSB")
+
+        vm.prefillFromSpot(spot)
+
+        XCTAssertEqual(vm.mode, "SSB")
+        XCTAssertEqual(vm.rstSent, "59")
+        XCTAssertEqual(vm.rstReceived, "59")
+    }
+
+    func testLoadForEditingSetsMode() {
+        let vm = makeVM()
+        let qso = QSO(
+            id: 42,
+            logId: log.id!,
+            callsign: "W1AW",
+            date: "20240101",
+            timeOn: "1234",
+            frequency: 14.260,
+            band: "20m",
+            mode: "SSB",
+            rstSent: "59",
+            rstReceived: "59"
+        )
+
+        vm.loadForEditing(qso)
+
+        XCTAssertEqual(vm.mode, "SSB")
+        XCTAssertEqual(vm.rstSent, "59")
+    }
+
+    func testModePersistsAfterSave() async throws {
+        let vm = makeVM()
+        vm.mode = "SSB"
+        vm.rstSent = "59"
+        vm.rstReceived = "59"
+        vm.entryText = "W1AW"
+        vm.frequencyText = "14.260"
+
+        await vm.saveQSO()
+
+        XCTAssertEqual(vm.mode, "SSB", "Mode should persist after save")
+        XCTAssertEqual(vm.rstSent, "59", "RST should use SSB default after save")
+    }
+
+    func testModePersistsAfterClearAllFields() {
+        let vm = makeVM()
+        vm.mode = "SSB"
+        vm.entryText = "W1AW"
+
+        vm.entryText = ""
+        vm.callsignChanged()
+
+        XCTAssertEqual(vm.mode, "SSB", "Mode should persist through clear")
+    }
+
+    func testRadioModeUpdateRespected() {
+        let vm = makeVM()
+        XCTAssertEqual(vm.mode, "CW")
+
+        vm.updateModeFromRadio("SSB")
+        XCTAssertEqual(vm.mode, "SSB")
+        XCTAssertEqual(vm.rstSent, "59")
+    }
+
+    func testRadioModeUpdateBlockedByManualOverride() {
+        let vm = makeVM()
+        vm.toggleMode()  // manual override to SSB
+        XCTAssertEqual(vm.mode, "SSB")
+
+        vm.updateModeFromRadio("CW")
+        XCTAssertEqual(vm.mode, "SSB", "Manual override should block radio mode sync")
+    }
+
+    func testRadioModeNilDoesNotChangeMode() {
+        let vm = makeVM()
+        vm.mode = "SSB"
+        vm.updateModeFromRadio(nil)
+        XCTAssertEqual(vm.mode, "SSB")
     }
 }

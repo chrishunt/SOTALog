@@ -15,9 +15,9 @@ enum SOTASpotService {
         return raw
     }
 
-    /// Fetches current SOTA CW spots (last 1 hour, all bands, CW only).
+    /// Fetches current SOTA CW and SSB spots (last 1 hour, all bands).
     static func fetchSpots() async throws -> [Spot] {
-        let url = URL(string: "\(baseURL)/api/spots/-1/all/cw")!
+        let url = URL(string: "\(baseURL)/api/spots/-1/all/cw,ssb")!
         var request = URLRequest(url: url)
         request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
 
@@ -36,11 +36,13 @@ enum SOTASpotService {
                 comments = dto.comments
             }
 
+            let mode = dto.mode?.uppercased() ?? BandPlan.mode(for: freqMHz) ?? "CW"
+
             return Spot(
                 id: "sota-\(dto.id ?? 0)-\(dto.activatorCallsign ?? "")",
                 activatorCallsign: dto.activatorCallsign ?? "",
                 frequency: freqMHz,
-                mode: "CW",
+                mode: mode,
                 sotaReference: dto.summitCode ?? "",
                 sotaReferenceName: dto.summitName,
                 spotterCallsign: dto.callsign,

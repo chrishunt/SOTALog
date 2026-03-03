@@ -5,6 +5,7 @@ import Observation
 final class SOTACatService {
     private(set) var isConnected = false
     private(set) var radioFrequency: Double?
+    private(set) var radioMode: String?
 
     private let baseURL = "http://sotacat.local"
     private let session: URLSession
@@ -43,11 +44,11 @@ final class SOTACatService {
 
     // MARK: - Tune (Pounce)
 
-    func tune(frequencyMHz: Double) {
+    func tune(frequencyMHz: Double, mode: String = "CW") {
         let hz = Int(frequencyMHz * 1_000_000)
         Task {
             await sendPUT("/api/v1/frequency?frequency=\(hz)")
-            await sendPUT("/api/v1/mode?mode=CW")
+            await sendPUT("/api/v1/mode?mode=\(mode)")
         }
     }
 
@@ -83,6 +84,7 @@ final class SOTACatService {
                 await MainActor.run {
                     isConnected = false
                     radioFrequency = nil
+                    radioMode = nil
                 }
                 return
             }
@@ -99,7 +101,29 @@ final class SOTACatService {
             await MainActor.run {
                 isConnected = false
                 radioFrequency = nil
+                radioMode = nil
             }
+        }
+
+        // Poll mode separately — failure is non-fatal (don't disconnect)
+        await pollMode()
+    }
+
+    private func pollMode() async {
+        guard let url = URL(string: "\(baseURL)/api/v1/mode") else { return }
+        do {
+            let (data, response) = try await session.data(from: url)
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200,
+                  let text = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !text.isEmpty else { return }
+            let mode = text.uppercased()
+            await MainActor.run {
+                if radioMode != mode {
+                    radioMode = mode
+                }
+            }
+        } catch {
+            // Mode poll failure is non-fatal — don't disconnect
         }
     }
 
