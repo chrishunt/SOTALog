@@ -215,6 +215,31 @@ final class QSORepositoryExtendedTests: XCTestCase {
         XCTAssertNil(fetched)
     }
 
+    func testDeleteLogRemovesUnsyncedQSOsPreservesSynced() async throws {
+        let db = try AppDatabase.empty()
+        let logRepo = LogRepository(database: db)
+        let qsoRepo = QSORepository(database: db)
+
+        var log = Log(date: "20240101", myCallsign: "W1AW")
+        try await logRepo.save(&log)
+
+        var unsynced = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m", syncedToQRZ: false)
+        var synced = QSO(logId: log.id!, callsign: "N4XYZ", date: "20240101", timeOn: "1201", band: "20m", syncedToQRZ: true)
+        try await qsoRepo.save(&unsynced)
+        try await qsoRepo.save(&synced)
+
+        try await logRepo.delete(id: log.id!)
+
+        // Unsynced QSO should be deleted
+        let fetchedUnsynced = try await qsoRepo.fetch(id: unsynced.id!)
+        XCTAssertNil(fetchedUnsynced)
+
+        // Synced QSO should still exist with nil logId
+        let fetchedSynced = try await qsoRepo.fetch(id: synced.id!)
+        XCTAssertNotNil(fetchedSynced)
+        XCTAssertNil(fetchedSynced?.logId)
+    }
+
     func testFetchById() async throws {
         let db = try AppDatabase.empty()
         let logRepo = LogRepository(database: db)
