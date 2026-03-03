@@ -12,7 +12,7 @@ enum QRZXMLService {
         ]
 
         var request = URLRequest(url: components.url!)
-        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let xml = String(data: data, encoding: .utf8) ?? ""
@@ -34,7 +34,7 @@ enum QRZXMLService {
         ]
 
         var request = URLRequest(url: components.url!)
-        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let xml = String(data: data, encoding: .utf8) ?? ""

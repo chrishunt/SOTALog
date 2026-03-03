@@ -7,7 +7,7 @@ enum SOTASpotService {
     static func fetchEpoch() async throws -> String {
         let url = URL(string: "\(baseURL)/api/spots/epoch")!
         var request = URLRequest(url: url)
-        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         // Epoch endpoint returns a plain UUID string (possibly quoted)
@@ -19,7 +19,7 @@ enum SOTASpotService {
     static func fetchSpots() async throws -> [Spot] {
         let url = URL(string: "\(baseURL)/api/spots/-1/all/cw,ssb")!
         var request = URLRequest(url: url)
-        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let decoded = try JSONDecoder().decode([SOTASpotDTO].self, from: data)
