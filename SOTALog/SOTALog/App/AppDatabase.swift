@@ -160,6 +160,18 @@ struct AppDatabase {
             try db.execute(sql: "DELETE FROM log WHERE notes = 'QRZ Import'")
         }
 
+        migrator.registerMigration("v4_cwMacro") { db in
+            try db.create(table: "cwMacro") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("position", .integer).notNull()
+                t.column("label", .text).notNull()
+                t.column("template", .text).notNull()
+            }
+            for var macro in CWMacro.defaults {
+                try macro.insert(db)
+            }
+        }
+
         return migrator
     }
 

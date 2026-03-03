@@ -659,4 +659,48 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.updateModeFromRadio(nil)
         XCTAssertEqual(vm.mode, "SSB")
     }
+
+    // MARK: - CW Template Expansion
+
+    func testExpandTemplate_withSOTARef() {
+        let vm = makeVM()
+        let result = vm.expandTemplate("CQ {activity} DE {myCall} K")
+        XCTAssertEqual(result, "CQ SOTA DE W1AW K")
+    }
+
+    func testExpandTemplate_withPOTARef() async throws {
+        let db = try AppDatabase.empty()
+        let potaLog = try await makeLogWithId(in: db, potaRef: "US-4431")
+        let vm = QSOEntryViewModel(database: db, log: potaLog)
+        let result = vm.expandTemplate("CQ {activity} DE {myCall} K")
+        XCTAssertEqual(result, "CQ POTA DE W1AW K")
+    }
+
+    func testExpandTemplate_noRef() async throws {
+        let db = try AppDatabase.empty()
+        let noRefLog = try await makeLogWithId(in: db)
+        let vm = QSOEntryViewModel(database: db, log: noRefLog)
+        let result = vm.expandTemplate("CQ {activity} DE {myCall} K")
+        XCTAssertEqual(result, "CQ DE W1AW K")
+    }
+
+    func testExpandTemplate_exchange() {
+        let vm = makeVM()
+        vm.entryText = "W6SD"
+        vm.rstSent = "579"
+        let result = vm.expandTemplate("{call} UR {rst} BK")
+        XCTAssertEqual(result, "W6SD UR 579 BK")
+    }
+
+    func testExpandTemplate_emptyCall() {
+        let vm = makeVM()
+        let result = vm.expandTemplate("{call}?")
+        XCTAssertEqual(result, "?")
+    }
+
+    func testExpandTemplate_collapseSpaces() {
+        let vm = makeVM()
+        let result = vm.expandTemplate("{call}  DE  {myCall}")
+        XCTAssertEqual(result, "DE W1AW")
+    }
 }

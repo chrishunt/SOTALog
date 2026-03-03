@@ -52,6 +52,9 @@ final class QSOEntryViewModel {
         mode == "SSB" ? "59" : "599"
     }
 
+    // CW Keyer
+    var keyerSendCount: Int = 0
+
     var spotLookup: ((String) -> Spot?)?
     var qrzLookup: QRZLookupService?
     var sotaCatService: SOTACatService?
@@ -565,6 +568,47 @@ final class QSOEntryViewModel {
         qth = ""
         grid = nil
     }
+
+    // MARK: - CW Keyer
+
+    func expandTemplate(_ template: String) -> String {
+        let activity: String
+        if log.sotaReference != nil {
+            activity = "SOTA"
+        } else if log.potaReference != nil {
+            activity = "POTA"
+        } else {
+            activity = ""
+        }
+
+        var text = template
+        text = text.replacingOccurrences(of: "{myCall}", with: log.myCallsign)
+        text = text.replacingOccurrences(of: "{call}", with: parsedCallsign)
+        text = text.replacingOccurrences(of: "{rst}", with: rstSent)
+        text = text.replacingOccurrences(of: "{mySOTA}", with: log.sotaReference ?? "")
+        text = text.replacingOccurrences(of: "{myPOTA}", with: log.potaReference ?? "")
+        text = text.replacingOccurrences(of: "{activity}", with: activity)
+
+        // Collapse consecutive spaces and trim
+        text = text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        text = text.trimmingCharacters(in: .whitespaces)
+        return text
+    }
+
+    func sendCWMacro(_ template: String) {
+        let message = expandTemplate(template)
+        guard !message.isEmpty else { return }
+        Task {
+            let success = await sotaCatService?.sendKeyer(message: message) ?? false
+            if success {
+                await MainActor.run {
+                    keyerSendCount += 1
+                }
+            }
+        }
+    }
+
+    // MARK: - Private
 
     private func clearFieldsForNextQSO() {
         entryText = ""

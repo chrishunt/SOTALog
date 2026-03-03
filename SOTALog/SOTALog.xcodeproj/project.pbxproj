@@ -35,6 +35,7 @@
 		62584B78191D37BC7F3C98FC /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1164680FD822CB549FBF2785 /* AppDatabase.swift */; };
 		6262199275FB8DBC452028DA /* NewLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EC7F7B0ACA429D66488273 /* NewLogView.swift */; };
 		6269F57C8EBC8BC71C2CF91F /* SOTALogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BE3F3C3C986C1EEF0DF930 /* SOTALogTests.swift */; };
+		649620D579799BF173BC3473 /* CWMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F2B5A1956F8C52800ED824 /* CWMacro.swift */; };
 		6DBF96036CFFDB385CE76F83 /* QRZLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B473BAD0C0F22955E4DBFFFB /* QRZLookupService.swift */; };
 		79B22C489E0EA8217109EC64 /* RepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0056E2A70BE433214C4B7C0A /* RepositoryTests.swift */; };
 		7A30847B75520EA883A60C5C /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4266BF0A296CC64D2A95BE5 /* AppLog.swift */; };
@@ -66,6 +67,7 @@
 		C2C0C1CD6F75EB9456C59693 /* SpotRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D4A497BD7549AF647F5D06 /* SpotRouter.swift */; };
 		C4F96E00ED134810334A6103 /* SOTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3EF2E3945E205EAF225D9 /* SOTASpotService.swift */; };
 		CB3E1605EE63AB5BE834B6C0 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 03577E747453328E267999F9 /* GRDB */; };
+		CBDB7E0EEA6E95B74927AB0A /* CWMacroEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84ED1B3BE9897BC515875BED /* CWMacroEditView.swift */; };
 		CD80AE501E985AD141BBB10E /* SyncImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C22A046CF44BBDDF61029B0 /* SyncImporter.swift */; };
 		CDF1399DF8523800A29E56A6 /* SOTALogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F19C56AAA3C51D233A4CF61 /* SOTALogApp.swift */; };
 		D10D4A809BAF7BAE0D6F7196 /* String+Callsign.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE11D3EC8DB1BFC6C897E8BB /* String+Callsign.swift */; };
@@ -74,6 +76,7 @@
 		DA623435E356222EB697AB3A /* Spot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F47BB11F7B3A59DD4E0DAF /* Spot.swift */; };
 		E42F491C91E5F3B637C387F4 /* CallsignPrefixResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD310A8C6A43BFF4883C3707 /* CallsignPrefixResolver.swift */; };
 		E56CB67EB62F1F699C01AD5E /* MaidenheadConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 464F722351D19F7CE9BB99C0 /* MaidenheadConverter.swift */; };
+		E70611B1F61E9DE4FED3F323 /* CWMacroRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA72D5DE87994B519B1BBAC /* CWMacroRepository.swift */; };
 		E8E4D588292B38EB7CA00456 /* QSORepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5062A6D3908A213D88346E8 /* QSORepository.swift */; };
 		EE9015DC4FE5CB76385617E8 /* QRZXMLService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 982E2AD75660266C979D8FCD /* QRZXMLService.swift */; };
 		F41EC452D9247C3DB62C06BE /* ReferenceMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8157582BD387BF9057B364B3 /* ReferenceMetadata.swift */; };
@@ -120,6 +123,7 @@
 		39BE3F3C3C986C1EEF0DF930 /* SOTALogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTALogTests.swift; sourceTree = "<group>"; };
 		3B2337EDDD9E8DA078C7E207 /* SOTALog.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SOTALog.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B334E220D0F01E18FE2A918 /* NewLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewLogViewModel.swift; sourceTree = "<group>"; };
+		3DA72D5DE87994B519B1BBAC /* CWMacroRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CWMacroRepository.swift; sourceTree = "<group>"; };
 		3FBBE0CB7554257A2C3C7FDE /* ReferenceManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceManagerView.swift; sourceTree = "<group>"; };
 		436A3CAC8A64BCC306950B62 /* SpotModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotModelTests.swift; sourceTree = "<group>"; };
 		43EC7F7B0ACA429D66488273 /* NewLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewLogView.swift; sourceTree = "<group>"; };
@@ -128,6 +132,7 @@
 		4C5DC27A55D0CC129F37F4D7 /* SOTASummitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummitService.swift; sourceTree = "<group>"; };
 		4F19C56AAA3C51D233A4CF61 /* SOTALogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTALogApp.swift; sourceTree = "<group>"; };
 		60642B7DA833062F673FEDAE /* ReferenceDownloadRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceDownloadRow.swift; sourceTree = "<group>"; };
+		61F2B5A1956F8C52800ED824 /* CWMacro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CWMacro.swift; sourceTree = "<group>"; };
 		65B3EF2E3945E205EAF225D9 /* SOTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASpotService.swift; sourceTree = "<group>"; };
 		65F47BB11F7B3A59DD4E0DAF /* Spot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spot.swift; sourceTree = "<group>"; };
 		6C198756DB82EFF308D1D1BA /* POTAParkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTAParkService.swift; sourceTree = "<group>"; };
@@ -140,6 +145,7 @@
 		7F10CE560B1CC278BF354031 /* SpotsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsViewModelTests.swift; sourceTree = "<group>"; };
 		813299ED126BB9D2F6A717D2 /* OmniFieldParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniFieldParser.swift; sourceTree = "<group>"; };
 		8157582BD387BF9057B364B3 /* ReferenceMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceMetadata.swift; sourceTree = "<group>"; };
+		84ED1B3BE9897BC515875BED /* CWMacroEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CWMacroEditView.swift; sourceTree = "<group>"; };
 		84FE30192C3B58D6BDFC7F5E /* StringExtensionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtensionTests.swift; sourceTree = "<group>"; };
 		8565B3F633C46D7384840515 /* QRZSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZSyncView.swift; sourceTree = "<group>"; };
 		8686E8508B8D387AF8BC1B16 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
@@ -241,6 +247,7 @@
 			isa = PBXGroup;
 			children = (
 				875D8FD75A8FB9B08FED76DE /* CallsignHistoryRepository.swift */,
+				3DA72D5DE87994B519B1BBAC /* CWMacroRepository.swift */,
 				26180B1539A33ED3751C8038 /* LogRepository.swift */,
 				D5062A6D3908A213D88346E8 /* QSORepository.swift */,
 				E509603AB3965292400E7ECB /* ReferenceRepository.swift */,
@@ -254,6 +261,7 @@
 			children = (
 				F862FE197B64B0016382DF6A /* ActivationStatusView.swift */,
 				FF57CB92C22800727995AF0F /* CallsignField.swift */,
+				84ED1B3BE9897BC515875BED /* CWMacroEditView.swift */,
 				2220B6EA473F41D18C821368 /* MetadataStrip.swift */,
 				1282C3A8871D73E842E74FBB /* NumberKeyRow.swift */,
 				60642B7DA833062F673FEDAE /* ReferenceDownloadRow.swift */,
@@ -342,6 +350,7 @@
 			isa = PBXGroup;
 			children = (
 				164D78E44F1B4610746D0EB2 /* CallsignHistory.swift */,
+				61F2B5A1956F8C52800ED824 /* CWMacro.swift */,
 				2F0497472283AB4B46B4C108 /* Log.swift */,
 				3220DADE46BD3E468F965B4B /* POTAPark.swift */,
 				A1EFB5E0766D441B59BDE42C /* QRZCallsignResult.swift */,
@@ -524,6 +533,9 @@
 				62584B78191D37BC7F3C98FC /* AppDatabase.swift in Sources */,
 				7A30847B75520EA883A60C5C /* AppLog.swift in Sources */,
 				15FCD238FFF1E83EBF333ADF /* BandPlan.swift in Sources */,
+				649620D579799BF173BC3473 /* CWMacro.swift in Sources */,
+				CBDB7E0EEA6E95B74927AB0A /* CWMacroEditView.swift in Sources */,
+				E70611B1F61E9DE4FED3F323 /* CWMacroRepository.swift in Sources */,
 				9E9653E9C8C93A1061C5CE62 /* CallsignField.swift in Sources */,
 				A600AFC63E0367C8F477ABFB /* CallsignHistory.swift in Sources */,
 				A18331906A4110FD6FFC56AF /* CallsignHistoryRepository.swift in Sources */,
