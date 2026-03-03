@@ -26,7 +26,7 @@ struct SpotRowView: View {
 
                 Spacer()
 
-                Text(spot.band.uppercased())
+                Text("\(spot.band.uppercased()) \(spot.mode)")
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)

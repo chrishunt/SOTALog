@@ -58,11 +58,11 @@ struct QSORepository {
         }
     }
 
-    /// Check if a callsign+band combination already exists in this log
-    func isDuplicate(callsign: String, band: String, logId: Int64, excludingId: Int64?) async throws -> Bool {
+    /// Check if a callsign+band+mode combination already exists in this log
+    func isDuplicate(callsign: String, band: String, mode: String, logId: Int64, excludingId: Int64?) async throws -> Bool {
         try await database.dbWriter.read { db in
-            var sql = "SELECT COUNT(*) FROM qso WHERE callsign = ? AND band = ? AND logId = ?"
-            var args: [any DatabaseValueConvertible] = [callsign, band, logId]
+            var sql = "SELECT COUNT(*) FROM qso WHERE callsign = ? AND band = ? AND mode = ? AND logId = ?"
+            var args: [any DatabaseValueConvertible] = [callsign, band, mode, logId]
             if let excludingId {
                 sql += " AND id != ?"
                 args.append(excludingId)
@@ -271,21 +271,22 @@ struct QSORepository {
     // MARK: - Observation
 
     /// Observes worked composite keys for a given UTC date.
-    /// Emits a `Set<String>` of keys in the format "DATE|CALL|REF|BAND".
+    /// Emits a `Set<String>` of keys in the format "DATE|CALL|REF|BAND|MODE".
     func observeWorkedKeys(date: String, in writer: any DatabaseWriter, onChange: @escaping (Set<String>) -> Void) -> AnyDatabaseCancellable {
         let observation = ValueObservation.tracking { db -> Set<String> in
             let rows = try Row.fetchAll(db, sql: """
-                SELECT callsign, band, potaRef, sotaRef FROM qso WHERE date = ?
+                SELECT callsign, band, mode, potaRef, sotaRef FROM qso WHERE date = ?
                 """, arguments: [date])
             var keys = Set<String>()
             for row in rows {
                 guard let callsign: String = row["callsign"],
                       let band: String = row["band"] else { continue }
+                let mode: String = row["mode"] ?? "CW"
                 if let potaRef: String = row["potaRef"] {
-                    keys.insert("\(date)|\(callsign.uppercased())|\(potaRef)|\(band)")
+                    keys.insert("\(date)|\(callsign.uppercased())|\(potaRef)|\(band)|\(mode)")
                 }
                 if let sotaRef: String = row["sotaRef"] {
-                    keys.insert("\(date)|\(callsign.uppercased())|\(sotaRef)|\(band)")
+                    keys.insert("\(date)|\(callsign.uppercased())|\(sotaRef)|\(band)|\(mode)")
                 }
             }
             return keys

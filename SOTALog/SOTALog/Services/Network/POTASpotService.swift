@@ -11,16 +11,18 @@ enum POTASpotService {
         let decoded = try JSONDecoder().decode([POTASpotDTO].self, from: data)
 
         return decoded.compactMap { dto -> Spot? in
-            guard dto.mode?.uppercased() == "CW" else { return nil }
+            let upperMode = dto.mode?.uppercased()
+            guard upperMode == "CW" || upperMode == "SSB" else { return nil }
             guard let freq = Double(dto.frequency ?? "") else { return nil }
 
             let freqMHz = freq > 1000 ? freq / 1000.0 : freq
+            let mode = upperMode ?? "CW"
 
             return Spot(
                 id: "pota-\(dto.spotId ?? 0)-\(dto.activator ?? "")",
                 activatorCallsign: dto.activator ?? "",
                 frequency: freqMHz,
-                mode: "CW",
+                mode: mode,
                 potaReference: dto.reference,
                 potaReferenceName: dto.name,
                 spotterCallsign: dto.spotter,

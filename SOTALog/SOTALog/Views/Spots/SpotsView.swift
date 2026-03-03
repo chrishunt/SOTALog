@@ -19,7 +19,7 @@ struct SpotsView: View {
                     ContentUnavailableView(
                         "No Spots",
                         systemImage: "antenna.radiowaves.left.and.right",
-                        description: Text("Pull to refresh or wait for CW activators.")
+                        description: Text("Pull to refresh or wait for activators.")
                     )
                 } else {
                     List {
@@ -96,14 +96,15 @@ struct SpotsView: View {
         let spotDate = spotUTCDate(spot.timestamp)
         let callsign = spot.activatorCallsign.uppercased()
         let band = spot.band
+        let mode = spot.mode
 
         if let potaRef = spot.potaReference {
-            if workedKeys.contains("\(spotDate)|\(callsign)|\(potaRef)|\(band)") {
+            if workedKeys.contains("\(spotDate)|\(callsign)|\(potaRef)|\(band)|\(mode)") {
                 return true
             }
         }
         if let sotaRef = spot.sotaReference {
-            if workedKeys.contains("\(spotDate)|\(callsign)|\(sotaRef)|\(band)") {
+            if workedKeys.contains("\(spotDate)|\(callsign)|\(sotaRef)|\(band)|\(mode)") {
                 return true
             }
         }

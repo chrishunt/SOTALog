@@ -8,6 +8,7 @@ struct MetadataStrip: View {
     @Binding var rstSent: String
     @Binding var rstReceived: String
     @Binding var frequencyText: String
+    @Binding var mode: String
     @Binding var name: String
     @Binding var qth: String
     @Binding var potaRefInput: String
@@ -17,6 +18,7 @@ struct MetadataStrip: View {
     var sotaRefFormatted: String?
     var sotaRefValid: Bool
     var onManualOverride: (String) -> Void
+    var onModeToggle: () -> Void
     var onPOTAChanged: () -> Void
     var onSOTAChanged: () -> Void
     var onFrequencyChanged: () -> Void
@@ -70,6 +72,8 @@ struct MetadataStrip: View {
         HStack(spacing: 0) {
             segment(frequencyText, field: .frequency)
             dot
+            modeSegment
+            dot
             segment(rstSent, field: .rstSent)
             dot
             segment(rstReceived, field: .rstReceived)
@@ -102,14 +106,14 @@ struct MetadataStrip: View {
         Group {
             switch editingField {
             case .rstSent:
-                TextField("599", text: $rstSent)
+                TextField(mode == "SSB" ? "59" : "599", text: $rstSent)
                     .focused($editFocus, equals: .rstSent)
                     #if os(iOS)
                     .keyboardType(.numberPad)
                     #endif
                     .onChange(of: rstSent) { _, _ in onManualOverride("rstSent") }
             case .rstReceived:
-                TextField("599", text: $rstReceived)
+                TextField(mode == "SSB" ? "59" : "599", text: $rstReceived)
                     .focused($editFocus, equals: .rstReceived)
                     #if os(iOS)
                     .keyboardType(.numberPad)
@@ -224,6 +228,15 @@ struct MetadataStrip: View {
     }
 
     // MARK: - Helpers
+
+    private var modeSegment: some View {
+        Button {
+            onModeToggle()
+        } label: {
+            Text(mode)
+        }
+        .buttonStyle(.plain)
+    }
 
     private func segment(_ text: String, field: EditField) -> some View {
         Button {

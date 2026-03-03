@@ -2,7 +2,7 @@ import Foundation
 
 struct ParsedEntry {
     enum TokenKind {
-        case callsign, rst, frequency, qth, potaRef, sotaRef, unrecognized
+        case callsign, rst, frequency, mode, qth, potaRef, sotaRef, unrecognized
     }
 
     struct ClassifiedToken {
@@ -14,6 +14,7 @@ struct ParsedEntry {
     var rstSent: String?
     var rstReceived: String?
     var frequency: String?
+    var mode: String?
     var qth: String?
     var potaRef: String?
     var sotaRef: String?
@@ -31,7 +32,10 @@ enum OmniFieldParser {
         var rstCount = 0
 
         for token in tokens.dropFirst() {
-            if let rst = parseRST(token) {
+            if isModeToken(token) {
+                result.mode = token.uppercased()
+                result.tokens.append(.init(text: token, kind: .mode))
+            } else if let rst = parseRST(token) {
                 if rstCount == 0 {
                     result.rstSent = rst
                 } else if rstCount == 1 {
@@ -62,7 +66,7 @@ enum OmniFieldParser {
     // MARK: - Token Classifiers
 
     /// Matches 2-3 digit RST: [1-5][1-9][1-9]?
-    /// 2-digit form (e.g. "55") appends 9 for tone → "559"
+    /// Returns the raw value as-is. The view model handles tone expansion based on mode.
     private static func parseRST(_ token: String) -> String? {
         guard token.count >= 2, token.count <= 3,
               token.allSatisfy(\.isNumber) else { return nil }
@@ -73,10 +77,14 @@ enum OmniFieldParser {
 
         if digits.count == 3 {
             guard let t = digits[2].wholeNumberValue, (1...9).contains(t) else { return nil }
-            return token
         }
-        // 2-digit: append tone 9
-        return token + "9"
+        return token
+    }
+
+    /// Matches "CW" or "SSB" (case-insensitive)
+    private static func isModeToken(_ token: String) -> Bool {
+        let upper = token.uppercased()
+        return upper == "CW" || upper == "SSB"
     }
 
     /// Matches a decimal number (frequency in MHz)

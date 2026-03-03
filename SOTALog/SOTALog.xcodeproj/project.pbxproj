@@ -60,7 +60,6 @@
 		A8CB0DAAB739D05D117B3A5A /* ActiveLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA2EBE31C6CAA6F5A8528C8 /* ActiveLogViewModel.swift */; };
 		AAABF9BA83ADE653CF017EC7 /* QSO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B1B64937D68958149905B2 /* QSO.swift */; };
 		AE53733E852711B4E0059A85 /* CSVParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31F58CCDFB797133F575C46 /* CSVParsingTests.swift */; };
-		B3BE645B29EE8BE06DCD153B /* RSTField.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8F3DBE8648806AE711D1149 /* RSTField.swift */; };
 		BA30BA6E3CB871D12CDA4132 /* ReferenceManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBBE0CB7554257A2C3C7FDE /* ReferenceManagerView.swift */; };
 		BC20F12B0EED78EEF0AD3F43 /* SpotRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0F435B6A3BB43CEB6E9F /* SpotRowView.swift */; };
 		C0D32487F86B08323771A99A /* QSOEntryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19AE2C7FED08C032565C93F1 /* QSOEntryViewModelTests.swift */; };
@@ -171,7 +170,6 @@
 		EE2F5A59D839F5D819E31B26 /* SOTACatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTACatService.swift; sourceTree = "<group>"; };
 		F759C6D173DACA136AB14AE1 /* SyncImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncImporterTests.swift; sourceTree = "<group>"; };
 		F862FE197B64B0016382DF6A /* ActivationStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivationStatusView.swift; sourceTree = "<group>"; };
-		F8F3DBE8648806AE711D1149 /* RSTField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RSTField.swift; sourceTree = "<group>"; };
 		FF57CB92C22800727995AF0F /* CallsignField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignField.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -259,7 +257,6 @@
 				2220B6EA473F41D18C821368 /* MetadataStrip.swift */,
 				1282C3A8871D73E842E74FBB /* NumberKeyRow.swift */,
 				60642B7DA833062F673FEDAE /* ReferenceDownloadRow.swift */,
-				F8F3DBE8648806AE711D1149 /* RSTField.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -562,7 +559,6 @@
 				8B979EC6276A289632381758 /* QSOEntryViewModel.swift in Sources */,
 				E8E4D588292B38EB7CA00456 /* QSORepository.swift in Sources */,
 				A6C44D5177C39B3F1BD49913 /* QSORowView.swift in Sources */,
-				B3BE645B29EE8BE06DCD153B /* RSTField.swift in Sources */,
 				9F4B8A91AC4EBD14CA2FEC23 /* ReferenceDownloadRow.swift in Sources */,
 				BA30BA6E3CB871D12CDA4132 /* ReferenceManagerView.swift in Sources */,
 				F41EC452D9247C3DB62C06BE /* ReferenceMetadata.swift in Sources */,

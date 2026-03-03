@@ -39,6 +39,7 @@ struct QSOEntryView: View {
                 rstSent: $viewModel.rstSent,
                 rstReceived: $viewModel.rstReceived,
                 frequencyText: $viewModel.frequencyText,
+                mode: $viewModel.mode,
                 name: $viewModel.name,
                 qth: $viewModel.qth,
                 potaRefInput: $viewModel.potaRefInput,
@@ -48,6 +49,7 @@ struct QSOEntryView: View {
                 sotaRefFormatted: viewModel.sotaRefFormatted,
                 sotaRefValid: viewModel.sotaRefValid,
                 onManualOverride: { viewModel.markManualOverride($0) },
+                onModeToggle: { viewModel.toggleMode() },
                 onPOTAChanged: { viewModel.validatePOTARef() },
                 onSOTAChanged: { viewModel.validateSOTARef() },
                 onFrequencyChanged: { viewModel.frequencyChanged() },
@@ -92,6 +94,9 @@ struct QSOEntryView: View {
         }
         .onChange(of: sotaCatService.radioFrequency) { _, newValue in
             viewModel.updateFromRadio(frequencyMHz: newValue)
+        }
+        .onChange(of: sotaCatService.radioMode) { _, newValue in
+            viewModel.updateModeFromRadio(newValue)
         }
         .onChange(of: editingQSO) { _, newValue in
             if let qso = newValue {

@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- SSB mode support with auto-derivation from frequency (CW sub-band vs SSB sub-band)
+- Mode toggle in metadata strip (tap to switch CW↔SSB)
+- Mode token recognition in OmniField parser (type "CW" or "SSB")
+- Mode-aware RST defaults (599 for CW, 59 for SSB)
+- Mode-aware dupe detection (CW and SSB on the same band are separate contacts)
+- Mode display in QSO row and spot row band badges ("20M CW", "40M SSB")
+- SOTACat radio mode polling and mode-aware tuning
+- SSB spots from SOTA and POTA spot services
+- BandPlan SSB boundary frequencies and default SSB frequencies
+
+### Removed
+- RSTField popover component (unused)
+
 ## [0.4] - 2026-03-03
 
 ### Added

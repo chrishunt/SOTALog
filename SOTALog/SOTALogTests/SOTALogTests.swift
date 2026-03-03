@@ -31,6 +31,58 @@ final class BandPlanTests: XCTestCase {
             XCTAssertEqual(BandPlan.band(for: freq!), bandName)
         }
     }
+
+    // MARK: - Mode Derivation
+
+    func testModeCWSubBand() {
+        XCTAssertEqual(BandPlan.mode(for: 14.060), "CW")
+        XCTAssertEqual(BandPlan.mode(for: 7.030), "CW")
+        XCTAssertEqual(BandPlan.mode(for: 3.530), "CW")
+        XCTAssertEqual(BandPlan.mode(for: 21.060), "CW")
+    }
+
+    func testModeSSBSubBand() {
+        XCTAssertEqual(BandPlan.mode(for: 14.260), "SSB")
+        XCTAssertEqual(BandPlan.mode(for: 7.200), "SSB")
+        XCTAssertEqual(BandPlan.mode(for: 3.860), "SSB")
+        XCTAssertEqual(BandPlan.mode(for: 21.300), "SSB")
+    }
+
+    func testModeBoundary() {
+        // At the SSB boundary frequency, mode is SSB
+        XCTAssertEqual(BandPlan.mode(for: 14.150), "SSB")
+        // Just below the boundary is CW
+        XCTAssertEqual(BandPlan.mode(for: 14.149), "CW")
+    }
+
+    func testModeCWOnlyBands() {
+        XCTAssertEqual(BandPlan.mode(for: 10.110), "CW")  // 30m
+        XCTAssertEqual(BandPlan.mode(for: 5.332), "CW")   // 60m
+    }
+
+    func testModeOutOfBand() {
+        XCTAssertNil(BandPlan.mode(for: 0.5))
+        XCTAssertNil(BandPlan.mode(for: 100.0))
+    }
+
+    func testDefaultSSBFrequencies() {
+        // SSB-capable bands have defaults
+        XCTAssertNotNil(BandPlan.defaultSSBFrequency(for: "20m"))
+        XCTAssertNotNil(BandPlan.defaultSSBFrequency(for: "40m"))
+
+        // CW-only bands return nil
+        XCTAssertNil(BandPlan.defaultSSBFrequency(for: "30m"))
+        XCTAssertNil(BandPlan.defaultSSBFrequency(for: "60m"))
+    }
+
+    func testDefaultSSBFrequenciesAreWithinBand() {
+        for bandName in BandPlan.allBands {
+            if let freq = BandPlan.defaultSSBFrequency(for: bandName) {
+                XCTAssertEqual(BandPlan.band(for: freq), bandName)
+                XCTAssertEqual(BandPlan.mode(for: freq), "SSB")
+            }
+        }
+    }
 }
 
 // MARK: - MaidenheadConverter Tests
@@ -386,10 +438,10 @@ final class OmniFieldParserTests: XCTestCase {
         XCTAssertEqual(result.qth, "CT")
     }
 
-    func testTwoDigitRSTAutoTone() {
+    func testTwoDigitRSTRawValue() {
         let result = OmniFieldParser.parse("K3ABC 55")
         XCTAssertEqual(result.callsign, "K3ABC")
-        XCTAssertEqual(result.rstSent, "559")
+        XCTAssertEqual(result.rstSent, "55")
     }
 
     func testThreeDigitRST() {
@@ -431,6 +483,34 @@ final class OmniFieldParserTests: XCTestCase {
         // XYZZY doesn't match any pattern — silently ignored
     }
 
+    func testModeTokenCW() {
+        let result = OmniFieldParser.parse("W1AW CW")
+        XCTAssertEqual(result.mode, "CW")
+    }
+
+    func testModeTokenSSB() {
+        let result = OmniFieldParser.parse("W1AW SSB")
+        XCTAssertEqual(result.mode, "SSB")
+    }
+
+    func testModeTokenCaseInsensitive() {
+        let result = OmniFieldParser.parse("W1AW ssb")
+        XCTAssertEqual(result.mode, "SSB")
+    }
+
+    func testModeTokenConsumed() {
+        let result = OmniFieldParser.parse("W1AW SSB")
+        XCTAssertEqual(result.tokens.count, 2)
+        XCTAssertEqual(result.tokens[1].kind, .mode)
+    }
+
+    func testModeTokenWithOtherTokens() {
+        let result = OmniFieldParser.parse("W1AW SSB 59 14.260")
+        XCTAssertEqual(result.mode, "SSB")
+        XCTAssertEqual(result.rstSent, "59")
+        XCTAssertEqual(result.frequency, "14.260")
+    }
+
     func testEmptyInput() {
         let result = OmniFieldParser.parse("")
         XCTAssertEqual(result.callsign, "")
@@ -449,7 +529,7 @@ final class OmniFieldParserTests: XCTestCase {
 
     func testCombinedRSTAndFrequency() {
         let result = OmniFieldParser.parse("W1AW 57 14.060")
-        XCTAssertEqual(result.rstSent, "579")
+        XCTAssertEqual(result.rstSent, "57")
         XCTAssertEqual(result.frequency, "14.060")
     }
 }

@@ -38,7 +38,7 @@ struct QSORowView: View {
                         .accessibilityLabel("Synced to QRZ")
                 }
 
-                Text(qso.band.uppercased())
+                Text("\(qso.band.uppercased()) \(qso.mode)")
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
