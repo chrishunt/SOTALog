@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-@Observable
+@MainActor @Observable
 final class NewLogViewModel {
     private let database: AppDatabase
     private let logRepo: LogRepository
@@ -106,12 +106,10 @@ final class NewLogViewModel {
             guard !Task.isCancelled else { return }
             let results = try? await refRepo.searchParks(query: query, limit: 5)
             let normalized = POTAPark.normalize(query)
-            await MainActor.run {
-                parkSearchResults = results ?? []
-                // Exact match on normalized reference
-                if let exact = results?.first(where: { $0.referenceNormalized == normalized }) {
-                    parkName = exact.name
-                }
+            parkSearchResults = results ?? []
+            // Exact match on normalized reference
+            if let exact = results?.first(where: { $0.referenceNormalized == normalized }) {
+                parkName = exact.name
             }
         }
     }
@@ -128,11 +126,9 @@ final class NewLogViewModel {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
             let results = try? await refRepo.searchSummits(query: query, limit: 5)
-            await MainActor.run {
-                summitSearchResults = results ?? []
-                if let exact = results?.first(where: { $0.code == query.uppercased() }) {
-                    summitName = exact.name
-                }
+            summitSearchResults = results ?? []
+            if let exact = results?.first(where: { $0.code == query.uppercased() }) {
+                summitName = exact.name
             }
         }
     }
