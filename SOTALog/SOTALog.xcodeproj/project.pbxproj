@@ -619,6 +619,7 @@
 				DEVELOPMENT_TEAM = 8CV6QZZ6BE;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SOTALog/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "SOTA Log";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SOTA Log uses your location to calculate your Maidenhead grid square for logging.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -647,6 +648,7 @@
 				DEVELOPMENT_TEAM = 8CV6QZZ6BE;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SOTALog/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "SOTA Log";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SOTA Log uses your location to calculate your Maidenhead grid square for logging.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

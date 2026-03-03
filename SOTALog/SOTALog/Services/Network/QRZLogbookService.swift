@@ -84,7 +84,7 @@ enum QRZLogbookService {
         request.httpMethod = "POST"
         request.timeoutInterval = 30
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
 
         let encoded: [String] = params.map { key, value in
             let escapedKey = key.addingPercentEncoding(withAllowedCharacters: formSafeCharacters) ?? key

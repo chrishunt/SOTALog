@@ -85,9 +85,9 @@ enum ADIFFormatter {
 
     /// Encodes a full ADIF file, filtering fields for a specific program.
     static func encodeFile(qsos: [QSO], log: Log? = nil, program: Program?) -> String {
-        var output = "ADIF Export from SOTALog\n"
+        var output = "ADIF Export from SOTA Log\n"
         output += encodeField("ADIF_VER", value: "3.1.4")
-        output += encodeField("PROGRAMID", value: "SOTALog")
+        output += encodeField("PROGRAMID", value: "SOTA Log")
         output += encodeField("PROGRAMVERSION", value: "1.0")
         output += "<EOH>\n\n"
 
@@ -100,9 +100,9 @@ enum ADIFFormatter {
 
     /// Encodes a full ADIF file from log+QSO sections, preserving each log's context.
     static func encodeFile(sections: [(Log, [QSO])]) -> String {
-        var output = "ADIF Export from SOTALog\n"
+        var output = "ADIF Export from SOTA Log\n"
         output += encodeField("ADIF_VER", value: "3.1.4")
-        output += encodeField("PROGRAMID", value: "SOTALog")
+        output += encodeField("PROGRAMID", value: "SOTA Log")
         output += encodeField("PROGRAMVERSION", value: "1.0")
         output += "<EOH>\n\n"
 

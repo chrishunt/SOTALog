@@ -5,7 +5,7 @@ enum POTAParkService {
     static func fetchAllParks() async throws -> [POTAPark] {
         let url = URL(string: "https://pota.app/all_parks.csv")!
         var request = URLRequest(url: url)
-        request.setValue("SOTALog/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
 
         let (data, _) = try await URLSession.shared.data(for: request)
         guard let csvString = String(data: data, encoding: .utf8) else {
