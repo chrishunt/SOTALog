@@ -1,12 +1,25 @@
 import Foundation
+import CoreTransferable
+import UniformTypeIdentifiers
 
 /// Encodes and decodes ADIF (Amateur Data Interchange Format) records.
 enum ADIFFormatter {
+
+    /// Program-specific export filtering.
+    enum Program {
+        case pota
+        case sota
+    }
 
     // MARK: - Encoding
 
     /// Encodes a single QSO to an ADIF record string.
     static func encode(qso: QSO, log: Log? = nil) -> String {
+        encode(qso: qso, log: log, program: nil)
+    }
+
+    /// Encodes a single QSO, filtering fields for a specific program.
+    static func encode(qso: QSO, log: Log? = nil, program: Program?) -> String {
         var fields: [(String, String)] = []
 
         fields.append(("CALL", qso.callsign))
@@ -33,9 +46,9 @@ enum ADIFFormatter {
             fields.append(("COMMENT", notes))
         }
 
-        // POTA fields
         if let log = log {
-            if let myRef = log.potaReference {
+            // POTA fields — skip for SOTA exports
+            if program != .sota, let myRef = log.potaReference {
                 fields.append(("MY_SIG", "POTA"))
                 fields.append(("MY_SIG_INFO", myRef))
             }
@@ -44,20 +57,20 @@ enum ADIFFormatter {
             }
             fields.append(("STATION_CALLSIGN", log.myCallsign))
 
-            // SOTA fields
-            if let myRef = log.sotaReference {
+            // SOTA fields — skip for POTA exports
+            if program != .pota, let myRef = log.sotaReference {
                 fields.append(("MY_SOTA_REF", myRef))
             }
         }
 
-        // Their POTA ref (park-to-park)
-        if let ref = qso.potaRef, !ref.isEmpty {
+        // Their POTA ref (park-to-park) — skip for SOTA exports
+        if program != .sota, let ref = qso.potaRef, !ref.isEmpty {
             fields.append(("SIG", "POTA"))
             fields.append(("SIG_INFO", ref))
         }
 
-        // Their SOTA ref (summit-to-summit)
-        if let ref = qso.sotaRef, !ref.isEmpty {
+        // Their SOTA ref (summit-to-summit) — skip for POTA exports
+        if program != .pota, let ref = qso.sotaRef, !ref.isEmpty {
             fields.append(("SOTA_REF", ref))
         }
 
@@ -67,6 +80,11 @@ enum ADIFFormatter {
 
     /// Encodes a full ADIF file with header.
     static func encodeFile(qsos: [QSO], log: Log? = nil) -> String {
+        encodeFile(qsos: qsos, log: log, program: nil)
+    }
+
+    /// Encodes a full ADIF file, filtering fields for a specific program.
+    static func encodeFile(qsos: [QSO], log: Log? = nil, program: Program?) -> String {
         var output = "ADIF Export from SOTALog\n"
         output += encodeField("ADIF_VER", value: "3.1.4")
         output += encodeField("PROGRAMID", value: "SOTALog")
@@ -74,7 +92,7 @@ enum ADIFFormatter {
         output += "<EOH>\n\n"
 
         for qso in qsos {
-            output += encode(qso: qso, log: log)
+            output += encode(qso: qso, log: log, program: program)
         }
 
         return output
@@ -169,6 +187,23 @@ enum ADIFFormatter {
         return fields
     }
 
+    // MARK: - Filenames
+
+    /// Generates an export filename for the given log and program.
+    static func filename(log: Log, program: Program?) -> String {
+        switch program {
+        case .pota:
+            return "\(log.myCallsign)@\(log.potaReference ?? "POTA")_\(log.date).adi"
+        case .sota:
+            if let ref = log.sotaReference {
+                return "\(log.myCallsign)@\(ref.replacingOccurrences(of: "/", with: "-"))_\(log.date).adi"
+            }
+            return "\(log.myCallsign)_SOTA_\(log.date).adi"
+        case nil:
+            return "\(log.myCallsign)_\(log.date).adi"
+        }
+    }
+
     /// Converts parsed ADIF fields into a QSO record.
     static func qsoFromFields(_ fields: [String: String], logId: Int64? = nil) -> QSO? {
         guard let callsign = fields["CALL"],
@@ -205,5 +240,20 @@ enum ADIFFormatter {
             potaRef: fields["SIG_INFO"],
             notes: fields["COMMENT"]
         )
+    }
+}
+
+/// A named ADIF file that can be shared via ShareLink.
+struct ADIFFile: Transferable {
+    let filename: String
+    let content: String
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(exportedContentType: .plainText) { file in
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent(file.filename)
+            try file.content.write(to: url, atomically: true, encoding: .utf8)
+            return SentTransferredFile(url)
+        }
     }
 }
