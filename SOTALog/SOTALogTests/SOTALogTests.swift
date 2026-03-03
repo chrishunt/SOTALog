@@ -295,6 +295,121 @@ final class ADIFFormatterTests: XCTestCase {
     }
 }
 
+// MARK: - ADIFFormatter Program Filtering Tests
+
+final class ADIFFormatterProgramFilterTests: XCTestCase {
+    private let dualLog = Log(
+        myCallsign: "W1AW",
+        myGrid: "FN31",
+        potaReference: "US-4431",
+        sotaReference: "W4C/CM-001",
+        parkName: "Prescott NF",
+        summitName: "Mt Mitchell"
+    )
+
+    private func makeDualQSO() -> QSO {
+        QSO(
+            logId: 1,
+            callsign: "K3ABC",
+            date: "20240315",
+            timeOn: "1200",
+            band: "20m",
+            mode: "CW",
+            rstSent: "599",
+            rstReceived: "579",
+            sotaRef: "W4C/CM-002",
+            potaRef: "US-0001"
+        )
+    }
+
+    func testPOTAExportStripsSOTAFields() {
+        let adif = ADIFFormatter.encode(qso: makeDualQSO(), log: dualLog, program: .pota)
+        XCTAssertFalse(adif.contains("MY_SOTA_REF"))
+        XCTAssertFalse(adif.contains("SOTA_REF"))
+        // POTA fields present
+        XCTAssertTrue(adif.contains("MY_SIG"))
+        XCTAssertTrue(adif.contains("MY_SIG_INFO"))
+    }
+
+    func testSOTAExportStripsPOTAFields() {
+        let adif = ADIFFormatter.encode(qso: makeDualQSO(), log: dualLog, program: .sota)
+        XCTAssertFalse(adif.contains("MY_SIG"))
+        XCTAssertFalse(adif.contains("MY_SIG_INFO"))
+        XCTAssertFalse(adif.contains("<SIG:"))
+        XCTAssertFalse(adif.contains("SIG_INFO"))
+        // SOTA fields present
+        XCTAssertTrue(adif.contains("MY_SOTA_REF"))
+        XCTAssertTrue(adif.contains("SOTA_REF"))
+    }
+
+    func testUnfilteredIncludesAllFields() {
+        let adif = ADIFFormatter.encode(qso: makeDualQSO(), log: dualLog, program: nil)
+        XCTAssertTrue(adif.contains("MY_SIG"))
+        XCTAssertTrue(adif.contains("MY_SIG_INFO"))
+        XCTAssertTrue(adif.contains("MY_SOTA_REF"))
+        XCTAssertTrue(adif.contains("SOTA_REF"))
+        XCTAssertTrue(adif.contains("SIG_INFO"))
+    }
+
+    func testP2PPreservedInPOTAExport() {
+        let qso = QSO(logId: 1, callsign: "K3ABC", date: "20240315", timeOn: "1200", band: "20m", potaRef: "US-0001")
+        let log = Log(myCallsign: "W1AW", potaReference: "US-4431", parkName: "Prescott NF")
+        let adif = ADIFFormatter.encode(qso: qso, log: log, program: .pota)
+        XCTAssertTrue(adif.contains("<SIG:4>POTA"))
+        XCTAssertTrue(adif.contains("<SIG_INFO:7>US-0001"))
+    }
+
+    func testS2SPreservedInSOTAExport() {
+        let qso = QSO(logId: 1, callsign: "K3ABC", date: "20240315", timeOn: "1200", band: "20m", sotaRef: "W4C/CM-002")
+        let log = Log(myCallsign: "W1AW", sotaReference: "W4C/CM-001", summitName: "Mt Mitchell")
+        let adif = ADIFFormatter.encode(qso: qso, log: log, program: .sota)
+        XCTAssertTrue(adif.contains("<SOTA_REF:10>W4C/CM-002"))
+        XCTAssertTrue(adif.contains("<MY_SOTA_REF:10>W4C/CM-001"))
+    }
+
+    func testCrossProgramRefsExcluded() {
+        // SOTA ref in POTA export → no SOTA_REF
+        let qsoWithSOTA = QSO(logId: 1, callsign: "K3ABC", date: "20240315", timeOn: "1200", band: "20m", sotaRef: "W4C/CM-002")
+        let potaLog = Log(myCallsign: "W1AW", potaReference: "US-4431", parkName: "Prescott NF")
+        let potaADIF = ADIFFormatter.encode(qso: qsoWithSOTA, log: potaLog, program: .pota)
+        XCTAssertFalse(potaADIF.contains("SOTA_REF"))
+
+        // POTA ref in SOTA export → no SIG/SIG_INFO
+        let qsoWithPOTA = QSO(logId: 1, callsign: "K3ABC", date: "20240315", timeOn: "1200", band: "20m", potaRef: "US-0001")
+        let sotaLog = Log(myCallsign: "W1AW", sotaReference: "W4C/CM-001", summitName: "Mt Mitchell")
+        let sotaADIF = ADIFFormatter.encode(qso: qsoWithPOTA, log: sotaLog, program: .sota)
+        XCTAssertFalse(sotaADIF.contains("<SIG:"))
+        XCTAssertFalse(sotaADIF.contains("SIG_INFO"))
+    }
+
+    func testFilenameGeneration() {
+        let potaLog = Log(date: "20240315", myCallsign: "W1AW", potaReference: "US-4431", parkName: "Prescott NF")
+        XCTAssertEqual(
+            ADIFFormatter.filename(log: potaLog, program: .pota),
+            "W1AW@US-4431_20240315.adi"
+        )
+
+        let sotaLog = Log(date: "20240315", myCallsign: "W1AW", sotaReference: "W4C/CM-001", summitName: "Mt Mitchell")
+        XCTAssertEqual(
+            ADIFFormatter.filename(log: sotaLog, program: .sota),
+            "W1AW@W4C-CM-001_20240315.adi"
+        )
+
+        // Chaser filename (no SOTA ref on log)
+        let chaserLog = Log(date: "20240315", myCallsign: "W1AW")
+        XCTAssertEqual(
+            ADIFFormatter.filename(log: chaserLog, program: .sota),
+            "W1AW_SOTA_20240315.adi"
+        )
+
+        // Complete filename
+        XCTAssertEqual(
+            ADIFFormatter.filename(log: potaLog, program: nil),
+            "W1AW_20240315.adi"
+        )
+    }
+}
+
 // MARK: - ADIFFormatter QRZ Field Parsing
 
 final class ADIFFormatterQRZFieldTests: XCTestCase {

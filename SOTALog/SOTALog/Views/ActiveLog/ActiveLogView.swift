@@ -44,6 +44,14 @@ struct ActiveLogView: View {
         .navigationBarTitleDisplayMode(.inline)
         #if os(iOS)
         .toolbar {
+            if !viewModel.qsos.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(items: viewModel.exportFiles,
+                              preview: { SharePreview($0.filename) }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
             if sotaCatService.isConnected {
                 ToolbarItem(placement: .topBarTrailing) {
                     Image(systemName: "antenna.radiowaves.left.and.right")
