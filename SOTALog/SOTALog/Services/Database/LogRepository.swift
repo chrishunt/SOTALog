@@ -34,6 +34,10 @@ struct LogRepository {
 
     func delete(id: Int64) async throws {
         _ = try await database.dbWriter.write { db in
+            try db.execute(
+                sql: "DELETE FROM qso WHERE logId = ? AND syncedToQRZ = 0",
+                arguments: [id]
+            )
             try Log.deleteOne(db, id: id)
         }
     }
