@@ -32,9 +32,12 @@ struct QSORowView: View {
                 }
 
                 if qso.syncedToQRZ {
-                    Image(systemName: "icloud.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                    Text("QRZ")
+                        .font(.caption2.bold())
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .background(.secondary.opacity(0.12), in: Capsule())
                         .accessibilityLabel("Synced to QRZ")
                 }
 
