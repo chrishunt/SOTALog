@@ -176,6 +176,9 @@ struct MetadataStrip: View {
                     editFocus = .name
                 } label: {
                     Text(name)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .layoutPriority(-1)
@@ -234,6 +237,9 @@ struct MetadataStrip: View {
             onModeToggle()
         } label: {
             Text(mode)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -244,6 +250,9 @@ struct MetadataStrip: View {
             editFocus = field
         } label: {
             Text(text)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -258,6 +267,9 @@ struct MetadataStrip: View {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(color)
             }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
         }
         .buttonStyle(.plain)
     }
