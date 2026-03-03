@@ -7,8 +7,13 @@ final class SpotsViewModel {
         case all, pota, sota
     }
 
+    enum ModeFilter: String {
+        case all, cw, ssb
+    }
+
     var spots: [Spot] = []
     var sourceFilter: SourceFilter = .all
+    var modeFilter: ModeFilter = .all
     var isLoading = false
     var errorMessage: String?
 
@@ -16,15 +21,33 @@ final class SpotsViewModel {
     private var sotaSpots: [Spot] = []
     private var potaSpots: [Spot] = []
 
+    init() {
+        if let raw = UserDefaults.standard.string(forKey: "sourceFilter"),
+           let saved = SourceFilter(rawValue: raw) {
+            sourceFilter = saved
+        }
+        if let raw = UserDefaults.standard.string(forKey: "modeFilter"),
+           let saved = ModeFilter(rawValue: raw) {
+            modeFilter = saved
+        }
+    }
+
     /// Spots consolidated (one per callsign), grouped by band, sorted by frequency then time.
     var spotsByBand: [(band: String, spots: [Spot])] {
         let consolidated = consolidatedSpots(spots).filter { !$0.isQRT && !$0.isExpired() }
 
-        let filtered: [Spot]
+        let sourceFiltered: [Spot]
         switch sourceFilter {
-        case .all:  filtered = consolidated
-        case .pota: filtered = consolidated.filter { $0.potaReference != nil }
-        case .sota: filtered = consolidated.filter { $0.sotaReference != nil }
+        case .all:  sourceFiltered = consolidated
+        case .pota: sourceFiltered = consolidated.filter { $0.potaReference != nil }
+        case .sota: sourceFiltered = consolidated.filter { $0.sotaReference != nil }
+        }
+
+        let filtered: [Spot]
+        switch modeFilter {
+        case .all: filtered = sourceFiltered
+        case .cw:  filtered = sourceFiltered.filter { $0.mode == "CW" }
+        case .ssb: filtered = sourceFiltered.filter { $0.mode == "SSB" }
         }
 
         // Group by band

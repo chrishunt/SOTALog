@@ -61,13 +61,23 @@ struct SpotsView: View {
             #endif
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Picker("Source", selection: $viewModel.sourceFilter) {
-                        Text("All").tag(SpotsViewModel.SourceFilter.all)
-                        Text("POTA").tag(SpotsViewModel.SourceFilter.pota)
-                        Text("SOTA").tag(SpotsViewModel.SourceFilter.sota)
+                    HStack(spacing: 8) {
+                        Picker("Source", selection: $viewModel.sourceFilter) {
+                            Text("All").tag(SpotsViewModel.SourceFilter.all)
+                            Text("POTA").tag(SpotsViewModel.SourceFilter.pota)
+                            Text("SOTA").tag(SpotsViewModel.SourceFilter.sota)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 170)
+
+                        Picker("Mode", selection: $viewModel.modeFilter) {
+                            Text("All").tag(SpotsViewModel.ModeFilter.all)
+                            Text("CW").tag(SpotsViewModel.ModeFilter.cw)
+                            Text("SSB").tag(SpotsViewModel.ModeFilter.ssb)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 140)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 180)
                 }
                 #if os(iOS)
                 if sotaCatService.isConnected {
@@ -81,6 +91,12 @@ struct SpotsView: View {
             }
             .refreshable {
                 await viewModel.refresh()
+            }
+            .onChange(of: viewModel.sourceFilter) { _, newValue in
+                UserDefaults.standard.set(newValue.rawValue, forKey: "sourceFilter")
+            }
+            .onChange(of: viewModel.modeFilter) { _, newValue in
+                UserDefaults.standard.set(newValue.rawValue, forKey: "modeFilter")
             }
             .task {
                 let today = todayUTCDate()
