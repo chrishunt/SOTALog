@@ -159,6 +159,69 @@ final class SpotsViewModelTests: XCTestCase {
         XCTAssertEqual(all.count, 2)
     }
 
+    // MARK: - Mode Filtering
+
+    func testCWFilterExcludesSSB() {
+        let vm = SpotsViewModel()
+        let now = Date()
+
+        vm.spots = [
+            makeSpot(id: "1", callsign: "W1AW", frequency: 14.060, mode: "CW", potaReference: "US-0001", timestamp: now),
+            makeSpot(id: "2", callsign: "K3ABC", frequency: 14.262, mode: "SSB", potaReference: "US-0002", timestamp: now),
+        ]
+        vm.modeFilter = .cw
+
+        let all = vm.spotsByBand.flatMap(\.spots)
+        XCTAssertEqual(all.count, 1)
+        XCTAssertEqual(all[0].activatorCallsign, "W1AW")
+    }
+
+    func testSSBFilterExcludesCW() {
+        let vm = SpotsViewModel()
+        let now = Date()
+
+        vm.spots = [
+            makeSpot(id: "1", callsign: "W1AW", frequency: 14.060, mode: "CW", potaReference: "US-0001", timestamp: now),
+            makeSpot(id: "2", callsign: "K3ABC", frequency: 14.262, mode: "SSB", potaReference: "US-0002", timestamp: now),
+        ]
+        vm.modeFilter = .ssb
+
+        let all = vm.spotsByBand.flatMap(\.spots)
+        XCTAssertEqual(all.count, 1)
+        XCTAssertEqual(all[0].activatorCallsign, "K3ABC")
+    }
+
+    func testAllModeFilterShowsBoth() {
+        let vm = SpotsViewModel()
+        let now = Date()
+
+        vm.spots = [
+            makeSpot(id: "1", callsign: "W1AW", frequency: 14.060, mode: "CW", potaReference: "US-0001", timestamp: now),
+            makeSpot(id: "2", callsign: "K3ABC", frequency: 14.262, mode: "SSB", potaReference: "US-0002", timestamp: now),
+        ]
+        vm.modeFilter = .all
+
+        let all = vm.spotsByBand.flatMap(\.spots)
+        XCTAssertEqual(all.count, 2)
+    }
+
+    func testModeAndSourceFiltersCombine() {
+        let vm = SpotsViewModel()
+        let now = Date()
+
+        vm.spots = [
+            makeSpot(id: "1", callsign: "W1AW", frequency: 14.060, mode: "CW", potaReference: "US-0001", timestamp: now),
+            makeSpot(id: "2", callsign: "K3ABC", frequency: 14.262, mode: "SSB", potaReference: "US-0002", timestamp: now),
+            makeSpot(id: "3", callsign: "N4XYZ", frequency: 14.060, mode: "CW", sotaReference: "W4C/CM-001", timestamp: now),
+        ]
+        vm.sourceFilter = .pota
+        vm.modeFilter = .cw
+
+        let all = vm.spotsByBand.flatMap(\.spots)
+        XCTAssertEqual(all.count, 1)
+        XCTAssertEqual(all[0].activatorCallsign, "W1AW")
+    }
+
     // MARK: - spotForCallsign
 
     func testSpotForCallsignFound() {

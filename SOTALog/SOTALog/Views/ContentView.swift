@@ -5,10 +5,10 @@ struct ContentView: View {
     @State private var spotRouter = SpotRouter()
     @State private var spotsViewModel = SpotsViewModel()
     @State private var sotaCatService = SOTACatService()
-    @State private var selectedTab = Tab.logs
+    @State private var selectedTab = Tab.activations
 
     enum Tab {
-        case logs, spots, tools
+        case activations, spots, tools
     }
 
     var body: some View {
@@ -16,9 +16,9 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 LogListView(database: db)
                     .tabItem {
-                        Label("Logs", systemImage: "list.bullet.rectangle")
+                        Label("Activations", systemImage: "list.bullet.rectangle")
                     }
-                    .tag(Tab.logs)
+                    .tag(Tab.activations)
 
                 SpotsView(database: db)
                     .tabItem {
@@ -45,7 +45,7 @@ struct ContentView: View {
                     sotaCatService.tune(frequencyMHz: spot.frequency, mode: spot.mode)
                 }
                 if newValue != nil {
-                    selectedTab = .logs
+                    selectedTab = .activations
                 }
             }
         } else {
