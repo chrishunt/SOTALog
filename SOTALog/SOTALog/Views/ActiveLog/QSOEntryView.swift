@@ -175,10 +175,7 @@ struct QSOEntryView: View {
     private var cwMacroRow: some View {
         HStack(spacing: 8) {
             ForEach(cwMacros) { macro in
-                let expanded = viewModel.expandTemplate(macro.template)
-                if !expanded.isEmpty {
-                    cwMacroButton(macro: macro)
-                }
+                cwMacroButton(macro: macro)
             }
         }
         .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.keyerSendCount)
@@ -186,6 +183,8 @@ struct QSOEntryView: View {
 
     private func cwMacroButton(macro: CWMacro) -> some View {
         let sending = sotaCatService.keyerActive
+        let empty = viewModel.expandTemplate(macro.template).isEmpty
+        let disabled = sending || empty
         return Text(macro.label)
             .font(.appMacroButton)
             .lineLimit(1)
@@ -195,12 +194,12 @@ struct QSOEntryView: View {
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(Color.appOrange.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
-            .opacity(sending ? 0.4 : 1.0)
+            .opacity(disabled ? 0.4 : 1.0)
             .scaleEffect(pressedMacroPosition == macro.position ? 0.93 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: pressedMacroPosition)
             .accessibilityAddTraits(.isButton)
             .onTapGesture {
-                guard !sending else { return }
+                guard !disabled else { return }
                 viewModel.sendCWMacro(macro.template)
             }
             .onLongPressGesture(minimumDuration: 0.5, pressing: { isPressing in
