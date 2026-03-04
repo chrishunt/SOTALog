@@ -1,8 +1,9 @@
 import SwiftUI
 import GRDB
 
-struct SpotsView: View {
+struct SpotsSheetView: View {
     let database: AppDatabase
+    @Environment(\.dismiss) private var dismiss
     @Environment(SpotRouter.self) private var spotRouter
     @Environment(SpotsViewModel.self) private var viewModel
     @State private var workedKeys: Set<String> = []
@@ -27,6 +28,7 @@ struct SpotsView: View {
                                 ForEach(section.spots) { spot in
                                     Button {
                                         spotRouter.pendingSpot = spot
+                                        dismiss()
                                     } label: {
                                         SpotRowView(spot: spot, isWorked: isWorked(spot))
                                             .contentShape(Rectangle())
@@ -58,26 +60,32 @@ struct SpotsView: View {
             .toolbarBackground(Color.appBackground, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) {
-                        Picker("Source", selection: $viewModel.sourceFilter) {
-                            Text("All").tag(SpotsViewModel.SourceFilter.all)
-                            Text("POTA").tag(SpotsViewModel.SourceFilter.pota)
-                            Text("SOTA").tag(SpotsViewModel.SourceFilter.sota)
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 170)
-
-                        Picker("Mode", selection: $viewModel.modeFilter) {
-                            Text("All").tag(SpotsViewModel.ModeFilter.all)
-                            Text("CW").tag(SpotsViewModel.ModeFilter.cw)
-                            Text("SSB").tag(SpotsViewModel.ModeFilter.ssb)
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 140)
+            .safeAreaInset(edge: .top) {
+                HStack(spacing: 8) {
+                    Picker("Source", selection: $viewModel.sourceFilter) {
+                        Text("All").tag(SpotsViewModel.SourceFilter.all)
+                        Text("POTA").tag(SpotsViewModel.SourceFilter.pota)
+                        Text("SOTA").tag(SpotsViewModel.SourceFilter.sota)
                     }
+                    .pickerStyle(.segmented)
+
+                    Picker("Mode", selection: $viewModel.modeFilter) {
+                        Text("All").tag(SpotsViewModel.ModeFilter.all)
+                        Text("CW").tag(SpotsViewModel.ModeFilter.cw)
+                        Text("SSB").tag(SpotsViewModel.ModeFilter.ssb)
+                    }
+                    .pickerStyle(.segmented)
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color.appBackground)
+            }
+            .toolbar {
+                #if os(iOS)
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+                #endif
             }
             .refreshable {
                 await viewModel.refresh()
@@ -96,6 +104,8 @@ struct SpotsView: View {
                 }
             }
         }
+        .presentationDetents([.medium, .large])
+        .presentationContentInteraction(.scrolls)
     }
 
     private func isWorked(_ spot: Spot) -> Bool {

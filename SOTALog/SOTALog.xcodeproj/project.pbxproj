@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00BB72CB77C01B656C54379E /* SpotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FD4C5547079091555AB9C5 /* SpotsView.swift */; };
 		0157B89CEF9E14FCFC95831A /* SpotsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718654C55006EE5A73C89843 /* SpotsViewModel.swift */; };
 		0913A27CF8E446091B33974C /* LogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26180B1539A33ED3751C8038 /* LogRepository.swift */; };
 		0EDF258F9D08765569BF9FEE /* SpotModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436A3CAC8A64BCC306950B62 /* SpotModelTests.swift */; };
@@ -39,6 +38,7 @@
 		6262199275FB8DBC452028DA /* NewLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EC7F7B0ACA429D66488273 /* NewLogView.swift */; };
 		6269F57C8EBC8BC71C2CF91F /* SOTALogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BE3F3C3C986C1EEF0DF930 /* SOTALogTests.swift */; };
 		649620D579799BF173BC3473 /* CWMacro.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F2B5A1956F8C52800ED824 /* CWMacro.swift */; };
+		65D744FA4922CA0C1FA3694E /* SpotsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF8ED67BB72312D9F93285DC /* SpotsSheetView.swift */; };
 		6DBF96036CFFDB385CE76F83 /* QRZLookupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B473BAD0C0F22955E4DBFFFB /* QRZLookupService.swift */; };
 		79B22C489E0EA8217109EC64 /* RepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0056E2A70BE433214C4B7C0A /* RepositoryTests.swift */; };
 		7A30847B75520EA883A60C5C /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4266BF0A296CC64D2A95BE5 /* AppLog.swift */; };
@@ -174,12 +174,12 @@
 		C2DF5C7C156080F640454DB2 /* DateFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormattingTests.swift; sourceTree = "<group>"; };
 		CCA2EBE31C6CAA6F5A8528C8 /* ActiveLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveLogViewModel.swift; sourceTree = "<group>"; };
 		CE11D3EC8DB1BFC6C897E8BB /* String+Callsign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Callsign.swift"; sourceTree = "<group>"; };
+		CF8ED67BB72312D9F93285DC /* SpotsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsSheetView.swift; sourceTree = "<group>"; };
 		D2D4A497BD7549AF647F5D06 /* SpotRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRouter.swift; sourceTree = "<group>"; };
 		D5062A6D3908A213D88346E8 /* QSORepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSORepository.swift; sourceTree = "<group>"; };
 		D5E66F550ED47884F3A91479 /* Color+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+App.swift"; sourceTree = "<group>"; };
 		E18198C59474BB2FEA4A1510 /* View+iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+iOS.swift"; sourceTree = "<group>"; };
 		E509603AB3965292400E7ECB /* ReferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceRepository.swift; sourceTree = "<group>"; };
-		E7FD4C5547079091555AB9C5 /* SpotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsView.swift; sourceTree = "<group>"; };
 		E83DD32511D2B22A66A3A468 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EE2F5A59D839F5D819E31B26 /* SOTACatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTACatService.swift; sourceTree = "<group>"; };
 		F759C6D173DACA136AB14AE1 /* SyncImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncImporterTests.swift; sourceTree = "<group>"; };
@@ -311,7 +311,7 @@
 			isa = PBXGroup;
 			children = (
 				C0DE0F435B6A3BB43CEB6E9F /* SpotRowView.swift */,
-				E7FD4C5547079091555AB9C5 /* SpotsView.swift */,
+				CF8ED67BB72312D9F93285DC /* SpotsSheetView.swift */,
 			);
 			path = Spots;
 			sourceTree = "<group>";
@@ -597,7 +597,7 @@
 				DA623435E356222EB697AB3A /* Spot.swift in Sources */,
 				C2C0C1CD6F75EB9456C59693 /* SpotRouter.swift in Sources */,
 				BC20F12B0EED78EEF0AD3F43 /* SpotRowView.swift in Sources */,
-				00BB72CB77C01B656C54379E /* SpotsView.swift in Sources */,
+				65D744FA4922CA0C1FA3694E /* SpotsSheetView.swift in Sources */,
 				0157B89CEF9E14FCFC95831A /* SpotsViewModel.swift in Sources */,
 				D10D4A809BAF7BAE0D6F7196 /* String+Callsign.swift in Sources */,
 				CD80AE501E985AD141BBB10E /* SyncImporter.swift in Sources */,

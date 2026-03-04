@@ -3,7 +3,6 @@ import GRDB
 
 struct LogListView: View {
     let database: AppDatabase
-    @Environment(SpotRouter.self) private var spotRouter
     @State private var viewModel: LogListViewModel
     @State private var showNewLog = false
     @State private var navigationPath = NavigationPath()
@@ -81,10 +80,6 @@ struct LogListView: View {
             }
             .task {
                 await viewModel.startObserving()
-            }
-            .onChange(of: spotRouter.pendingSpot) { _, newValue in
-                guard newValue != nil, navigationPath.isEmpty, let firstLog = viewModel.logs.first else { return }
-                navigationPath.append(firstLog)
             }
         }
     }
