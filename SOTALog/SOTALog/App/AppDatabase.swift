@@ -172,6 +172,24 @@ struct AppDatabase {
             }
         }
 
+        migrator.registerMigration("v5_potaCoordinates") { db in
+            try db.alter(table: "potaPark") { t in
+                t.add(column: "latitude", .double)
+                t.add(column: "longitude", .double)
+                t.add(column: "locationDesc", .text)
+            }
+            try db.create(
+                index: "potaPark_coordinates",
+                on: "potaPark",
+                columns: ["latitude", "longitude"]
+            )
+            try db.create(
+                index: "sotaSummit_coordinates",
+                on: "sotaSummit",
+                columns: ["latitude", "longitude"]
+            )
+        }
+
         return migrator
     }
 

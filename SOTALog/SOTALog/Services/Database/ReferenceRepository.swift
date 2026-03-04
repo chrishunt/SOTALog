@@ -52,6 +52,40 @@ struct ReferenceRepository {
         }
     }
 
+    func nearbyParks(latitude: Double, longitude: Double, limit: Int = 10) async throws -> [POTAPark] {
+        try await database.dbWriter.read { db in
+            let delta = 1.0 // ~111 km bounding box
+            let cosLat = cos(latitude * .pi / 180)
+            let cosLatSq = cosLat * cosLat
+            return try POTAPark
+                .filter(
+                    Column("latitude") != nil &&
+                    Column("longitude") != nil &&
+                    Column("latitude") >= latitude - delta &&
+                    Column("latitude") <= latitude + delta &&
+                    Column("longitude") >= longitude - delta &&
+                    Column("longitude") <= longitude + delta
+                )
+                .order(sql: """
+                    (latitude - ?) * (latitude - ?) + \
+                    (longitude - ?) * (longitude - ?) * ?
+                    """, arguments: [latitude, latitude, longitude, longitude, cosLatSq])
+                .limit(limit)
+                .fetchAll(db)
+        }
+    }
+
+    func enrichParksWithCoordinates(_ coords: [(reference: String, latitude: Double, longitude: Double)]) async throws {
+        try await database.dbWriter.write { db in
+            let stmt = try db.makeStatement(sql: """
+                UPDATE potaPark SET latitude = ?, longitude = ? WHERE reference = ?
+                """)
+            for coord in coords {
+                try stmt.execute(arguments: [coord.latitude, coord.longitude, coord.reference])
+            }
+        }
+    }
+
     // MARK: - SOTA Summits
 
     func searchSummits(query: String, limit: Int = 20) async throws -> [SOTASummit] {
@@ -96,6 +130,29 @@ struct ReferenceRepository {
     func deleteAllSummits() async throws {
         _ = try await database.dbWriter.write { db in
             try SOTASummit.deleteAll(db)
+        }
+    }
+
+    func nearbySummits(latitude: Double, longitude: Double, limit: Int = 10) async throws -> [SOTASummit] {
+        try await database.dbWriter.read { db in
+            let delta = 1.0
+            let cosLat = cos(latitude * .pi / 180)
+            let cosLatSq = cosLat * cosLat
+            return try SOTASummit
+                .filter(
+                    Column("latitude") != nil &&
+                    Column("longitude") != nil &&
+                    Column("latitude") >= latitude - delta &&
+                    Column("latitude") <= latitude + delta &&
+                    Column("longitude") >= longitude - delta &&
+                    Column("longitude") <= longitude + delta
+                )
+                .order(sql: """
+                    (latitude - ?) * (latitude - ?) + \
+                    (longitude - ?) * (longitude - ?) * ?
+                    """, arguments: [latitude, latitude, longitude, longitude, cosLatSq])
+                .limit(limit)
+                .fetchAll(db)
         }
     }
 

@@ -15,6 +15,18 @@ final class POTAParkCSVTests: XCTestCase {
         XCTAssertEqual(parks[0].reference, "US-0001")
         XCTAssertEqual(parks[0].name, "Acadia NP")
         XCTAssertEqual(parks[0].referenceNormalized, "US0001")
+        XCTAssertEqual(parks[0].locationDesc, "Maine")
+        XCTAssertEqual(parks[1].locationDesc, "Wyoming")
+    }
+
+    func testLocationDescMissingColumn() {
+        let csv = """
+        reference,name,active,entityId
+        US-0001,Acadia NP,1,291
+        """
+        let parks = POTAParkService.parseCSV(csv)
+        XCTAssertEqual(parks.count, 1)
+        XCTAssertNil(parks[0].locationDesc)
     }
 
     func testInactiveParksFiltered() {

@@ -6,5 +6,8 @@ SOTALog/.build/
 *.xcuserdata
 xcuserdata/
 
+# Python
+__pycache__/
+
 # macOS
 .DS_Store

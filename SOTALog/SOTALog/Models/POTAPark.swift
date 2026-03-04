@@ -5,6 +5,9 @@ struct POTAPark: Codable, Identifiable, Equatable {
     var reference: String
     var name: String
     var referenceNormalized: String?
+    var latitude: Double?
+    var longitude: Double?
+    var locationDesc: String?
 
     var id: String { reference }
 

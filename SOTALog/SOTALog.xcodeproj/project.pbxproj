@@ -18,6 +18,7 @@
 		1ED4ECFEE612C2376777750C /* OmniFieldParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813299ED126BB9D2F6A717D2 /* OmniFieldParser.swift */; };
 		1F95DE507D883CEC5CE45AA4 /* View+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18198C59474BB2FEA4A1510 /* View+iOS.swift */; };
 		1FD9532C3A4C42F2B6DC47F4 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8686E8508B8D387AF8BC1B16 /* TestHelpers.swift */; };
+		21B30B8D3851B8E780141C8C /* POTALocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFFE824425D0301F2528068 /* POTALocationService.swift */; };
 		274E5B921756A30E83925A34 /* SyncImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F759C6D173DACA136AB14AE1 /* SyncImporterTests.swift */; };
 		352EFF0FDFBC50BD0E37167D /* ADIFFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D9EAAEFE88C5722AEB3DDF /* ADIFFormatter.swift */; };
 		355CB528D730A23D7F18FFDF /* SOTASummit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1E56F233DBEBBA1F87E4E2 /* SOTASummit.swift */; };
@@ -64,6 +65,7 @@
 		BA30BA6E3CB871D12CDA4132 /* ReferenceManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBBE0CB7554257A2C3C7FDE /* ReferenceManagerView.swift */; };
 		BC20F12B0EED78EEF0AD3F43 /* SpotRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0F435B6A3BB43CEB6E9F /* SpotRowView.swift */; };
 		C0D32487F86B08323771A99A /* QSOEntryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19AE2C7FED08C032565C93F1 /* QSOEntryViewModelTests.swift */; };
+		C15F6B2CB4B834242B99B84E /* NearbyReferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24231F8321730BE090BC35B /* NearbyReferenceTests.swift */; };
 		C2C0C1CD6F75EB9456C59693 /* SpotRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D4A497BD7549AF647F5D06 /* SpotRouter.swift */; };
 		C4F96E00ED134810334A6103 /* SOTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B3EF2E3945E205EAF225D9 /* SOTASpotService.swift */; };
 		CB3E1605EE63AB5BE834B6C0 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 03577E747453328E267999F9 /* GRDB */; };
@@ -131,6 +133,7 @@
 		464F722351D19F7CE9BB99C0 /* MaidenheadConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaidenheadConverter.swift; sourceTree = "<group>"; };
 		4C5DC27A55D0CC129F37F4D7 /* SOTASummitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummitService.swift; sourceTree = "<group>"; };
 		4F19C56AAA3C51D233A4CF61 /* SOTALogApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTALogApp.swift; sourceTree = "<group>"; };
+		4FFFE824425D0301F2528068 /* POTALocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTALocationService.swift; sourceTree = "<group>"; };
 		60642B7DA833062F673FEDAE /* ReferenceDownloadRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceDownloadRow.swift; sourceTree = "<group>"; };
 		61F2B5A1956F8C52800ED824 /* CWMacro.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CWMacro.swift; sourceTree = "<group>"; };
 		65B3EF2E3945E205EAF225D9 /* SOTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASpotService.swift; sourceTree = "<group>"; };
@@ -154,6 +157,7 @@
 		9B1E56F233DBEBBA1F87E4E2 /* SOTASummit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummit.swift; sourceTree = "<group>"; };
 		9D2F2785E6F2AC0E491F2F08 /* POTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTASpotService.swift; sourceTree = "<group>"; };
 		A1EFB5E0766D441B59BDE42C /* QRZCallsignResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZCallsignResult.swift; sourceTree = "<group>"; };
+		A24231F8321730BE090BC35B /* NearbyReferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyReferenceTests.swift; sourceTree = "<group>"; };
 		A31F58CCDFB797133F575C46 /* CSVParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVParsingTests.swift; sourceTree = "<group>"; };
 		A4266BF0A296CC64D2A95BE5 /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
 		A5E4CDFB3B9728E8D013069E /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
@@ -221,6 +225,7 @@
 		24D601A53533557291012EC2 /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				4FFFE824425D0301F2528068 /* POTALocationService.swift */,
 				6C198756DB82EFF308D1D1BA /* POTAParkService.swift */,
 				9D2F2785E6F2AC0E491F2F08 /* POTASpotService.swift */,
 				0C1296CEF3FA1AD3680E5651 /* QRZLogbookService.swift */,
@@ -284,6 +289,7 @@
 				A31F58CCDFB797133F575C46 /* CSVParsingTests.swift */,
 				C2DF5C7C156080F640454DB2 /* DateFormattingTests.swift */,
 				6CA096156392CCD06D0FB2C5 /* ModelTests.swift */,
+				A24231F8321730BE090BC35B /* NearbyReferenceTests.swift */,
 				19AE2C7FED08C032565C93F1 /* QSOEntryViewModelTests.swift */,
 				0056E2A70BE433214C4B7C0A /* RepositoryTests.swift */,
 				2FA9B1B69B1C0711EA859FD8 /* SOTACatServiceTests.swift */,
@@ -556,6 +562,7 @@
 				967EAEA58A46C0C22DB21533 /* NewLogViewModel.swift in Sources */,
 				465D9912F46AE61BBF04DC49 /* NumberKeyRow.swift in Sources */,
 				1ED4ECFEE612C2376777750C /* OmniFieldParser.swift in Sources */,
+				21B30B8D3851B8E780141C8C /* POTALocationService.swift in Sources */,
 				D7F9C5CFC658F974C03EB0BC /* POTAPark.swift in Sources */,
 				F6F9517437918064EA846153 /* POTAParkService.swift in Sources */,
 				40E28C6FA185AF2703E4177B /* POTASpotService.swift in Sources */,
@@ -598,6 +605,7 @@
 				AE53733E852711B4E0059A85 /* CSVParsingTests.swift in Sources */,
 				14E988454D9F5D07A45BB498 /* DateFormattingTests.swift in Sources */,
 				A77AB34C46CD00E43FBA46C6 /* ModelTests.swift in Sources */,
+				C15F6B2CB4B834242B99B84E /* NearbyReferenceTests.swift in Sources */,
 				C0D32487F86B08323771A99A /* QSOEntryViewModelTests.swift in Sources */,
 				79B22C489E0EA8217109EC64 /* RepositoryTests.swift in Sources */,
 				838DD3D8FFED652ED234EE6A /* SOTACatServiceTests.swift in Sources */,
