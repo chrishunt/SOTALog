@@ -32,7 +32,7 @@ struct QRZSyncView: View {
                 HStack {
                     Image(systemName: viewModel.hasAPIKey ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(viewModel.hasAPIKey ? Color.appGreen : .secondary)
-                    Text(viewModel.hasAPIKey ? "API key configured" : "API key not set")
+                    Text(viewModel.hasAPIKey ? "QRZ logbook sync enabled" : "QRZ logbook sync not set up")
                     Spacer()
                     if viewModel.hasAPIKey {
                         Button("Change") { showLogin = true }
@@ -43,7 +43,7 @@ struct QRZSyncView: View {
                 HStack {
                     Image(systemName: viewModel.hasCredentials ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(viewModel.hasCredentials ? Color.appGreen : .secondary)
-                    Text(viewModel.hasCredentials ? "Callsign lookup configured" : "Callsign lookup not set up")
+                    Text(viewModel.hasCredentials ? "Callsign lookup enabled" : "Callsign lookup not set up")
                     Spacer()
                     if viewModel.hasCredentials {
                         Button("Change") { showLogin = true }
@@ -69,7 +69,7 @@ struct QRZSyncView: View {
                     Button {
                         Task { await viewModel.refreshFromQRZ() }
                     } label: {
-                        Label("Refresh from QRZ", systemImage: "arrow.triangle.2.circlepath")
+                        Label("Re-download all from QRZ", systemImage: "arrow.triangle.2.circlepath")
                     }
                     .disabled(viewModel.isBusy)
 
@@ -122,7 +122,7 @@ struct QRZSyncView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(Color.appGreen)
-                    Text("All synced")
+                    Text("All QSOs uploaded")
                         .foregroundStyle(Color.appGreen)
                 }
             } else {
