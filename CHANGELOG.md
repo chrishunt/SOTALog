@@ -6,19 +6,38 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5] - 2026-03-04
+
 ### Added
+- CW macro buttons with SOTACat keyer for sending CW messages during QSOs
+- Nearby reference suggestions for activations
 - SSB mode support with auto-derivation from frequency (CW sub-band vs SSB sub-band)
 - Mode toggle in metadata strip (tap to switch CW↔SSB)
 - Mode token recognition in OmniField parser (type "CW" or "SSB")
 - Mode-aware RST defaults (599 for CW, 59 for SSB)
 - Mode-aware dupe detection (CW and SSB on the same band are separate contacts)
 - Mode display in QSO row and spot row band badges ("20M CW", "40M SSB")
-- SOTACat radio mode polling and mode-aware tuning
 - SSB spots from SOTA and POTA spot services
 - BandPlan SSB boundary frequencies and default SSB frequencies
+- Mode filter on logs list
+- ADIF export with program-specific filtering
+- SOTACat mock server for simulator testing
+- Cut numbers in CW messages
+
+### Changed
+- Sync frequency and mode to radio via SOTACat
+- Moved radio indicator to frequency display and improved macro layout
+- Restyled CW macro buttons and metadata strip buttons with pill backgrounds
+- Mountain icon for Activations tab
+- Renamed app display name to "SOTA Log"
+- Updated app icon and QRZ sync badge
+- Renamed Logs tab
 
 ### Removed
 - RSTField popover component (unused)
+
+### Fixed
+- Thread safety: Mark NewLogViewModel as @MainActor
 
 ## [0.4] - 2026-03-03
 
@@ -89,7 +108,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.4...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.5...HEAD
+[0.5]: https://github.com/chrishunt/Field-Log/compare/v0.4...v0.5
 [0.4]: https://github.com/chrishunt/Field-Log/compare/v0.3...v0.4
 [0.3]: https://github.com/chrishunt/Field-Log/compare/v0.2...v0.3
 [0.2]: https://github.com/chrishunt/Field-Log/compare/v0.1...v0.2
