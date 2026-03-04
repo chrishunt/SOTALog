@@ -93,6 +93,10 @@ struct QSOEntryView: View {
             viewModel.spotLookup = spotsViewModel.spotForCallsign
             viewModel.qrzLookup = qrzService
             viewModel.sotaCatService = sotaCatService
+            if sotaCatService.isConnected {
+                viewModel.updateFromRadio(frequencyMHz: sotaCatService.radioFrequency)
+                viewModel.updateModeFromRadio(sotaCatService.radioMode)
+            }
             focusedField = .callsign
         }
         .onChange(of: sotaCatService.radioFrequency) { _, newValue in

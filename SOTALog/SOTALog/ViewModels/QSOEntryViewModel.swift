@@ -61,6 +61,9 @@ final class QSOEntryViewModel {
 
     private var lookupTask: Task<Void, Never>?
     private var grid: String?
+    private var frequencyPushTime: Date?
+    private var modePushTime: Date?
+    private let pushCooldown: TimeInterval = 2
 
     init(database: AppDatabase, log: Log) {
         self.database = database
@@ -81,9 +84,11 @@ final class QSOEntryViewModel {
         pushModeToRadio()
     }
 
-    /// Auto-derives mode from frequency when mode is not manually overridden
+    /// Auto-derives mode from frequency when mode is not manually overridden.
+    /// Skipped when radio is connected — mode comes from the radio, not band-plan derivation.
     func updateModeFromFrequency() {
         guard !manualOverrides.contains("mode") else { return }
+        if let service = sotaCatService, service.isConnected { return }
         guard let freq = Double(frequencyText),
               let derived = BandPlan.mode(for: freq) else { return }
         if mode != derived {
@@ -92,10 +97,10 @@ final class QSOEntryViewModel {
         }
     }
 
-    /// Updates mode from SOTACat radio poll, respecting manual overrides
+    /// Updates mode from SOTACat radio poll, with cooldown after app→radio push
     func updateModeFromRadio(_ radioMode: String?) {
         guard let radioMode, !radioMode.isEmpty else { return }
-        guard !manualOverrides.contains("mode") else { return }
+        if let pushTime = modePushTime, Date().timeIntervalSince(pushTime) < pushCooldown { return }
         let upper = radioMode.uppercased()
         guard upper == "CW" || upper == "SSB" else { return }
         if mode != upper {
@@ -166,6 +171,7 @@ final class QSOEntryViewModel {
 
     /// Strip consumed tokens (frequency, mode, QTH, park ref, summit ref) from entryText
     /// once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
+    /// Pushes frequency/mode to radio when consumed.
     private func consumeTokens(_ parsed: ParsedEntry) {
         let tokens = parsed.tokens
         guard tokens.count > 1 else { return }
@@ -173,6 +179,8 @@ final class QSOEntryViewModel {
         let endsWithSpace = entryText.hasSuffix(" ")
 
         var kept: [String] = []
+        var consumedFrequency = false
+        var consumedMode = false
         for (index, classified) in tokens.enumerated() {
             let isLast = index == tokens.count - 1
             let isConfirmed = !isLast || endsWithSpace
@@ -180,7 +188,11 @@ final class QSOEntryViewModel {
             switch classified.kind {
             case .callsign, .rst, .unrecognized:
                 kept.append(classified.text)
-            case .frequency, .mode, .qth, .potaRef, .sotaRef:
+            case .frequency:
+                if isConfirmed { consumedFrequency = true } else { kept.append(classified.text) }
+            case .mode:
+                if isConfirmed { consumedMode = true } else { kept.append(classified.text) }
+            case .qth, .potaRef, .sotaRef:
                 if !isConfirmed {
                     kept.append(classified.text)
                 }
@@ -192,6 +204,10 @@ final class QSOEntryViewModel {
 
         if rebuilt != entryText {
             entryText = rebuilt
+        }
+
+        if consumedFrequency || consumedMode {
+            pushFrequencyToRadio()
         }
     }
 
@@ -320,10 +336,10 @@ final class QSOEntryViewModel {
         await MainActor.run { isDupe = dupe }
     }
 
-    /// Update frequency from radio VFO, respecting manual overrides
+    /// Update frequency from radio VFO, with cooldown after app→radio push
     func updateFromRadio(frequencyMHz: Double?) {
         guard let mhz = frequencyMHz else { return }
-        guard !manualOverrides.contains("frequency") else { return }
+        if let pushTime = frequencyPushTime, Date().timeIntervalSince(pushTime) < pushCooldown { return }
         let formatted = String(format: "%.3f", mhz)
         if frequencyText != formatted {
             frequencyText = formatted
@@ -335,6 +351,8 @@ final class QSOEntryViewModel {
     func pushFrequencyToRadio() {
         guard let service = sotaCatService, service.isConnected else { return }
         guard let freq = Double(frequencyText) else { return }
+        frequencyPushTime = Date()
+        modePushTime = Date()
         service.tune(frequencyMHz: freq, mode: mode)
     }
 
@@ -342,6 +360,7 @@ final class QSOEntryViewModel {
     func pushModeToRadio() {
         guard let service = sotaCatService, service.isConnected else { return }
         guard let freq = Double(frequencyText) else { return }
+        modePushTime = Date()
         service.tune(frequencyMHz: freq, mode: mode)
     }
 
@@ -591,6 +610,11 @@ final class QSOEntryViewModel {
         rstSent.replacingOccurrences(of: "9", with: "N")
     }
 
+    /// Strip dashes from references for CW (slashes preserved as valid Morse prosign)
+    private static func stripDashesForCW(_ ref: String) -> String {
+        ref.replacingOccurrences(of: "-", with: "")
+    }
+
     func expandTemplate(_ template: String) -> String {
         let activity: String
         if log.sotaReference != nil {
@@ -605,8 +629,8 @@ final class QSOEntryViewModel {
         text = text.replacingOccurrences(of: "{myCall}", with: log.myCallsign)
         text = text.replacingOccurrences(of: "{call}", with: parsedCallsign)
         text = text.replacingOccurrences(of: "{rst}", with: rstForKeyer)
-        text = text.replacingOccurrences(of: "{mySOTA}", with: log.sotaReference ?? "")
-        text = text.replacingOccurrences(of: "{myPOTA}", with: log.potaReference ?? "")
+        text = text.replacingOccurrences(of: "{mySOTA}", with: Self.stripDashesForCW(log.sotaReference ?? ""))
+        text = text.replacingOccurrences(of: "{myPOTA}", with: Self.stripDashesForCW(log.potaReference ?? ""))
         text = text.replacingOccurrences(of: "{activity}", with: activity)
 
         // Collapse consecutive spaces and trim
@@ -630,8 +654,8 @@ final class QSOEntryViewModel {
             ("{myCall}", log.myCallsign),
             ("{call}", parsedCallsign),
             ("{rst}", rstForKeyer),
-            ("{mySOTA}", log.sotaReference ?? ""),
-            ("{myPOTA}", log.potaReference ?? ""),
+            ("{mySOTA}", Self.stripDashesForCW(log.sotaReference ?? "")),
+            ("{myPOTA}", Self.stripDashesForCW(log.potaReference ?? "")),
             ("{activity}", activity),
         ]
         for (placeholder, value) in substitutions {

@@ -10,6 +10,9 @@ final class SOTACatService {
     private let baseURL = "http://sotacat.local"
     private let session: URLSession
     private var monitoringTask: Task<Void, Never>?
+    private var consecutiveFailures = 0
+    private let maxConsecutiveFailures = 3
+    private var keyerActive = false
 
     init() {
         let config = URLSessionConfiguration.default
@@ -26,9 +29,9 @@ final class SOTACatService {
         monitoringTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
-                if self.isConnected {
+                if self.isConnected && !self.keyerActive {
                     await self.pollVFO()
-                } else {
+                } else if !self.isConnected {
                     await self.probeConnection()
                 }
                 let interval: Duration = self.isConnected ? .seconds(1) : .seconds(5)
@@ -59,7 +62,9 @@ final class SOTACatService {
               let url = URL(string: "\(baseURL)/api/v1/keyer?message=\(encoded)") else { return false }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
-        request.timeoutInterval = 10
+        request.timeoutInterval = 30
+        keyerActive = true
+        defer { keyerActive = false }
         do {
             let (_, response) = try await session.data(for: request)
             if let http = response as? HTTPURLResponse {
@@ -88,6 +93,7 @@ final class SOTACatService {
         do {
             let (_, response) = try await session.data(from: url)
             if let http = response as? HTTPURLResponse, http.statusCode == 200 {
+                consecutiveFailures = 0
                 await MainActor.run { isConnected = true }
             }
         } catch {
@@ -100,13 +106,10 @@ final class SOTACatService {
         do {
             let (data, response) = try await session.data(from: url)
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                await MainActor.run {
-                    isConnected = false
-                    radioFrequency = nil
-                    radioMode = nil
-                }
+                handlePollFailure()
                 return
             }
+            consecutiveFailures = 0
             if let text = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
                let hz = Int(text) {
                 let mhz = SOTACatService.hzToMHz(hz)
@@ -117,15 +120,24 @@ final class SOTACatService {
                 }
             }
         } catch {
-            await MainActor.run {
+            handlePollFailure()
+        }
+
+        // Poll mode separately — failure is non-fatal (don't disconnect)
+        if isConnected {
+            await pollMode()
+        }
+    }
+
+    private func handlePollFailure() {
+        consecutiveFailures += 1
+        if consecutiveFailures >= maxConsecutiveFailures {
+            Task { @MainActor in
                 isConnected = false
                 radioFrequency = nil
                 radioMode = nil
             }
         }
-
-        // Poll mode separately — failure is non-fatal (don't disconnect)
-        await pollMode()
     }
 
     private func pollMode() async {
