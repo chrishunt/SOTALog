@@ -703,4 +703,61 @@ final class QSOEntryViewModelTests: XCTestCase {
         let result = vm.expandTemplate("{call}  DE  {myCall}")
         XCTAssertEqual(result, "DE W1AW")
     }
+
+    // MARK: - CW Preview Template Expansion
+
+    func testPreviewTemplate_emptyCallKeepsPlaceholder() {
+        let vm = makeVM()
+        let result = vm.previewExpandTemplate("{call} DE {myCall} K")
+        XCTAssertEqual(result, "{call} DE W1AW K")
+    }
+
+    func testPreviewTemplate_filledCallSubstitutes() {
+        let vm = makeVM()
+        vm.entryText = "W6SD"
+        let result = vm.previewExpandTemplate("{call} DE {myCall} K")
+        XCTAssertEqual(result, "W6SD DE W1AW K")
+    }
+
+    func testPreviewTemplate_emptySOTAKeepsPlaceholder() async throws {
+        let db = try AppDatabase.empty()
+        let noRefLog = try await makeLogWithId(in: db)
+        let vm = QSOEntryViewModel(database: db, log: noRefLog)
+        let result = vm.previewExpandTemplate("{mySOTA}")
+        XCTAssertEqual(result, "{mySOTA}")
+    }
+
+    func testPreviewTemplate_filledSOTASubstitutes() {
+        let vm = makeVM()
+        let result = vm.previewExpandTemplate("{mySOTA}")
+        XCTAssertEqual(result, "W4C/CM-001")
+    }
+
+    func testPreviewTemplate_mixedFilledAndEmpty() {
+        let vm = makeVM()
+        let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} {call} K")
+        XCTAssertEqual(result, "CQ SOTA DE W1AW {call} K")
+    }
+
+    func testPreviewTemplate_emptyActivityKeepsPlaceholder() async throws {
+        let db = try AppDatabase.empty()
+        let noRefLog = try await makeLogWithId(in: db)
+        let vm = QSOEntryViewModel(database: db, log: noRefLog)
+        let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} K")
+        XCTAssertEqual(result, "CQ {activity} DE W1AW K")
+    }
+
+    func testPreviewTemplate_activityResolvesSOTA() {
+        let vm = makeVM()
+        let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} K")
+        XCTAssertEqual(result, "CQ SOTA DE W1AW K")
+    }
+
+    func testPreviewTemplate_activityResolvesPOTA() async throws {
+        let db = try AppDatabase.empty()
+        let potaLog = try await makeLogWithId(in: db, potaRef: "US-4431")
+        let vm = QSOEntryViewModel(database: db, log: potaLog)
+        let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} K")
+        XCTAssertEqual(result, "CQ POTA DE W1AW K")
+    }
 }
