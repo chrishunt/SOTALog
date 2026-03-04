@@ -111,9 +111,14 @@ Key details:
 3. Choose version number — MAJOR.MINOR style. Bump MINOR for features, MAJOR for breaking changes or milestones.
 4. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`
 
+**Test & verify:**
+
+5. Run tests: `swift test` (from `SOTALog/`)
+6. Build for the simulator, install, and launch to verify the app works (follow "iOS Simulator build, install, and launch" steps above)
+
 **Build & upload:**
 
-5. Regenerate and archive (run from `SOTALog/`):
+7. Regenerate and archive (run from `SOTALog/`):
 ```sh
 xcodegen generate
 xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
@@ -123,15 +128,15 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
   -allowProvisioningUpdates \
   archive
 ```
-6. Open archive in Xcode Organizer (`open build/SOTALog.xcarchive`), then **Distribute App → TestFlight & App Store → Upload**
+8. Open archive in Xcode Organizer (`open build/SOTALog.xcarchive`), then **Distribute App → TestFlight & App Store → Upload**
 
 **Post-upload:**
 
-7. Commit version bump + changelog: `git commit -m "Release <version>"`
-8. Tag: `git tag v<version>` and push with `git push --tags`
-9. Update comparison links at the bottom of `CHANGELOG.md` to include the new version
-10. In App Store Connect, add "What to Test" notes from the changelog
-11. Verify build appears in TestFlight for beta testers
+9. Commit version bump + changelog: `git commit -m "Release <version>"`
+10. Tag: `git tag v<version>` and push with `git push --tags`
+11. Update comparison links at the bottom of `CHANGELOG.md` to include the new version
+12. In App Store Connect, add "What to Test" notes from the changelog
+13. Verify build appears in TestFlight for beta testers
 
 ## Workflow
 
