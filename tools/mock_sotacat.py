@@ -34,6 +34,7 @@ class RadioState:
     def __init__(self):
         self.frequency = 14_060_000  # Hz  (14.060 MHz CW)
         self.mode = "CW"
+        self.cw_wpm = 15  # 0 = no delay (instant keyer response)
         self.lock = threading.Lock()
 
     def get_frequency(self):
@@ -55,6 +56,29 @@ class RadioState:
 
 # Module-level state (accessible from handler and console)
 radio = RadioState()
+
+
+# ---------------------------------------------------------------------------
+# CW timing
+# ---------------------------------------------------------------------------
+
+def cw_duration(message, wpm):
+    """Estimate CW send time in seconds.
+
+    Uses simplified timing: each non-space character averages ~8 dit-units
+    (letter + inter-character gap), each space adds ~4 dit-units (word gap
+    minus the inter-character gap already counted).
+    """
+    if wpm <= 0:
+        return 0.0
+    dit = 1.2 / wpm  # seconds per dit-unit
+    units = 0
+    for ch in message:
+        if ch == " ":
+            units += 4
+        else:
+            units += 8
+    return units * dit
 
 
 # ---------------------------------------------------------------------------
@@ -91,8 +115,11 @@ def log_mode(mode):
     print(f"\U0001F4FB Mode \u2192 {mode}")
 
 
-def log_keyer(message):
-    print(f"\U0001F511 CW: {message}")
+def log_keyer(message, duration=0.0):
+    if duration > 0:
+        print(f"\U0001F511 CW: {message} ({duration:.1f}s)")
+    else:
+        print(f"\U0001F511 CW: {message}")
     print()
 
 
@@ -200,7 +227,10 @@ class SOTACatHandler(BaseHTTPRequestHandler):
             self._send_error(404, "missing message parameter")
             return
         message = unquote(values[0])
-        log_keyer(message)
+        duration = cw_duration(message, radio.cw_wpm)
+        log_keyer(message, duration)
+        if duration > 0:
+            time.sleep(duration)
         self._send_no_content()
 
     # -- Response helpers ----------------------------------------------------
@@ -236,6 +266,7 @@ def console_loop():
     print("Commands:")
     print("  f <hz>    \u2014 set frequency (e.g. f 7030000)")
     print("  m <mode>  \u2014 set mode (e.g. m SSB)")
+    print("  w <wpm>   \u2014 set CW speed (0 = no delay)")
     print("  q         \u2014 quit")
     print()
 
@@ -270,6 +301,19 @@ def console_loop():
                 continue
             radio.set_mode(resolved)
             log_mode(resolved)
+        elif cmd == "w" and len(parts) == 2:
+            try:
+                wpm = int(parts[1])
+                if wpm < 0:
+                    print("WPM must be >= 0")
+                    continue
+                radio.cw_wpm = wpm
+                if wpm == 0:
+                    print("CW delay disabled (instant response)")
+                else:
+                    print(f"CW speed \u2192 {wpm} WPM")
+            except ValueError:
+                print("Usage: w <wpm>")
         else:
             print("Unknown command. Type q to quit.")
 
