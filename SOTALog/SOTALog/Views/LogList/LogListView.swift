@@ -51,10 +51,10 @@ struct LogListView: View {
                     .background(Color.appBackground)
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Activations")
+            .navigationBarTitleDisplayMode(.large)
             #if os(iOS)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             #endif
             .navigationDestination(for: Log.self) { log in
                 ActiveLogView(database: database, log: log)

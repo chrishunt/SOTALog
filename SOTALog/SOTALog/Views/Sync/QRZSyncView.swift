@@ -11,6 +11,7 @@ struct QRZSyncView: View {
     }
 
     var body: some View {
+        NavigationStack {
         List {
             // QRZ Account
             Section("QRZ Account") {
@@ -97,6 +98,12 @@ struct QRZSyncView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Color.appBackground)
+        .navigationTitle("Tools")
+        .navigationBarTitleDisplayMode(.large)
+        #if os(iOS)
+        .toolbarBackground(Color.appBackground, for: .navigationBar)
+        #endif
+        }
         .sheet(isPresented: $showLogin) {
             QRZLoginView(viewModel: viewModel)
         }
