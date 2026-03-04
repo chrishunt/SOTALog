@@ -28,6 +28,7 @@ enum POTAParkService {
               let activeIdx = header.firstIndex(of: "active") else {
             return []
         }
+        let locDescIdx = header.firstIndex(of: "locationDesc")
 
         var parks: [POTAPark] = []
 
@@ -43,10 +44,18 @@ enum POTAParkService {
             let name = fields[nameIdx]
             guard !reference.isEmpty, !name.isEmpty else { continue }
 
+            let locationDesc: String?
+            if let idx = locDescIdx, fields.count > idx, !fields[idx].isEmpty {
+                locationDesc = fields[idx]
+            } else {
+                locationDesc = nil
+            }
+
             let park = POTAPark(
                 reference: reference,
                 name: name,
-                referenceNormalized: POTAPark.normalize(reference)
+                referenceNormalized: POTAPark.normalize(reference),
+                locationDesc: locationDesc
             )
             parks.append(park)
         }

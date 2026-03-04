@@ -6,6 +6,11 @@ struct NewLogView: View {
 
     @State private var viewModel: NewLogViewModel
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var focusedField: Field?
+
+    private enum Field {
+        case pota, sota
+    }
 
     init(database: AppDatabase, onCreated: @escaping (Log) -> Void) {
         self.database = database
@@ -43,8 +48,36 @@ struct NewLogView: View {
                             .textContentType(.none)
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
+                            .focused($focusedField, equals: .pota)
 
-                        if !viewModel.parkSearchResults.isEmpty {
+                        if viewModel.showNearbyParks {
+                            ForEach(viewModel.nearbyParks) { park in
+                                Button {
+                                    viewModel.selectPark(park)
+                                    focusedField = nil
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "location")
+                                            .foregroundStyle(Color.appGreen)
+                                        VStack(alignment: .leading) {
+                                            Text(park.reference)
+                                                .font(.headline.monospaced())
+                                                .foregroundStyle(Color.appTextPrimary)
+                                            Text(park.name)
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appTextSecondary)
+                                        }
+                                        Spacer()
+                                        if let miles = viewModel.distanceMiles(to: park.latitude, longitude: park.longitude) {
+                                            Text(String(format: "%.0f mi", miles))
+                                                .font(.caption.monospacedDigit())
+                                                .foregroundStyle(Color.appTextSecondary)
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        } else if !viewModel.parkSearchResults.isEmpty {
                             ForEach(viewModel.parkSearchResults) { park in
                                 Button {
                                     viewModel.selectPark(park)
@@ -71,7 +104,11 @@ struct NewLogView: View {
                                 .foregroundStyle(.secondary)
                         }
                     } else {
-                        ReferenceDownloadRow.potaParks(database: database) {
+                        ReferenceDownloadRow.potaParks(
+                            database: database,
+                            userLatitude: viewModel.userLatitude,
+                            userLongitude: viewModel.userLongitude
+                        ) {
                             viewModel.hasPOTAData = true
                         }
                     }
@@ -83,8 +120,36 @@ struct NewLogView: View {
                             .textContentType(.none)
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
+                            .focused($focusedField, equals: .sota)
 
-                        if !viewModel.summitSearchResults.isEmpty {
+                        if viewModel.showNearbySummits {
+                            ForEach(viewModel.nearbySummits) { summit in
+                                Button {
+                                    viewModel.selectSummit(summit)
+                                    focusedField = nil
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "location")
+                                            .foregroundStyle(Color.appBlue)
+                                        VStack(alignment: .leading) {
+                                            Text(summit.code)
+                                                .font(.headline.monospaced())
+                                                .foregroundStyle(Color.appTextPrimary)
+                                            Text("\(summit.name) (\(summit.points ?? 0)pt)")
+                                                .font(.caption)
+                                                .foregroundStyle(Color.appTextSecondary)
+                                        }
+                                        Spacer()
+                                        if let miles = viewModel.distanceMiles(to: summit.latitude, longitude: summit.longitude) {
+                                            Text(String(format: "%.0f mi", miles))
+                                                .font(.caption.monospacedDigit())
+                                                .foregroundStyle(Color.appTextSecondary)
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        } else if !viewModel.summitSearchResults.isEmpty {
                             ForEach(viewModel.summitSearchResults) { summit in
                                 Button {
                                     viewModel.selectSummit(summit)
@@ -117,7 +182,14 @@ struct NewLogView: View {
                     }
                 }
             }
-            .task { await viewModel.checkReferenceData() }
+            .task {
+                await viewModel.checkReferenceData()
+                await viewModel.loadNearbyReferences()
+            }
+            .onChange(of: focusedField) { _, newValue in
+                viewModel.isPotaFieldFocused = newValue == .pota
+                viewModel.isSotaFieldFocused = newValue == .sota
+            }
             .navigationTitle("New Activation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

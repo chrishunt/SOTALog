@@ -135,7 +135,7 @@ final class SOTACatService {
             guard let http = response as? HTTPURLResponse, http.statusCode == 200,
                   let text = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !text.isEmpty else { return }
-            let mode = text.uppercased()
+            let mode = Self.normalizeMode(text.uppercased())
             await MainActor.run {
                 if radioMode != mode {
                     radioMode = mode
@@ -143,6 +143,14 @@ final class SOTACatService {
             }
         } catch {
             // Mode poll failure is non-fatal — don't disconnect
+        }
+    }
+
+    private static func normalizeMode(_ raw: String) -> String {
+        switch raw {
+        case "LSB", "USB": return "SSB"
+        case "CW_R": return "CW"
+        default: return raw
         }
     }
 

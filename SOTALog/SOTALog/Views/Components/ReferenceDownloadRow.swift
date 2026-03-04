@@ -86,7 +86,12 @@ struct ReferenceDownloadRow: View {
 }
 
 extension ReferenceDownloadRow {
-    static func potaParks(database: AppDatabase, onComplete: (() -> Void)? = nil) -> ReferenceDownloadRow {
+    static func potaParks(
+        database: AppDatabase,
+        userLatitude: Double? = nil,
+        userLongitude: Double? = nil,
+        onComplete: (() -> Void)? = nil
+    ) -> ReferenceDownloadRow {
         ReferenceDownloadRow(
             title: "POTA Parks",
             metadataKey: "potaParks",
@@ -98,6 +103,19 @@ extension ReferenceDownloadRow {
                 onProgress("Importing \(parks.count) parks...")
                 try await refRepo.deleteAllParks()
                 try await refRepo.importParks(parks)
+
+                // Enrich with coordinates from POTA API
+                do {
+                    try await POTALocationService.enrichParks(
+                        refRepo: refRepo,
+                        userLatitude: userLatitude,
+                        userLongitude: userLongitude,
+                        onProgress: onProgress
+                    )
+                } catch {
+                    // Partial enrichment is fine — keep whatever parks were imported
+                }
+
                 return parks.count
             },
             onComplete: onComplete

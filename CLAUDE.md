@@ -54,6 +54,21 @@ Key details:
 - **Derived data**: `-derivedDataPath build` puts output in `build/` relative to `SOTALog/`
 - **App bundle path**: `build/Build/Products/Debug-iphonesimulator/SOTALog.app` (relative to `SOTALog/`)
 
+### SOTACat mock server (simulator testing)
+
+To test SOTACat integration from the simulator, run the mock server which impersonates a SOTACat device via Bonjour:
+
+```sh
+sudo python3 tools/mock_sotacat.py
+```
+
+The app discovers `sotacat.local` within ~5 seconds. The console shows all radio commands and CW keyer messages. Type `f <hz>` or `m <mode>` to simulate VFO changes, `q` to quit.
+
+Run mock server tests (no sudo needed):
+```sh
+python3 -m pytest tools/test_mock_sotacat.py -v
+```
+
 ### TestFlight deployment
 
 Versioning is in `project.yml` under the SOTALog target settings:
