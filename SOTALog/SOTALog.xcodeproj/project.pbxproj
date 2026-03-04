@@ -14,6 +14,7 @@
 		10C4D86FBD0FD14F62FA113F /* LogListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A082D27F6F1343A8E4B9B8C /* LogListView.swift */; };
 		14E988454D9F5D07A45BB498 /* DateFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2DF5C7C156080F640454DB2 /* DateFormattingTests.swift */; };
 		15FCD238FFF1E83EBF333ADF /* BandPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1300F1FD26FE79A48BFE94 /* BandPlan.swift */; };
+		1BF1993E46F7EC49F62FAD71 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CC7A524B49C24AA60CC9D44A /* PrivacyInfo.xcprivacy */; };
 		1ED4ECFEE612C2376777750C /* OmniFieldParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813299ED126BB9D2F6A717D2 /* OmniFieldParser.swift */; };
 		1F95DE507D883CEC5CE45AA4 /* View+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18198C59474BB2FEA4A1510 /* View+iOS.swift */; };
 		1FD9532C3A4C42F2B6DC47F4 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8686E8508B8D387AF8BC1B16 /* TestHelpers.swift */; };
@@ -172,6 +173,7 @@
 		C0DE0F435B6A3BB43CEB6E9F /* SpotRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRowView.swift; sourceTree = "<group>"; };
 		C1D9EAAEFE88C5722AEB3DDF /* ADIFFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADIFFormatter.swift; sourceTree = "<group>"; };
 		C2DF5C7C156080F640454DB2 /* DateFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormattingTests.swift; sourceTree = "<group>"; };
+		CC7A524B49C24AA60CC9D44A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		CCA2EBE31C6CAA6F5A8528C8 /* ActiveLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveLogViewModel.swift; sourceTree = "<group>"; };
 		CE11D3EC8DB1BFC6C897E8BB /* String+Callsign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Callsign.swift"; sourceTree = "<group>"; };
 		CF8ED67BB72312D9F93285DC /* SpotsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotsSheetView.swift; sourceTree = "<group>"; };
@@ -436,6 +438,7 @@
 			children = (
 				2109A78A0125A9C5642F3983 /* Assets.xcassets */,
 				A994A9FFD8DB698FB83594C6 /* CallPrefixes.json */,
+				CC7A524B49C24AA60CC9D44A /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -528,6 +531,7 @@
 			files = (
 				901174E5C272C58A939933CB /* Assets.xcassets in Resources */,
 				A49DEA6B8D1F9048D531E8AC /* CallPrefixes.json in Resources */,
+				1BF1993E46F7EC49F62FAD71 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -649,12 +653,13 @@
 				INFOPLIST_FILE = SOTALog/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SOTA Log";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "SOTA Log can connect to a SOTACat radio control device on your local network.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SOTA Log uses your location to calculate your Maidenhead grid square for logging.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -678,12 +683,13 @@
 				INFOPLIST_FILE = SOTALog/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SOTA Log";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "SOTA Log can connect to a SOTACat radio control device on your local network.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "SOTA Log uses your location to calculate your Maidenhead grid square for logging.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

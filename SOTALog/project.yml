@@ -25,6 +25,7 @@ targets:
     resources:
       - path: SOTALog/Resources/Assets.xcassets
       - path: SOTALog/Resources/CallPrefixes.json
+      - path: SOTALog/Resources/PrivacyInfo.xcprivacy
     info:
       path: SOTALog/Info.plist
       properties:
@@ -37,8 +38,9 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "SOTA Log can connect to a SOTACat radio control device on your local network."
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "SOTA Log uses your location to calculate your Maidenhead grid square for logging."
         INFOPLIST_KEY_CFBundleDisplayName: "SOTA Log"
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO

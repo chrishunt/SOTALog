@@ -2,13 +2,14 @@ import SwiftUI
 
 @main
 struct SOTALogApp: App {
-    let database: AppDatabase
+    let database: AppDatabase?
 
     init() {
         do {
             database = try AppDatabase.shared()
         } catch {
-            fatalError("Database setup failed: \(error)")
+            database = nil
+            AppLog.database.error("Database setup failed: \(error.localizedDescription)")
         }
     }
 
