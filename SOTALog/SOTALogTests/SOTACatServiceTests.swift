@@ -54,23 +54,12 @@ final class SOTACatServiceTests: XCTestCase {
         XCTAssertEqual(vm.frequencyText, "7.030")
     }
 
-    func testManualOverridePreventsRadioSync() {
+    func testRadioSyncWorksAfterSave() async throws {
         let vm = makeVM()
-        vm.markManualOverride("frequency")
-
-        vm.updateFromRadio(frequencyMHz: 7.030)
-
-        XCTAssertEqual(vm.frequencyText, "14.060", "Manual override should prevent radio sync")
-    }
-
-    func testOverrideResetsAfterSave() async throws {
-        let vm = makeVM()
-        vm.markManualOverride("frequency")
         vm.entryText = "W1AW"
 
         await vm.saveQSO()
 
-        // After save, overrides are cleared — radio sync should work
         vm.updateFromRadio(frequencyMHz: 7.030)
         XCTAssertEqual(vm.frequencyText, "7.030")
     }
@@ -103,22 +92,12 @@ final class SOTACatServiceTests: XCTestCase {
         XCTAssertEqual(vm.mode, "SSB")
     }
 
-    func testManualModeOverridePreventsRadioSync() {
+    func testRadioModeSyncWorksAfterSave() async throws {
         let vm = makeVM()
-        vm.toggleMode()  // manual override to SSB
-
-        vm.updateModeFromRadio("CW")
-        XCTAssertEqual(vm.mode, "SSB", "Manual override should prevent radio mode sync")
-    }
-
-    func testModeOverrideResetsAfterSave() async throws {
-        let vm = makeVM()
-        vm.toggleMode()  // manual override to SSB
         vm.entryText = "W1AW"
 
         await vm.saveQSO()
 
-        // After save, overrides are cleared — radio sync should work
         vm.updateModeFromRadio("CW")
         XCTAssertEqual(vm.mode, "CW")
     }

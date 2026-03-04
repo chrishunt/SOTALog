@@ -644,13 +644,14 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.rstSent, "59")
     }
 
-    func testRadioModeUpdateBlockedByManualOverride() {
+    func testRadioModeUpdateAfterToggle() {
         let vm = makeVM()
-        vm.toggleMode()  // manual override to SSB
+        vm.toggleMode()  // toggle to SSB
         XCTAssertEqual(vm.mode, "SSB")
 
+        // Radio sync now uses cooldown, not override blocking — after cooldown, radio wins
         vm.updateModeFromRadio("CW")
-        XCTAssertEqual(vm.mode, "SSB", "Manual override should block radio mode sync")
+        XCTAssertEqual(vm.mode, "CW", "Radio should sync mode after cooldown expires")
     }
 
     func testRadioModeNilDoesNotChangeMode() {
@@ -754,7 +755,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     func testPreviewTemplate_filledSOTASubstitutes() {
         let vm = makeVM()
         let result = vm.previewExpandTemplate("{mySOTA}")
-        XCTAssertEqual(result, "W4C/CM-001")
+        XCTAssertEqual(result, "W4C/CM001")
     }
 
     func testPreviewTemplate_mixedFilledAndEmpty() {
@@ -795,6 +796,28 @@ final class QSOEntryViewModelTests: XCTestCase {
     func testPushModeNoopWithoutService() {
         let vm = makeVM()
         vm.pushModeToRadio()  // no crash, no-op
+    }
+
+    // MARK: - CW Template Dash Stripping
+
+    func testExpandTemplate_stripsSOTADash() {
+        let vm = makeVM()
+        let result = vm.expandTemplate("{mySOTA}")
+        XCTAssertEqual(result, "W4C/CM001", "Dashes should be stripped from SOTA ref for CW")
+    }
+
+    func testExpandTemplate_stripsPOTADash() async throws {
+        let db = try AppDatabase.empty()
+        let potaLog = try await makeLogWithId(in: db, potaRef: "US-4431")
+        let vm = QSOEntryViewModel(database: db, log: potaLog)
+        let result = vm.expandTemplate("{myPOTA}")
+        XCTAssertEqual(result, "US4431", "Dashes should be stripped from POTA ref for CW")
+    }
+
+    func testExpandTemplate_preservesSlash() {
+        let vm = makeVM()
+        let result = vm.expandTemplate("{mySOTA}")
+        XCTAssertTrue(result.contains("/"), "Slashes should be preserved (valid Morse prosign)")
     }
 
     func testPreviewTemplate_activityResolvesPOTA() async throws {
