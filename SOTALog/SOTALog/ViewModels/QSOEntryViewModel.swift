@@ -359,9 +359,8 @@ final class QSOEntryViewModel {
     /// Push manually-toggled mode to the radio via SOTACat
     func pushModeToRadio() {
         guard let service = sotaCatService, service.isConnected else { return }
-        guard let freq = Double(frequencyText) else { return }
         modePushTime = Date()
-        service.tune(frequencyMHz: freq, mode: mode)
+        service.setMode(mode)
     }
 
     /// Re-check dupe status and auto-derive mode when frequency (band) changes

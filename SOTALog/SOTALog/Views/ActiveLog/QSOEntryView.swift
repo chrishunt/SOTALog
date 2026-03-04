@@ -185,7 +185,8 @@ struct QSOEntryView: View {
     }
 
     private func cwMacroButton(macro: CWMacro) -> some View {
-        Text(macro.label)
+        let sending = sotaCatService.keyerActive
+        return Text(macro.label)
             .font(.appMacroButton)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
@@ -194,10 +195,12 @@ struct QSOEntryView: View {
             .padding(.vertical, 6)
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(Color.appOrange.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
+            .opacity(sending ? 0.4 : 1.0)
             .scaleEffect(pressedMacroPosition == macro.position ? 0.93 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: pressedMacroPosition)
             .accessibilityAddTraits(.isButton)
             .onTapGesture {
+                guard !sending else { return }
                 viewModel.sendCWMacro(macro.template)
             }
             .onLongPressGesture(minimumDuration: 0.5, pressing: { isPressing in
