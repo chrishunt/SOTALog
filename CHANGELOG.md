@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6] - 2026-03-04
+
+### Changed
+- Moved spots from tab to ActiveLogView sheet
+- Renamed Tools tab to Settings
+- Large navigation titles on main tabs
+- Increased small font tokens from caption to footnote
+- Extracted shared design tokens and components
+- Limited metadata strip line 1 to single line
+
 ## [0.5] - 2026-03-04
 
 ### Added
@@ -108,7 +118,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.5...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.6...HEAD
+[0.6]: https://github.com/chrishunt/Field-Log/compare/v0.5...v0.6
 [0.5]: https://github.com/chrishunt/Field-Log/compare/v0.4...v0.5
 [0.4]: https://github.com/chrishunt/Field-Log/compare/v0.3...v0.4
 [0.3]: https://github.com/chrishunt/Field-Log/compare/v0.2...v0.3
