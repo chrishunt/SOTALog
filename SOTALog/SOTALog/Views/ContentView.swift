@@ -8,7 +8,7 @@ struct ContentView: View {
     @State private var selectedTab = Tab.activations
 
     enum Tab {
-        case activations, spots, tools
+        case activations, spots, settings
     }
 
     var body: some View {
@@ -28,9 +28,9 @@ struct ContentView: View {
 
                 QRZSyncView(database: db)
                     .tabItem {
-                        Label("Tools", systemImage: "wrench.and.screwdriver")
+                        Label("Settings", systemImage: "gearshape")
                     }
-                    .tag(Tab.tools)
+                    .tag(Tab.settings)
             }
             #if os(iOS)
             .toolbarBackground(Color.appBackground, for: .tabBar)
