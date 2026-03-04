@@ -66,7 +66,9 @@ final class SOTACatService {
     // MARK: - CW Keyer
 
     func sendKeyer(message: String) async -> Bool {
-        guard let encoded = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: "/?&=+")
+        guard let encoded = message.addingPercentEncoding(withAllowedCharacters: allowed),
               let url = URL(string: "\(baseURL)/api/v1/keyer?message=\(encoded)") else { return false }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"

@@ -54,9 +54,15 @@ struct CWMacroEditView: View {
                 }
 
                 Section("Preview") {
-                    Text(expandTemplate(template))
+                    let preview = expandTemplate(template)
+                    Text(preview)
                         .font(.appTemplateCode)
-                        .foregroundStyle(expandTemplate(template).isEmpty ? Color.appTextSecondary : Color.appTextPrimary)
+                        .foregroundStyle(preview.isEmpty ? Color.appTextSecondary : Color.appTextPrimary)
+                    if !preview.isEmpty {
+                        Text("\(preview.count)/24")
+                            .font(.caption)
+                            .foregroundStyle(preview.count > 24 ? Color.appRed : Color.appTextSecondary)
+                    }
                 }
 
                 Section {
