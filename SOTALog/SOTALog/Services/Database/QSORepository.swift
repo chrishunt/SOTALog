@@ -6,6 +6,12 @@ struct QSORepository {
 
     // MARK: - Fetch
 
+    func fetchAll() async throws -> [QSO] {
+        try await database.dbWriter.read { db in
+            try QSO.order(Column("id").desc).fetchAll(db)
+        }
+    }
+
     func fetchAll(forLogId logId: Int64) async throws -> [QSO] {
         try await database.dbWriter.read { db in
             try QSO
