@@ -14,6 +14,7 @@ struct QSOEntryView: View {
     @State private var qrzService: QRZLookupService
     @State private var cwMacros: [CWMacro] = []
     @State private var editingMacro: CWMacro?
+    @State private var pressedMacroPosition: Int?
     @FocusState private var focusedField: Field?
 
     enum Field: Hashable {
@@ -164,26 +165,33 @@ struct QSOEntryView: View {
             ForEach(cwMacros) { macro in
                 let expanded = viewModel.expandTemplate(macro.template)
                 if !expanded.isEmpty {
-                    Button {
-                        viewModel.sendCWMacro(macro.template)
-                    } label: {
-                        Text(macro.label)
-                            .font(.callout)
-                            .lineLimit(1)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 6)
-                            .frame(minHeight: 44)
-                            .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(Color.appTextSecondary)
-                    .onLongPressGesture {
-                        editingMacro = macro
-                    }
+                    cwMacroButton(macro: macro)
                 }
             }
         }
         .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.keyerSendCount)
+    }
+
+    private func cwMacroButton(macro: CWMacro) -> some View {
+        Text(macro.label)
+            .font(.callout.bold())
+            .lineLimit(1)
+            .foregroundStyle(Color.appOrange)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .frame(minHeight: 44)
+            .background(Color.appOrange.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
+            .scaleEffect(pressedMacroPosition == macro.position ? 0.93 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: pressedMacroPosition)
+            .accessibilityAddTraits(.isButton)
+            .onTapGesture {
+                viewModel.sendCWMacro(macro.template)
+            }
+            .onLongPressGesture(minimumDuration: 0.5, pressing: { isPressing in
+                pressedMacroPosition = isPressing ? macro.position : nil
+            }, perform: {
+                editingMacro = macro
+            })
     }
 
     // MARK: - Callsign Row
