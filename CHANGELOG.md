@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.11] - 2026-03-04
+
+### Fixed
+- Export ADIF files with proper .adi type
+
 ## [0.10] - 2026-03-04
 
 ### Changed
@@ -161,7 +166,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.10...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.11...HEAD
+[0.11]: https://github.com/chrishunt/Field-Log/compare/v0.10...v0.11
 [0.10]: https://github.com/chrishunt/Field-Log/compare/v0.9...v0.10
 [0.9]: https://github.com/chrishunt/Field-Log/compare/v0.8...v0.9
 [0.8]: https://github.com/chrishunt/Field-Log/compare/v0.7...v0.8
