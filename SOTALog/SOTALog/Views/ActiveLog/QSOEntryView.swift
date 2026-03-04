@@ -184,8 +184,8 @@ struct QSOEntryView: View {
 
     private func cwMacroButton(macro: CWMacro) -> some View {
         let sending = sotaCatService.keyerActive
-        let empty = viewModel.expandTemplate(macro.template).isEmpty
-        let disabled = sending || empty
+        let expanded = viewModel.expandTemplate(macro.template)
+        let disabled = sending || expanded.isEmpty || expanded.count > 24
         return Text(macro.label)
             .font(.appMacroButton)
             .lineLimit(1)
