@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.10] - 2026-03-04
+
+### Changed
+- Added spots onboarding tip and clarified QRZ labels
+
 ## [0.9] - 2026-03-04
 
 ### Added
@@ -156,7 +161,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.9...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.10...HEAD
+[0.10]: https://github.com/chrishunt/Field-Log/compare/v0.9...v0.10
 [0.9]: https://github.com/chrishunt/Field-Log/compare/v0.8...v0.9
 [0.8]: https://github.com/chrishunt/Field-Log/compare/v0.7...v0.8
 [0.7]: https://github.com/chrishunt/Field-Log/compare/v0.6...v0.7
