@@ -4,6 +4,7 @@ struct LogRowView: View {
     let log: Log
     let qsoCount: Int
     let bands: [String]
+    let allSyncedToQRZ: Bool
 
     private let potaThreshold = 10
     private let sotaThreshold = 4
@@ -26,16 +27,13 @@ struct LogRowView: View {
             HStack(spacing: 6) {
                 if hasReferences {
                     referenceBlocks
-                } else {
-                    Text("\(qsoCount)")
-                        .font(.appProgress)
-                        .foregroundStyle(Color.appTextSecondary)
-                    Text("QSOs")
-                        .font(.appLabel)
-                        .foregroundStyle(Color.appTextSecondary)
                 }
 
                 Spacer()
+
+                if allSyncedToQRZ {
+                    AppQRZBadge()
+                }
 
                 ForEach(bands, id: \.self) { band in
                     Text(band.uppercased())
@@ -43,11 +41,23 @@ struct LogRowView: View {
                 }
             }
 
-            if let names = referenceNames {
-                Text(names)
+            HStack(spacing: 4) {
+                Text("\(qsoCount)")
+                    .font(.appProgress)
+                    .foregroundStyle(Color.appTextSecondary)
+                Text("QSOs")
                     .font(.appLabel)
-                    .foregroundStyle(Color.appTextTertiary)
-                    .lineLimit(1)
+                    .foregroundStyle(Color.appTextSecondary)
+
+                if let names = referenceNames {
+                    Text("·")
+                        .font(.appLabel)
+                        .foregroundStyle(Color.appTextTertiary)
+                    Text(names)
+                        .font(.appLabel)
+                        .foregroundStyle(Color.appTextTertiary)
+                        .lineLimit(1)
+                }
             }
         }
         .padding(.vertical, 2)
@@ -66,6 +76,8 @@ struct LogRowView: View {
                 Text(ref)
                     .font(.appReferenceCode)
                     .foregroundStyle(Color.appTextSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 AppActivationProgress(count: qsoCount, threshold: potaThreshold, completeColor: Color.appGreen)
             }
         }
@@ -76,6 +88,8 @@ struct LogRowView: View {
                 Text(ref)
                     .font(.appReferenceCode)
                     .foregroundStyle(Color.appTextSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 AppActivationProgress(count: qsoCount, threshold: sotaThreshold, completeColor: Color.appBlue)
             }
         }

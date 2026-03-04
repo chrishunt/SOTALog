@@ -28,13 +28,7 @@ struct QSORowView: View {
                 }
 
                 if qso.syncedToQRZ {
-                    Text("QRZ")
-                        .font(.appBadgeSmall)
-                        .foregroundStyle(Color.appTextSecondary)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 1)
-                        .background(Color.appTextSecondary.opacity(0.12), in: Capsule())
-                        .accessibilityLabel("Synced to QRZ")
+                    AppQRZBadge()
                 }
 
                 Text("\(qso.band.uppercased()) \(qso.mode)")

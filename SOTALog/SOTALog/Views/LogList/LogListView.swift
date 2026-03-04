@@ -29,7 +29,8 @@ struct LogListView: View {
                                 LogRowView(
                                     log: log,
                                     qsoCount: viewModel.qsoCounts[log.id ?? 0] ?? 0,
-                                    bands: viewModel.bandsByLog[log.id ?? 0] ?? []
+                                    bands: viewModel.bandsByLog[log.id ?? 0] ?? [],
+                                    allSyncedToQRZ: viewModel.allSyncedToQRZ[log.id ?? 0] ?? false
                                 )
                             }
                             .listRowBackground(Color.clear)

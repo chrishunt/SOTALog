@@ -31,6 +31,21 @@ struct AppReferenceIcon: View {
     }
 }
 
+// MARK: - QRZ Badge
+
+/// "QRZ" capsule badge shown on QSO rows and fully-synced activations.
+struct AppQRZBadge: View {
+    var body: some View {
+        Text("QRZ")
+            .font(.appBadgeSmall)
+            .foregroundStyle(Color.appTextSecondary)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(Color.appTextSecondary.opacity(0.12), in: Capsule())
+            .accessibilityLabel("Synced to QRZ")
+    }
+}
+
 // MARK: - Activation Progress
 
 /// Checkmark-or-fraction indicator for activation thresholds.

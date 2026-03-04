@@ -69,15 +69,13 @@ final class QRZSyncViewModel {
     }
 
     private func refreshADIF() async {
-        var sections: [(Log, [QSO])] = []
-        let logs = try? await logRepo.fetchAll()
-        for log in logs ?? [] {
-            if let logId = log.id {
-                let qsos = (try? await qsoRepo.fetchAll(forLogId: logId)) ?? []
-                if !qsos.isEmpty {
-                    sections.append((log, qsos))
-                }
-            }
+        let logs = (try? await logRepo.fetchAll()) ?? []
+        let allQSOs = (try? await qsoRepo.fetchAll()) ?? []
+        let qsosByLogId = Dictionary(grouping: allQSOs, by: { $0.logId })
+        let sections = logs.compactMap { log -> (Log, [QSO])? in
+            guard let id = log.id else { return nil }
+            let qsos = qsosByLogId[id] ?? []
+            return qsos.isEmpty ? nil : (log, qsos)
         }
         adifExport = ADIFFormatter.encodeFile(sections: sections)
     }
