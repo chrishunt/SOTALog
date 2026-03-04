@@ -8,11 +8,12 @@ Run:
 
 import http.client
 import threading
+import time
 import unittest
 from urllib.parse import urlencode
 
 # Import the mock server module
-from tools.mock_sotacat import create_server, radio, RadioState, VALID_MODES
+from tools.mock_sotacat import create_server, radio, RadioState, VALID_MODES, cw_duration
 
 # ---------------------------------------------------------------------------
 # Shared server — started once for the entire test module
@@ -49,6 +50,7 @@ class MockSOTACatTestCase(unittest.TestCase):
     def setUp(self):
         radio.set_frequency(14_060_000)
         radio.set_mode("CW")
+        radio.cw_wpm = 0  # disable keyer delay for fast tests
 
 
 class TestVersion(MockSOTACatTestCase):
@@ -182,6 +184,64 @@ class TestExternalStateChange(MockSOTACatTestCase):
 
         _, mode_body = _get("/api/v1/mode")
         self.assertEqual(mode_body, "LSB")
+
+
+class TestCWDuration(unittest.TestCase):
+
+    def test_zero_wpm_returns_zero(self):
+        self.assertEqual(cw_duration("CQ SOTA", 0), 0.0)
+
+    def test_single_char(self):
+        # "E" = 8 dit-units at 15 WPM: 8 * (1.2/15) = 0.64s
+        self.assertAlmostEqual(cw_duration("E", 15), 0.64)
+
+    def test_spaces_add_less_than_chars(self):
+        # Space = 4 dit-units vs char = 8 dit-units
+        self.assertLess(cw_duration(" ", 15), cw_duration("E", 15))
+
+    def test_longer_message_takes_longer(self):
+        self.assertGreater(cw_duration("CQ SOTA DE W1AW K", 15),
+                           cw_duration("CQ", 15))
+
+
+class TestKeyerBlocking(unittest.TestCase):
+    """Verify the keyer blocks the single-threaded server."""
+
+    def setUp(self):
+        radio.cw_wpm = 15
+
+    def tearDown(self):
+        radio.cw_wpm = 0
+
+    def test_keyer_blocks_concurrent_request(self):
+        """A GET during keyer send should be delayed until CW finishes."""
+        # "E" at 15 WPM blocks for ~0.64s — long enough to measure
+        results = {}
+
+        def send_keyer():
+            results["keyer"] = _put("/api/v1/keyer?message=EE")
+
+        def poll_frequency():
+            # Small delay so keyer starts first
+            time.sleep(0.1)
+            start = time.monotonic()
+            results["poll"] = _get("/api/v1/frequency")
+            results["poll_delay"] = time.monotonic() - start
+
+        t1 = threading.Thread(target=send_keyer)
+        t2 = threading.Thread(target=poll_frequency)
+        t1.start()
+        t2.start()
+        t1.join(timeout=10)
+        t2.join(timeout=10)
+
+        # Keyer should return 204
+        self.assertEqual(results["keyer"][0], 204)
+        # Poll should eventually succeed
+        self.assertEqual(results["poll"][0], 200)
+        # Poll should have been delayed (blocked by keyer)
+        # "EE" at 15 WPM = 16 dit-units * 0.08s = 1.28s, minus 0.1s head start
+        self.assertGreater(results["poll_delay"], 0.3)
 
 
 if __name__ == "__main__":
