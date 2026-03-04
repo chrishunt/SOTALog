@@ -14,7 +14,7 @@ final class QRZSyncViewModel {
     var unsyncedCount = 0
     var syncStatus: SyncStatus = .idle
     var lastSyncDate: Date?
-    var adifExport: String = ""
+    var adifExport = ADIFFile(filename: "", content: "")
 
     enum SyncStatus: Equatable {
         case idle
@@ -77,7 +77,11 @@ final class QRZSyncViewModel {
             let qsos = qsosByLogId[id] ?? []
             return qsos.isEmpty ? nil : (log, qsos)
         }
-        adifExport = ADIFFormatter.encodeFile(sections: sections)
+        let unattachedQSOs = qsosByLogId[nil] ?? []
+        adifExport = ADIFFile(
+            filename: ADIFFormatter.exportAllFilename(),
+            content: ADIFFormatter.encodeFile(sections: sections, unattached: unattachedQSOs)
+        )
     }
 
     func saveCredentials(apiKey: String, username: String, password: String) async {
