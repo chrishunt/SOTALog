@@ -11,7 +11,7 @@ final class SOTACatService {
     private let session: URLSession
     private var monitoringTask: Task<Void, Never>?
     private var consecutiveFailures = 0
-    private let maxConsecutiveFailures = 3
+    private let maxConsecutiveFailures = 5
     private(set) var keyerActive = false
 
     init() {
@@ -99,15 +99,22 @@ final class SOTACatService {
     // MARK: - Private
 
     private func probeConnection() async {
-        guard let url = URL(string: "\(baseURL)/api/v1/version") else { return }
+        if await probeVersion() {
+            consecutiveFailures = 0
+            await MainActor.run { isConnected = true }
+        }
+    }
+
+    private func probeVersion() async -> Bool {
+        guard let url = URL(string: "\(baseURL)/api/v1/version") else { return false }
         do {
             let (_, response) = try await session.data(from: url)
             if let http = response as? HTTPURLResponse, http.statusCode == 200 {
-                consecutiveFailures = 0
-                await MainActor.run { isConnected = true }
+                return true
             }
+            return false
         } catch {
-            // Not connected — expected when SOTAcat is off
+            return false
         }
     }
 
@@ -116,7 +123,7 @@ final class SOTACatService {
         do {
             let (data, response) = try await session.data(from: url)
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-                handlePollFailure()
+                await handlePollFailure()
                 return
             }
             consecutiveFailures = 0
@@ -130,7 +137,7 @@ final class SOTACatService {
                 }
             }
         } catch {
-            handlePollFailure()
+            await handlePollFailure()
         }
 
         // Poll mode separately — failure is non-fatal (don't disconnect)
@@ -139,13 +146,18 @@ final class SOTACatService {
         }
     }
 
-    private func handlePollFailure() {
+    private func handlePollFailure() async {
         consecutiveFailures += 1
         if consecutiveFailures >= maxConsecutiveFailures {
-            Task { @MainActor in
-                isConnected = false
-                radioFrequency = nil
-                radioMode = nil
+            // Verify device is truly gone before disconnecting
+            if await probeVersion() {
+                consecutiveFailures = 0  // Transient — reset
+            } else {
+                await MainActor.run {
+                    isConnected = false
+                    radioFrequency = nil
+                    radioMode = nil
+                }
             }
         }
     }
