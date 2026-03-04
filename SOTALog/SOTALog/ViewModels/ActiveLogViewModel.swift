@@ -41,23 +41,23 @@ final class ActiveLogViewModel {
         var files: [ADIFFile] = []
         if log.isPOTA {
             files.append(ADIFFile(
-                filename: ADIFFormatter.filename(log: log, program: .pota),
+                filename: ADIFFormatter.activationFilename(log: log, program: .pota),
                 content: ADIFFormatter.encodeFile(qsos: qsos, log: log, program: .pota)
             ))
         }
         if log.isSOTA {
             files.append(ADIFFile(
-                filename: ADIFFormatter.filename(log: log, program: .sota),
+                filename: ADIFFormatter.activationFilename(log: log, program: .sota),
                 content: ADIFFormatter.encodeFile(qsos: qsos, log: log, program: .sota)
             ))
         } else if qsos.contains(where: { $0.sotaRef != nil }) {
             files.append(ADIFFile(
-                filename: ADIFFormatter.filename(log: log, program: .sota),
+                filename: ADIFFormatter.activationFilename(log: log, program: .sota),
                 content: ADIFFormatter.encodeFile(qsos: qsos, log: log, program: .sota)
             ))
         }
         files.append(ADIFFile(
-            filename: ADIFFormatter.filename(log: log, program: nil),
+            filename: ADIFFormatter.activationFilename(log: log, program: nil),
             content: ADIFFormatter.encodeFile(qsos: qsos, log: log)
         ))
         return files

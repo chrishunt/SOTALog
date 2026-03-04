@@ -99,7 +99,7 @@ enum ADIFFormatter {
     }
 
     /// Encodes a full ADIF file from log+QSO sections, preserving each log's context.
-    static func encodeFile(sections: [(Log, [QSO])]) -> String {
+    static func encodeFile(sections: [(Log, [QSO])], unattached: [QSO] = []) -> String {
         var output = "ADIF Export from SOTA Log\n"
         output += encodeField("ADIF_VER", value: "3.1.4")
         output += encodeField("PROGRAMID", value: "SOTA Log")
@@ -110,6 +110,10 @@ enum ADIFFormatter {
             for qso in qsos {
                 output += encode(qso: qso, log: log)
             }
+        }
+
+        for qso in unattached {
+            output += encode(qso: qso)
         }
 
         return output
@@ -190,7 +194,7 @@ enum ADIFFormatter {
     // MARK: - Filenames
 
     /// Generates an export filename for the given log and program.
-    static func filename(log: Log, program: Program?) -> String {
+    static func activationFilename(log: Log, program: Program?) -> String {
         switch program {
         case .pota:
             return "\(log.myCallsign)@\(log.potaReference ?? "POTA")_\(log.date).adi"
@@ -202,6 +206,14 @@ enum ADIFFormatter {
         case nil:
             return "\(log.myCallsign)_\(log.date).adi"
         }
+    }
+
+    /// Generates a timestamped filename for a full-database ADIF export.
+    static func exportAllFilename() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd_HHmm"
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        return "SOTALog_\(formatter.string(from: Date()))Z.adi"
     }
 
     /// Converts parsed ADIF fields into a QSO record.
@@ -243,13 +255,17 @@ enum ADIFFormatter {
     }
 }
 
+extension UTType {
+    static var adif: UTType { UTType(exportedAs: "com.sotalog.adi") }
+}
+
 /// A named ADIF file that can be shared via ShareLink.
 struct ADIFFile: Transferable {
     let filename: String
     let content: String
 
     static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(exportedContentType: .plainText) { file in
+        FileRepresentation(exportedContentType: .adif) { file in
             let url = FileManager.default.temporaryDirectory
                 .appendingPathComponent(file.filename)
             try file.content.write(to: url, atomically: true, encoding: .utf8)

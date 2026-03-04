@@ -33,6 +33,14 @@ targets:
           NSExceptionDomains:
             sotacat.local:
               NSExceptionAllowsInsecureHTTPLoads: true
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.sotalog.adi
+            UTTypeConformsTo:
+              - public.data
+            UTTypeDescription: ADIF Log File
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - adi
     settings:
       base:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES

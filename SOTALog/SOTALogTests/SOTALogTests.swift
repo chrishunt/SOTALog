@@ -382,29 +382,37 @@ final class ADIFFormatterProgramFilterTests: XCTestCase {
         XCTAssertFalse(sotaADIF.contains("SIG_INFO"))
     }
 
+    func testExportAllFilename() {
+        let name = ADIFFormatter.exportAllFilename()
+        XCTAssertTrue(name.hasPrefix("SOTALog_"))
+        XCTAssertTrue(name.hasSuffix("Z.adi"))
+        // Format: SOTALog_YYYYMMDD_HHmmZ.adi → 26 chars
+        XCTAssertEqual(name.count, 26)
+    }
+
     func testFilenameGeneration() {
         let potaLog = Log(date: "20240315", myCallsign: "W1AW", potaReference: "US-4431", parkName: "Prescott NF")
         XCTAssertEqual(
-            ADIFFormatter.filename(log: potaLog, program: .pota),
+            ADIFFormatter.activationFilename(log: potaLog, program: .pota),
             "W1AW@US-4431_20240315.adi"
         )
 
         let sotaLog = Log(date: "20240315", myCallsign: "W1AW", sotaReference: "W4C/CM-001", summitName: "Mt Mitchell")
         XCTAssertEqual(
-            ADIFFormatter.filename(log: sotaLog, program: .sota),
+            ADIFFormatter.activationFilename(log: sotaLog, program: .sota),
             "W1AW@W4C-CM-001_20240315.adi"
         )
 
         // Chaser filename (no SOTA ref on log)
         let chaserLog = Log(date: "20240315", myCallsign: "W1AW")
         XCTAssertEqual(
-            ADIFFormatter.filename(log: chaserLog, program: .sota),
+            ADIFFormatter.activationFilename(log: chaserLog, program: .sota),
             "W1AW_SOTA_20240315.adi"
         )
 
         // Complete filename
         XCTAssertEqual(
-            ADIFFormatter.filename(log: potaLog, program: nil),
+            ADIFFormatter.activationFilename(log: potaLog, program: nil),
             "W1AW_20240315.adi"
         )
     }
