@@ -8,7 +8,7 @@ struct ContentView: View {
     @State private var selectedTab = Tab.activations
 
     enum Tab {
-        case activations, spots, settings
+        case activations, settings
     }
 
     var body: some View {
@@ -19,12 +19,6 @@ struct ContentView: View {
                         Label("Activations", systemImage: "mountain.2.fill")
                     }
                     .tag(Tab.activations)
-
-                SpotsView(database: db)
-                    .tabItem {
-                        Label("Spots", systemImage: "antenna.radiowaves.left.and.right")
-                    }
-                    .tag(Tab.spots)
 
                 QRZSyncView(database: db)
                     .tabItem {
@@ -43,9 +37,6 @@ struct ContentView: View {
             .onChange(of: spotRouter.pendingSpot) { _, newValue in
                 if let spot = newValue, sotaCatService.isConnected {
                     sotaCatService.tune(frequencyMHz: spot.frequency, mode: spot.mode)
-                }
-                if newValue != nil {
-                    selectedTab = .activations
                 }
             }
         } else {

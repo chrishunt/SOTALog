@@ -107,7 +107,7 @@ If the operator explicitly provides a value — whether by editing a field direc
 
 ### Spots feed directly into logging
 
-Tapping a spot switches to the Logs tab, navigates into the active log, and prefills the QSO entry form with the spot's callsign, frequency, and references. One tap from "I see an interesting spot" to "I'm ready to log this contact." Focus lands on callsign.
+Spots live in a half-sheet accessible from ActiveLogView's toolbar (antenna icon). The sheet starts at half-height (`.medium` detent) and expands to full. Tapping a spot dismisses the sheet and prefills the QSO entry form with the spot's callsign, frequency, and references. The round-trip is two taps: antenna button → tap spot → log → repeat. There is no dedicated Spots tab — viewing spots without a log open is useless.
 
 ### Validation is quiet
 

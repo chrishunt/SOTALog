@@ -8,6 +8,7 @@ struct ActiveLogView: View {
     @Environment(SOTACatService.self) private var sotaCatService
     @State private var viewModel: ActiveLogViewModel
     @State private var editingQSO: QSO?
+    @State private var showSpots = false
 
     init(database: AppDatabase, log: Log) {
         self.database = database
@@ -44,14 +45,25 @@ struct ActiveLogView: View {
         .navigationBarTitleDisplayMode(.inline)
         #if os(iOS)
         .toolbar {
-            if !viewModel.qsos.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
-                    ShareLink(items: viewModel.exportFiles,
-                              preview: { SharePreview($0.filename) }) {
-                        Image(systemName: "square.and.arrow.up")
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack(spacing: 16) {
+                    Button {
+                        showSpots = true
+                    } label: {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                    }
+
+                    if !viewModel.qsos.isEmpty {
+                        ShareLink(items: viewModel.exportFiles,
+                                  preview: { SharePreview($0.filename) }) {
+                            Image(systemName: "square.and.arrow.up")
+                        }
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showSpots) {
+            SpotsSheetView(database: database)
         }
         #endif
         #if os(iOS)
