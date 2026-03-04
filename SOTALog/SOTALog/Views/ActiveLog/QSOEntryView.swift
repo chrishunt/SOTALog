@@ -138,6 +138,7 @@ struct QSOEntryView: View {
             onSOTAChanged: { viewModel.validateSOTARef() },
             isRadioConnected: sotaCatService.isConnected,
             onFrequencyChanged: { viewModel.frequencyChanged() },
+            onFrequencyCommitted: { viewModel.pushFrequencyToRadio() },
             onSubmit: { focusedField = .callsign }
         )
     }

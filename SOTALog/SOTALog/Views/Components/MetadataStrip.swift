@@ -23,6 +23,7 @@ struct MetadataStrip: View {
     var onSOTAChanged: () -> Void
     var isRadioConnected: Bool = false
     var onFrequencyChanged: () -> Void
+    var onFrequencyCommitted: () -> Void
     var onSubmit: () -> Void
 
     @FocusState private var editFocus: EditField?
@@ -62,6 +63,9 @@ struct MetadataStrip: View {
         }
         .onChange(of: editFocus) { _, newValue in
             if newValue == nil {
+                if editingField == .frequency {
+                    onFrequencyCommitted()
+                }
                 editingField = nil
             }
         }
@@ -160,8 +164,10 @@ struct MetadataStrip: View {
         .font(.callout.monospacedDigit())
         .submitLabel(.done)
         .onSubmit {
+            let wasFrequency = editingField == .frequency
             editingField = nil
             editFocus = nil
+            if wasFrequency { onFrequencyCommitted() }
             onSubmit()
         }
         .textContentType(.none)
