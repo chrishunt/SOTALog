@@ -46,18 +46,18 @@ struct ActiveLogView: View {
         #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 16) {
-                    Button {
-                        showSpots = true
-                    } label: {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                    }
+                Button {
+                    showSpots = true
+                } label: {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                }
+            }
 
-                    if !viewModel.qsos.isEmpty {
-                        ShareLink(items: viewModel.exportFiles,
-                                  preview: { SharePreview($0.filename) }) {
-                            Image(systemName: "square.and.arrow.up")
-                        }
+            if !viewModel.qsos.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(items: viewModel.exportFiles,
+                              preview: { SharePreview($0.filename) }) {
+                        Image(systemName: "square.and.arrow.up")
                     }
                 }
             }
