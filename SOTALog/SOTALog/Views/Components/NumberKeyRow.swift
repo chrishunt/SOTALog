@@ -13,7 +13,7 @@ struct NumberKeyRow: View {
                     onKey(key)
                 } label: {
                     Text(key)
-                        .font(.title3.monospacedDigit())
+                        .font(.appNumberKey)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(Color.appSurfaceRaised, in: RoundedRectangle(cornerRadius: 5))
                 }

@@ -60,6 +60,12 @@ extension Color {
             ? UIColor(red: 160/255, green: 160/255, blue: 160/255, alpha: 1)  // #A0A0A0
             : .secondaryLabel
     })
+
+    static let appTextTertiary = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 120/255, green: 120/255, blue: 120/255, alpha: 1)  // #787878
+            : .tertiaryLabel
+    })
     #else
     // macOS SPM build fallback — static colors (light mode values)
     static let appOrange = Color(red: 230/255, green: 159/255, blue: 0/255)
@@ -71,5 +77,6 @@ extension Color {
     static let appSurfaceRaised = Color(red: 44/255, green: 44/255, blue: 46/255)
     static let appTextPrimary = Color(red: 235/255, green: 235/255, blue: 235/255)
     static let appTextSecondary = Color(red: 160/255, green: 160/255, blue: 160/255)
+    static let appTextTertiary = Color(red: 120/255, green: 120/255, blue: 120/255)
     #endif
 }

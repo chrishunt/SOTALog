@@ -7,51 +7,44 @@ struct QSORowView: View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 12) {
                 Text(qso.timeOn.insertingTimeSeparator + "Z")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .font(.appTimestamp)
+                    .foregroundStyle(Color.appTextSecondary)
 
                 Text(qso.callsign)
-                    .font(.body.monospaced().bold())
+                    .font(.appCallsignRow)
                     .foregroundStyle(Color.appTextPrimary)
                     .frame(minWidth: 100, alignment: .leading)
 
                 Spacer()
 
                 if let potaRef = qso.potaRef {
-                    Image(systemName: "tree")
-                        .font(.caption)
-                        .foregroundStyle(Color.appGreen)
+                    AppReferenceIcon(type: .pota)
                         .accessibilityLabel("Park to park \(potaRef)")
                 }
 
                 if let sotaRef = qso.sotaRef {
-                    Image(systemName: "mountain.2")
-                        .font(.caption)
-                        .foregroundStyle(Color.appBlue)
+                    AppReferenceIcon(type: .sota)
                         .accessibilityLabel("Summit to summit \(sotaRef)")
                 }
 
                 if qso.syncedToQRZ {
                     Text("QRZ")
-                        .font(.caption2.bold())
-                        .foregroundStyle(.secondary)
+                        .font(.appBadgeSmall)
+                        .foregroundStyle(Color.appTextSecondary)
                         .padding(.horizontal, 5)
                         .padding(.vertical, 1)
-                        .background(.secondary.opacity(0.12), in: Capsule())
+                        .background(Color.appTextSecondary.opacity(0.12), in: Capsule())
                         .accessibilityLabel("Synced to QRZ")
                 }
 
                 Text("\(qso.band.uppercased()) \(qso.mode)")
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.accentColor.opacity(0.12), in: Capsule())
+                    .appBadge()
             }
 
             if let detail = detailText {
                 Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
                     .lineLimit(1)
                     .padding(.leading, 54)
             }

@@ -37,11 +37,11 @@ struct SpotsView: View {
                             } header: {
                                 HStack {
                                     Text(section.band.uppercased())
-                                        .font(.title3.monospacedDigit().bold())
-                                        .foregroundStyle(.primary)
+                                        .font(.appSectionHeader)
+                                        .foregroundStyle(Color.appTextPrimary)
                                     Text("\(section.spots.count)")
                                         .font(.subheadline)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(Color.appTextSecondary)
                                 }
                                 .padding(.top, 8)
                                 .textCase(nil)

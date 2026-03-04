@@ -8,17 +8,17 @@ struct SpotRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(spot.activatorCallsign)
-                    .font(.headline.monospaced())
+                    .font(.appCallsign)
                     .strikethrough(isWorked)
 
                 Spacer()
 
                 Text(String(format: "%.3f", spot.frequency))
-                    .font(.subheadline.monospacedDigit())
+                    .font(.appFrequency)
 
                 Text("\(spot.ageMinutes)m")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
             }
 
             HStack(spacing: 6) {
@@ -27,16 +27,13 @@ struct SpotRowView: View {
                 Spacer()
 
                 Text("\(spot.band.uppercased()) \(spot.mode)")
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.accentColor.opacity(0.12), in: Capsule())
+                    .appBadge()
             }
 
             if let comments = spot.comments, !comments.isEmpty {
                 Text(comments)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextTertiary)
                     .lineLimit(1)
             }
         }
@@ -47,33 +44,27 @@ struct SpotRowView: View {
     @ViewBuilder
     private var referenceInfo: some View {
         if let potaRef = spot.potaReference {
-            Image(systemName: "tree")
-                .font(.caption)
-                .foregroundStyle(Color.appGreen)
-                .accessibilityLabel("POTA")
+            AppReferenceIcon(type: .pota)
             Text(potaRef)
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
+                .font(.appReferenceCode)
+                .foregroundStyle(Color.appTextSecondary)
             if let name = spot.potaReferenceName, spot.sotaReference == nil {
                 Text(name)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
                     .lineLimit(1)
             }
         }
 
         if let sotaRef = spot.sotaReference {
-            Image(systemName: "mountain.2")
-                .font(.caption)
-                .foregroundStyle(Color.appBlue)
-                .accessibilityLabel("SOTA")
+            AppReferenceIcon(type: .sota)
             Text(sotaRef)
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
+                .font(.appReferenceCode)
+                .foregroundStyle(Color.appTextSecondary)
             if let name = spot.sotaReferenceName, spot.potaReference == nil {
                 Text(name)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
                     .lineLimit(1)
             }
         }

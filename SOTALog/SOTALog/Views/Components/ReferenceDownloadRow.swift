@@ -24,16 +24,16 @@ struct ReferenceDownloadRow: View {
                     .font(.subheadline)
                 if let progress {
                     Text(progress)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appLabel)
+                        .foregroundStyle(Color.appTextSecondary)
                 } else if let meta = metadata {
                     Text("\(meta.recordCount ?? 0) \(unitName) • \(meta.lastRefreshed?.shortDateDisplay ?? "Never")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appLabel)
+                        .foregroundStyle(Color.appTextSecondary)
                 } else {
                     Text("Not downloaded")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appLabel)
+                        .foregroundStyle(Color.appTextSecondary)
                 }
             }
 
@@ -55,7 +55,7 @@ struct ReferenceDownloadRow: View {
 
         if let error = errorMessage {
             Text(error)
-                .font(.caption)
+                .font(.appLabel)
                 .foregroundStyle(Color.appRed)
         }
     }

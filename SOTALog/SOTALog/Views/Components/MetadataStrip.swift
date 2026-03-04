@@ -101,7 +101,7 @@ struct MetadataStrip: View {
 
             Spacer()
         }
-        .font(.callout.monospacedDigit())
+        .font(.appMetadataLine1)
         .foregroundStyle(Color.appTextSecondary)
     }
 
@@ -161,7 +161,7 @@ struct MetadataStrip: View {
             }
         }
         .textFieldStyle(.roundedBorder)
-        .font(.callout.monospacedDigit())
+        .font(.appMetadataLine1)
         .submitLabel(.done)
         .onSubmit {
             let wasFrequency = editingField == .frequency
@@ -201,7 +201,7 @@ struct MetadataStrip: View {
 
             Spacer()
         }
-        .font(.callout)
+        .font(.appMetadataLine2)
         .foregroundStyle(Color.appTextSecondary)
         .lineLimit(1)
     }
@@ -227,7 +227,7 @@ struct MetadataStrip: View {
             }
         }
         .textFieldStyle(.roundedBorder)
-        .font(.callout)
+        .font(.appMetadataLine2)
         .submitLabel(.done)
         .onSubmit {
             editingField = nil

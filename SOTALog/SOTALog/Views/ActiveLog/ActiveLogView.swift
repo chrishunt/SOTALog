@@ -86,7 +86,7 @@ struct ActiveLogView: View {
             if viewModel.qsos.isEmpty {
                 Text("Logged contacts appear here")
                     .font(.subheadline)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(Color.appTextTertiary)
                     .frame(maxWidth: .infinity)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)

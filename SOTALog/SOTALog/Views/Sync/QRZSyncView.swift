@@ -22,8 +22,8 @@ struct QRZSyncView: View {
                             Label("Set Up QRZ Account", systemImage: "person.badge.key")
                                 .font(.body.bold())
                             Text("API key syncs your logbook. Username & password enable callsign lookups.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.appLabel)
+                                .foregroundStyle(Color.appTextSecondary)
                         }
                     }
                 }
@@ -35,7 +35,7 @@ struct QRZSyncView: View {
                     Spacer()
                     if viewModel.hasAPIKey {
                         Button("Change") { showLogin = true }
-                            .font(.caption)
+                            .font(.appLabel)
                     }
                 }
 
@@ -46,7 +46,7 @@ struct QRZSyncView: View {
                     Spacer()
                     if viewModel.hasCredentials {
                         Button("Change") { showLogin = true }
-                            .font(.caption)
+                            .font(.appLabel)
                     }
                 }
             }
@@ -74,8 +74,8 @@ struct QRZSyncView: View {
 
                     if let date = viewModel.lastSyncDate {
                         Text("Last synced: \(date.formatted(date: .abbreviated, time: .shortened))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.appLabel)
+                            .foregroundStyle(Color.appTextSecondary)
                     }
                 }
             }

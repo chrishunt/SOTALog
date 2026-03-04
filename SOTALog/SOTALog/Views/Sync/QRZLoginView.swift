@@ -74,8 +74,8 @@ struct QRZLoginView: View {
             HStack(spacing: 8) {
                 ProgressView()
                 Text("Testing \(label.lowercased())...")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
             }
         } else if let result {
             switch result {
@@ -84,7 +84,7 @@ struct QRZLoginView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(Color.appGreen)
                     Text("\(label) verified")
-                        .font(.caption)
+                        .font(.appLabel)
                         .foregroundStyle(Color.appGreen)
                 }
             case .failure(let message):
@@ -92,7 +92,7 @@ struct QRZLoginView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(Color.appRed)
                     Text(message)
-                        .font(.caption)
+                        .font(.appLabel)
                         .foregroundStyle(Color.appRed)
                 }
             }

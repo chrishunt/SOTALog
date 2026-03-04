@@ -20,11 +20,13 @@
 		1FD9532C3A4C42F2B6DC47F4 /* TestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8686E8508B8D387AF8BC1B16 /* TestHelpers.swift */; };
 		21B30B8D3851B8E780141C8C /* POTALocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FFFE824425D0301F2528068 /* POTALocationService.swift */; };
 		274E5B921756A30E83925A34 /* SyncImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F759C6D173DACA136AB14AE1 /* SyncImporterTests.swift */; };
+		30FE889E75C04058294049A5 /* View+AppStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF114F61B75D161494B7051 /* View+AppStyle.swift */; };
 		352EFF0FDFBC50BD0E37167D /* ADIFFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D9EAAEFE88C5722AEB3DDF /* ADIFFormatter.swift */; };
 		355CB528D730A23D7F18FFDF /* SOTASummit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1E56F233DBEBBA1F87E4E2 /* SOTASummit.swift */; };
 		382766C60A6B8E257DD7AD48 /* MetadataStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2220B6EA473F41D18C821368 /* MetadataStrip.swift */; };
 		40E28C6FA185AF2703E4177B /* POTASpotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2F2785E6F2AC0E491F2F08 /* POTASpotService.swift */; };
 		465D9912F46AE61BBF04DC49 /* NumberKeyRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1282C3A8871D73E842E74FBB /* NumberKeyRow.swift */; };
+		48F04ACAD4452C657B2B5C77 /* Font+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95AAE0D74F408623C91894A5 /* Font+App.swift */; };
 		4943BC7245C8E868920E22A8 /* ReferenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E509603AB3965292400E7ECB /* ReferenceRepository.swift */; };
 		4ED1771DBEFCB39C3E87F411 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0497472283AB4B46B4C108 /* Log.swift */; };
 		5002A13AA26D298653D09550 /* Date+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 276873C316FE8259B1240F70 /* Date+Formatting.swift */; };
@@ -153,6 +155,7 @@
 		8565B3F633C46D7384840515 /* QRZSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZSyncView.swift; sourceTree = "<group>"; };
 		8686E8508B8D387AF8BC1B16 /* TestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelpers.swift; sourceTree = "<group>"; };
 		875D8FD75A8FB9B08FED76DE /* CallsignHistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignHistoryRepository.swift; sourceTree = "<group>"; };
+		95AAE0D74F408623C91894A5 /* Font+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+App.swift"; sourceTree = "<group>"; };
 		982E2AD75660266C979D8FCD /* QRZXMLService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZXMLService.swift; sourceTree = "<group>"; };
 		9B1E56F233DBEBBA1F87E4E2 /* SOTASummit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOTASummit.swift; sourceTree = "<group>"; };
 		9D2F2785E6F2AC0E491F2F08 /* POTASpotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POTASpotService.swift; sourceTree = "<group>"; };
@@ -165,6 +168,7 @@
 		AD310A8C6A43BFF4883C3707 /* CallsignPrefixResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallsignPrefixResolver.swift; sourceTree = "<group>"; };
 		B473BAD0C0F22955E4DBFFFB /* QRZLookupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRZLookupService.swift; sourceTree = "<group>"; };
 		BA205F670A369ACA17F15964 /* LogRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogRowView.swift; sourceTree = "<group>"; };
+		BDF114F61B75D161494B7051 /* View+AppStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+AppStyle.swift"; sourceTree = "<group>"; };
 		C0DE0F435B6A3BB43CEB6E9F /* SpotRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRowView.swift; sourceTree = "<group>"; };
 		C1D9EAAEFE88C5722AEB3DDF /* ADIFFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADIFFormatter.swift; sourceTree = "<group>"; };
 		C2DF5C7C156080F640454DB2 /* DateFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormattingTests.swift; sourceTree = "<group>"; };
@@ -404,7 +408,9 @@
 			children = (
 				D5E66F550ED47884F3A91479 /* Color+App.swift */,
 				276873C316FE8259B1240F70 /* Date+Formatting.swift */,
+				95AAE0D74F408623C91894A5 /* Font+App.swift */,
 				CE11D3EC8DB1BFC6C897E8BB /* String+Callsign.swift */,
+				BDF114F61B75D161494B7051 /* View+AppStyle.swift */,
 				E18198C59474BB2FEA4A1510 /* View+iOS.swift */,
 			);
 			path = Extensions;
@@ -549,6 +555,7 @@
 				5CAD509F47D2D9AFF445DC08 /* Color+App.swift in Sources */,
 				FF081D0BDBFFE24D75C80382 /* ContentView.swift in Sources */,
 				5002A13AA26D298653D09550 /* Date+Formatting.swift in Sources */,
+				48F04ACAD4452C657B2B5C77 /* Font+App.swift in Sources */,
 				0F1D52B3C3ACE55ED3385B38 /* KeychainService.swift in Sources */,
 				54EE456BFBCCB2385D14BB2A /* LocationService.swift in Sources */,
 				4ED1771DBEFCB39C3E87F411 /* Log.swift in Sources */,
@@ -594,6 +601,7 @@
 				0157B89CEF9E14FCFC95831A /* SpotsViewModel.swift in Sources */,
 				D10D4A809BAF7BAE0D6F7196 /* String+Callsign.swift in Sources */,
 				CD80AE501E985AD141BBB10E /* SyncImporter.swift in Sources */,
+				30FE889E75C04058294049A5 /* View+AppStyle.swift in Sources */,
 				1F95DE507D883CEC5CE45AA4 /* View+iOS.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

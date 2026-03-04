@@ -24,13 +24,12 @@ struct ActivationStatusView: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            // Labeled QSO count
             HStack(spacing: 3) {
                 Text("\(count)")
-                    .font(.title3.monospacedDigit().bold())
+                    .font(.appSectionHeader)
                 Text("QSOs")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
             }
 
             if let ref = potaReference {
@@ -60,41 +59,21 @@ struct ActivationStatusView: View {
 
     private func potaBlock(_ reference: String) -> some View {
         HStack(spacing: 3) {
-            Image(systemName: "tree")
-                .font(.caption)
-                .foregroundStyle(Color.appGreen)
+            AppReferenceIcon(type: .pota)
             Text(reference)
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-            if potaComplete {
-                Image(systemName: "checkmark")
-                    .font(.caption2.bold())
-                    .foregroundStyle(Color.appGreen)
-            } else {
-                Text("\(count)/\(potaThreshold)")
-                    .font(.caption.monospacedDigit().bold())
-                    .foregroundStyle(Color.appOrange)
-            }
+                .font(.appReferenceCode)
+                .foregroundStyle(Color.appTextSecondary)
+            AppActivationProgress(count: count, threshold: potaThreshold, completeColor: Color.appGreen)
         }
     }
 
     private func sotaBlock(_ reference: String) -> some View {
         HStack(spacing: 3) {
-            Image(systemName: "mountain.2")
-                .font(.caption)
-                .foregroundStyle(Color.appBlue)
+            AppReferenceIcon(type: .sota)
             Text(reference)
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-            if sotaComplete {
-                Image(systemName: "checkmark")
-                    .font(.caption2.bold())
-                    .foregroundStyle(Color.appBlue)
-            } else {
-                Text("\(count)/\(sotaThreshold)")
-                    .font(.caption.monospacedDigit().bold())
-                    .foregroundStyle(Color.appOrange)
-            }
+                .font(.appReferenceCode)
+                .foregroundStyle(Color.appTextSecondary)
+            AppActivationProgress(count: count, threshold: sotaThreshold, completeColor: Color.appBlue)
         }
     }
 }
