@@ -78,6 +78,7 @@ final class QSOEntryViewModel {
         markManualOverride("mode")
         updateRSTForMode()
         recheckDupe()
+        pushModeToRadio()
     }
 
     /// Auto-derives mode from frequency when mode is not manually overridden
@@ -330,6 +331,20 @@ final class QSOEntryViewModel {
         }
     }
 
+    /// Push manually-edited frequency to the radio via SOTACat
+    func pushFrequencyToRadio() {
+        guard let service = sotaCatService, service.isConnected else { return }
+        guard let freq = Double(frequencyText) else { return }
+        service.tune(frequencyMHz: freq, mode: mode)
+    }
+
+    /// Push manually-toggled mode to the radio via SOTACat
+    func pushModeToRadio() {
+        guard let service = sotaCatService, service.isConnected else { return }
+        guard let freq = Double(frequencyText) else { return }
+        service.tune(frequencyMHz: freq, mode: mode)
+    }
+
     /// Re-check dupe status and auto-derive mode when frequency (band) changes
     func frequencyChanged() {
         updateModeFromFrequency()
@@ -571,6 +586,11 @@ final class QSOEntryViewModel {
 
     // MARK: - CW Keyer
 
+    /// RST with cut numbers for CW keyer (9 → N)
+    private var rstForKeyer: String {
+        rstSent.replacingOccurrences(of: "9", with: "N")
+    }
+
     func expandTemplate(_ template: String) -> String {
         let activity: String
         if log.sotaReference != nil {
@@ -584,7 +604,7 @@ final class QSOEntryViewModel {
         var text = template
         text = text.replacingOccurrences(of: "{myCall}", with: log.myCallsign)
         text = text.replacingOccurrences(of: "{call}", with: parsedCallsign)
-        text = text.replacingOccurrences(of: "{rst}", with: rstSent)
+        text = text.replacingOccurrences(of: "{rst}", with: rstForKeyer)
         text = text.replacingOccurrences(of: "{mySOTA}", with: log.sotaReference ?? "")
         text = text.replacingOccurrences(of: "{myPOTA}", with: log.potaReference ?? "")
         text = text.replacingOccurrences(of: "{activity}", with: activity)
@@ -609,7 +629,7 @@ final class QSOEntryViewModel {
         let substitutions: [(String, String)] = [
             ("{myCall}", log.myCallsign),
             ("{call}", parsedCallsign),
-            ("{rst}", rstSent),
+            ("{rst}", rstForKeyer),
             ("{mySOTA}", log.sotaReference ?? ""),
             ("{myPOTA}", log.potaReference ?? ""),
             ("{activity}", activity),

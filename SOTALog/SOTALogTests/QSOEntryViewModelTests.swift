@@ -689,7 +689,31 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.entryText = "W6SD"
         vm.rstSent = "579"
         let result = vm.expandTemplate("{call} UR {rst} BK")
-        XCTAssertEqual(result, "W6SD UR 579 BK")
+        XCTAssertEqual(result, "W6SD UR 57N BK")
+    }
+
+    func testExpandTemplate_rstCutNumbers599() {
+        let vm = makeVM()
+        vm.entryText = "W6SD"
+        vm.rstSent = "599"
+        let result = vm.expandTemplate("{call} UR {rst} BK")
+        XCTAssertEqual(result, "W6SD UR 5NN BK")
+    }
+
+    func testExpandTemplate_rstCutNumbers559() {
+        let vm = makeVM()
+        vm.entryText = "W6SD"
+        vm.rstSent = "559"
+        let result = vm.expandTemplate("{call} UR {rst} BK")
+        XCTAssertEqual(result, "W6SD UR 55N BK")
+    }
+
+    func testPreviewTemplate_rstCutNumbers() {
+        let vm = makeVM()
+        vm.entryText = "W6SD"
+        vm.rstSent = "599"
+        let result = vm.previewExpandTemplate("{call} UR {rst} BK")
+        XCTAssertEqual(result, "W6SD UR 5NN BK")
     }
 
     func testExpandTemplate_emptyCall() {
@@ -751,6 +775,26 @@ final class QSOEntryViewModelTests: XCTestCase {
         let vm = makeVM()
         let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} K")
         XCTAssertEqual(result, "CQ SOTA DE W1AW K")
+    }
+
+    // MARK: - Push Frequency to Radio
+
+    func testPushFrequencyNoopWithoutService() {
+        let vm = makeVM()
+        vm.frequencyText = "7.030"
+        vm.pushFrequencyToRadio()  // no crash, no-op
+    }
+
+    func testPushFrequencyNoopWithInvalidFrequency() {
+        let vm = makeVM()
+        vm.sotaCatService = SOTACatService()
+        vm.frequencyText = "abc"
+        vm.pushFrequencyToRadio()  // no crash, no-op
+    }
+
+    func testPushModeNoopWithoutService() {
+        let vm = makeVM()
+        vm.pushModeToRadio()  // no crash, no-op
     }
 
     func testPreviewTemplate_activityResolvesPOTA() async throws {
