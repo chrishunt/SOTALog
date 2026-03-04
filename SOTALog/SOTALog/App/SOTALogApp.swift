@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 @main
 struct SOTALogApp: App {
@@ -11,6 +12,7 @@ struct SOTALogApp: App {
             database = nil
             AppLog.database.error("Database setup failed: \(error.localizedDescription)")
         }
+        try? Tips.configure([.displayFrequency(.immediate)])
     }
 
     var body: some Scene {

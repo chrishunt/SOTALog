@@ -1,5 +1,6 @@
 import Combine
 import SwiftUI
+import TipKit
 
 struct QSOEntryView: View {
     let database: AppDatabase
@@ -220,6 +221,7 @@ struct QSOEntryView: View {
             sanitizer: { $0.sanitizedOmnifield }
         )
         .focused($focusedField, equals: .callsign)
+        .popoverTip(OmniboxTip())
         .submitLabel(.send)
         .onSubmit {
             submitQSO()
