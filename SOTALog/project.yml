@@ -40,6 +40,7 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
         INFOPLIST_KEY_NSLocalNetworkUsageDescription: "SOTA Log can connect to a SOTACat radio control device on your local network."
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "SOTA Log uses your location to calculate your Maidenhead grid square for logging."
         INFOPLIST_KEY_CFBundleDisplayName: "SOTA Log"
@@ -47,8 +48,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.sotalog.app
         DEVELOPMENT_TEAM: 8CV6QZZ6BE
-        MARKETING_VERSION: "0.6"
-        CURRENT_PROJECT_VERSION: 6
+        MARKETING_VERSION: "0.7"
+        CURRENT_PROJECT_VERSION: 7
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: GRDB

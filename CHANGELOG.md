@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7] - 2026-03-04
+
+### Added
+- Privacy manifest declaring UserDefaults API usage
+- Local network usage description for SOTACat discovery
+
+### Changed
+- Locked interface orientation to portrait only
+- Split toolbar into separate ToolbarItems
+- Handle database initialization failure gracefully instead of crashing
+
 ## [0.6] - 2026-03-04
 
 ### Changed
@@ -118,7 +129,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.6...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.7...HEAD
+[0.7]: https://github.com/chrishunt/Field-Log/compare/v0.6...v0.7
 [0.6]: https://github.com/chrishunt/Field-Log/compare/v0.5...v0.6
 [0.5]: https://github.com/chrishunt/Field-Log/compare/v0.4...v0.5
 [0.4]: https://github.com/chrishunt/Field-Log/compare/v0.3...v0.4
