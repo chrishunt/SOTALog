@@ -48,8 +48,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.sotalog.app
         DEVELOPMENT_TEAM: 8CV6QZZ6BE
-        MARKETING_VERSION: "0.7"
-        CURRENT_PROJECT_VERSION: 7
+        MARKETING_VERSION: "0.8"
+        CURRENT_PROJECT_VERSION: 8
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: GRDB
