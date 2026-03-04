@@ -182,7 +182,7 @@ struct QSOEntryView: View {
 
     private func cwMacroButton(macro: CWMacro) -> some View {
         Text(macro.label)
-            .font(.callout.bold())
+            .font(.appMacroButton)
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .foregroundStyle(Color.appOrange)

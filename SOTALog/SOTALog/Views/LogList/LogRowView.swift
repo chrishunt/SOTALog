@@ -14,13 +14,13 @@ struct LogRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(log.myCallsign)
-                    .font(.headline.monospaced())
+                    .font(.appCallsign)
 
                 Spacer()
 
                 Text(log.formattedDate)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
             }
 
             HStack(spacing: 6) {
@@ -28,28 +28,25 @@ struct LogRowView: View {
                     referenceBlocks
                 } else {
                     Text("\(qsoCount)")
-                        .font(.caption.monospacedDigit().bold())
-                        .foregroundStyle(.secondary)
+                        .font(.appProgress)
+                        .foregroundStyle(Color.appTextSecondary)
                     Text("QSOs")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.appLabel)
+                        .foregroundStyle(Color.appTextSecondary)
                 }
 
                 Spacer()
 
                 ForEach(bands, id: \.self) { band in
                     Text(band.uppercased())
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.accentColor.opacity(0.12), in: Capsule())
+                        .appBadge()
                 }
             }
 
             if let names = referenceNames {
                 Text(names)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextTertiary)
                     .lineLimit(1)
             }
         }
@@ -65,41 +62,21 @@ struct LogRowView: View {
     private var referenceBlocks: some View {
         if let ref = log.potaReference {
             HStack(spacing: 3) {
-                Image(systemName: "tree")
-                    .font(.caption)
-                    .foregroundStyle(Color.appGreen)
+                AppReferenceIcon(type: .pota)
                 Text(ref)
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-                if qsoCount >= potaThreshold {
-                    Image(systemName: "checkmark")
-                        .font(.caption2.bold())
-                        .foregroundStyle(Color.appGreen)
-                } else {
-                    Text("\(qsoCount)/\(potaThreshold)")
-                        .font(.caption.monospacedDigit().bold())
-                        .foregroundStyle(Color.appOrange)
-                }
+                    .font(.appReferenceCode)
+                    .foregroundStyle(Color.appTextSecondary)
+                AppActivationProgress(count: qsoCount, threshold: potaThreshold, completeColor: Color.appGreen)
             }
         }
 
         if let ref = log.sotaReference {
             HStack(spacing: 3) {
-                Image(systemName: "mountain.2")
-                    .font(.caption)
-                    .foregroundStyle(Color.appBlue)
+                AppReferenceIcon(type: .sota)
                 Text(ref)
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-                if qsoCount >= sotaThreshold {
-                    Image(systemName: "checkmark")
-                        .font(.caption2.bold())
-                        .foregroundStyle(Color.appBlue)
-                } else {
-                    Text("\(qsoCount)/\(sotaThreshold)")
-                        .font(.caption.monospacedDigit().bold())
-                        .foregroundStyle(Color.appOrange)
-                }
+                    .font(.appReferenceCode)
+                    .foregroundStyle(Color.appTextSecondary)
+                AppActivationProgress(count: qsoCount, threshold: sotaThreshold, completeColor: Color.appBlue)
             }
         }
     }

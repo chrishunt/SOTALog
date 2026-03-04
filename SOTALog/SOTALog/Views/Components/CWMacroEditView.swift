@@ -37,14 +37,14 @@ struct CWMacroEditView: View {
                     TextField("Template", text: $template)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
-                        .font(.body.monospaced())
+                        .font(.appTemplateCode)
                 }
 
                 Section("Variables") {
                     FlowLayout(spacing: 8) {
                         ForEach(Self.variables, id: \.self) { variable in
                             Text(variable)
-                                .font(.caption.monospaced())
+                                .font(.appVariableChip)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
@@ -55,7 +55,7 @@ struct CWMacroEditView: View {
 
                 Section("Preview") {
                     Text(expandTemplate(template))
-                        .font(.body.monospaced())
+                        .font(.appTemplateCode)
                         .foregroundStyle(expandTemplate(template).isEmpty ? Color.appTextSecondary : Color.appTextPrimary)
                 }
 

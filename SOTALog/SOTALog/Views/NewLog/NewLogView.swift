@@ -61,16 +61,16 @@ struct NewLogView: View {
                                             .foregroundStyle(Color.appGreen)
                                         VStack(alignment: .leading) {
                                             Text(park.reference)
-                                                .font(.headline.monospaced())
+                                                .font(.appCallsign)
                                                 .foregroundStyle(Color.appTextPrimary)
                                             Text(park.name)
-                                                .font(.caption)
+                                                .font(.appLabel)
                                                 .foregroundStyle(Color.appTextSecondary)
                                         }
                                         Spacer()
                                         if let miles = viewModel.distanceMiles(to: park.latitude, longitude: park.longitude) {
                                             Text(String(format: "%.0f mi", miles))
-                                                .font(.caption.monospacedDigit())
+                                                .font(.appDistanceLabel)
                                                 .foregroundStyle(Color.appTextSecondary)
                                         }
                                     }
@@ -87,10 +87,10 @@ struct NewLogView: View {
                                             .foregroundStyle(Color.appGreen)
                                         VStack(alignment: .leading) {
                                             Text(park.reference)
-                                                .font(.headline.monospaced())
+                                                .font(.appCallsign)
                                                 .foregroundStyle(Color.appTextPrimary)
                                             Text(park.name)
-                                                .font(.caption)
+                                                .font(.appLabel)
                                                 .foregroundStyle(Color.appTextSecondary)
                                         }
                                     }
@@ -101,7 +101,7 @@ struct NewLogView: View {
 
                         if let name = viewModel.parkName {
                             Text(name)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.appTextSecondary)
                         }
                     } else {
                         ReferenceDownloadRow.potaParks(
@@ -133,16 +133,16 @@ struct NewLogView: View {
                                             .foregroundStyle(Color.appBlue)
                                         VStack(alignment: .leading) {
                                             Text(summit.code)
-                                                .font(.headline.monospaced())
+                                                .font(.appCallsign)
                                                 .foregroundStyle(Color.appTextPrimary)
                                             Text("\(summit.name) (\(summit.points ?? 0)pt)")
-                                                .font(.caption)
+                                                .font(.appLabel)
                                                 .foregroundStyle(Color.appTextSecondary)
                                         }
                                         Spacer()
                                         if let miles = viewModel.distanceMiles(to: summit.latitude, longitude: summit.longitude) {
                                             Text(String(format: "%.0f mi", miles))
-                                                .font(.caption.monospacedDigit())
+                                                .font(.appDistanceLabel)
                                                 .foregroundStyle(Color.appTextSecondary)
                                         }
                                     }
@@ -159,10 +159,10 @@ struct NewLogView: View {
                                             .foregroundStyle(Color.appBlue)
                                         VStack(alignment: .leading) {
                                             Text(summit.code)
-                                                .font(.headline.monospaced())
+                                                .font(.appCallsign)
                                                 .foregroundStyle(Color.appTextPrimary)
                                             Text("\(summit.name) (\(summit.points ?? 0)pt)")
-                                                .font(.caption)
+                                                .font(.appLabel)
                                                 .foregroundStyle(Color.appTextSecondary)
                                         }
                                     }
@@ -173,7 +173,7 @@ struct NewLogView: View {
 
                         if let name = viewModel.summitName {
                             Text(name)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.appTextSecondary)
                         }
                     } else {
                         ReferenceDownloadRow.sotaSummits(database: database) {
