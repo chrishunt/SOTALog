@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.8] - 2026-03-04
+
+### Added
+- Omnibox onboarding tip for new users
+- QRZ badge on fully-synced logs
+- CW keyer blocking simulation in mock server
+
+### Changed
+- Renamed Settings tab to Sync
+- Updated default CW macros
+- Disable empty CW macros instead of hiding them
+- Improved SOTACat radio sync and CW keyer
+
+### Fixed
+- Mode push and macros disabled during send to prevent conflicts
+- Log row layout alignment
+
 ## [0.7] - 2026-03-04
 
 ### Added
@@ -129,7 +146,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.7...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v0.8...HEAD
+[0.8]: https://github.com/chrishunt/Field-Log/compare/v0.7...v0.8
 [0.7]: https://github.com/chrishunt/Field-Log/compare/v0.6...v0.7
 [0.6]: https://github.com/chrishunt/Field-Log/compare/v0.5...v0.6
 [0.5]: https://github.com/chrishunt/Field-Log/compare/v0.4...v0.5
