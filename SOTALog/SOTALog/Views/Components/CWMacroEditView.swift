@@ -26,6 +26,7 @@ struct CWMacroEditView: View {
     }
 
     var body: some View {
+        let preview = expandTemplate(template)
         NavigationStack {
             Form {
                 Section("Button Label") {
@@ -54,7 +55,6 @@ struct CWMacroEditView: View {
                 }
 
                 Section("Preview") {
-                    let preview = expandTemplate(template)
                     Text(preview)
                         .font(.appTemplateCode)
                         .foregroundStyle(preview.isEmpty ? Color.appTextSecondary : Color.appTextPrimary)
@@ -89,7 +89,7 @@ struct CWMacroEditView: View {
                         dismiss()
                     }
                     .bold()
-                    .disabled(label.isEmpty || template.isEmpty)
+                    .disabled(label.isEmpty || template.isEmpty || preview.count > 24)
                 }
             }
         }
