@@ -98,7 +98,7 @@ struct QRZSyncView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Color.appBackground)
-        .navigationTitle("Settings")
+        .navigationTitle("Sync")
         .navigationBarTitleDisplayMode(.large)
         #if os(iOS)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
