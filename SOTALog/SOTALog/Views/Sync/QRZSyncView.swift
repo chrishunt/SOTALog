@@ -87,7 +87,7 @@ struct QRZSyncView: View {
                     item: viewModel.adifExport,
                     preview: SharePreview("SOTA Log ADIF Export", image: Image(systemName: "doc.text"))
                 ) {
-                    Label("Export All as ADIF", systemImage: "square.and.arrow.up")
+                    Label("Export all as ADIF", systemImage: "square.and.arrow.up")
                 }
             }
 
@@ -98,7 +98,7 @@ struct QRZSyncView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Color.appBackground)
-        .navigationTitle("Tools")
+        .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
         #if os(iOS)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
