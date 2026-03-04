@@ -66,6 +66,7 @@
 		AAABF9BA83ADE653CF017EC7 /* QSO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B1B64937D68958149905B2 /* QSO.swift */; };
 		AE53733E852711B4E0059A85 /* CSVParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A31F58CCDFB797133F575C46 /* CSVParsingTests.swift */; };
 		BA30BA6E3CB871D12CDA4132 /* ReferenceManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FBBE0CB7554257A2C3C7FDE /* ReferenceManagerView.swift */; };
+		BC1AE5D71CA9157CBB7087F3 /* OnboardingTips.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80DA1C29957EE56866F165F /* OnboardingTips.swift */; };
 		BC20F12B0EED78EEF0AD3F43 /* SpotRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0F435B6A3BB43CEB6E9F /* SpotRowView.swift */; };
 		C0D32487F86B08323771A99A /* QSOEntryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19AE2C7FED08C032565C93F1 /* QSOEntryViewModelTests.swift */; };
 		C15F6B2CB4B834242B99B84E /* NearbyReferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24231F8321730BE090BC35B /* NearbyReferenceTests.swift */; };
@@ -180,6 +181,7 @@
 		D2D4A497BD7549AF647F5D06 /* SpotRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotRouter.swift; sourceTree = "<group>"; };
 		D5062A6D3908A213D88346E8 /* QSORepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QSORepository.swift; sourceTree = "<group>"; };
 		D5E66F550ED47884F3A91479 /* Color+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+App.swift"; sourceTree = "<group>"; };
+		D80DA1C29957EE56866F165F /* OnboardingTips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTips.swift; sourceTree = "<group>"; };
 		E18198C59474BB2FEA4A1510 /* View+iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+iOS.swift"; sourceTree = "<group>"; };
 		E509603AB3965292400E7ECB /* ReferenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceRepository.swift; sourceTree = "<group>"; };
 		E83DD32511D2B22A66A3A468 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -323,6 +325,7 @@
 			children = (
 				1164680FD822CB549FBF2785 /* AppDatabase.swift */,
 				A4266BF0A296CC64D2A95BE5 /* AppLog.swift */,
+				D80DA1C29957EE56866F165F /* OnboardingTips.swift */,
 				4F19C56AAA3C51D233A4CF61 /* SOTALogApp.swift */,
 			);
 			path = App;
@@ -573,6 +576,7 @@
 				967EAEA58A46C0C22DB21533 /* NewLogViewModel.swift in Sources */,
 				465D9912F46AE61BBF04DC49 /* NumberKeyRow.swift in Sources */,
 				1ED4ECFEE612C2376777750C /* OmniFieldParser.swift in Sources */,
+				BC1AE5D71CA9157CBB7087F3 /* OnboardingTips.swift in Sources */,
 				21B30B8D3851B8E780141C8C /* POTALocationService.swift in Sources */,
 				D7F9C5CFC658F974C03EB0BC /* POTAPark.swift in Sources */,
 				F6F9517437918064EA846153 /* POTAParkService.swift in Sources */,

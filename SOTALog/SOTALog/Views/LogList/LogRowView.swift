@@ -24,39 +24,59 @@ struct LogRowView: View {
                     .foregroundStyle(Color.appTextSecondary)
             }
 
-            HStack(spacing: 6) {
-                if hasReferences {
+            if hasReferences {
+                HStack(spacing: 6) {
                     referenceBlocks
+
+                    Spacer()
+
+                    if allSyncedToQRZ {
+                        AppQRZBadge()
+                    }
+
+                    ForEach(bands, id: \.self) { band in
+                        Text(band.uppercased())
+                            .appBadge()
+                    }
                 }
 
-                Spacer()
-
-                if allSyncedToQRZ {
-                    AppQRZBadge()
-                }
-
-                ForEach(bands, id: \.self) { band in
-                    Text(band.uppercased())
-                        .appBadge()
-                }
-            }
-
-            HStack(spacing: 4) {
-                Text("\(qsoCount)")
-                    .font(.appProgress)
-                    .foregroundStyle(Color.appTextSecondary)
-                Text("QSOs")
-                    .font(.appLabel)
-                    .foregroundStyle(Color.appTextSecondary)
-
-                if let names = referenceNames {
-                    Text("·")
+                HStack(spacing: 4) {
+                    Text("\(qsoCount)")
+                        .font(.appProgress)
+                        .foregroundStyle(Color.appTextSecondary)
+                    Text("QSOs")
                         .font(.appLabel)
-                        .foregroundStyle(Color.appTextTertiary)
-                    Text(names)
+                        .foregroundStyle(Color.appTextSecondary)
+
+                    if let names = referenceNames {
+                        Text("·")
+                            .font(.appLabel)
+                            .foregroundStyle(Color.appTextTertiary)
+                        Text(names)
+                            .font(.appLabel)
+                            .foregroundStyle(Color.appTextTertiary)
+                            .lineLimit(1)
+                    }
+                }
+            } else {
+                HStack(spacing: 4) {
+                    Text("\(qsoCount)")
+                        .font(.appProgress)
+                        .foregroundStyle(Color.appTextSecondary)
+                    Text("QSOs")
                         .font(.appLabel)
-                        .foregroundStyle(Color.appTextTertiary)
-                        .lineLimit(1)
+                        .foregroundStyle(Color.appTextSecondary)
+
+                    Spacer()
+
+                    if allSyncedToQRZ {
+                        AppQRZBadge()
+                    }
+
+                    ForEach(bands, id: \.self) { band in
+                        Text(band.uppercased())
+                            .appBadge()
+                    }
                 }
             }
         }
