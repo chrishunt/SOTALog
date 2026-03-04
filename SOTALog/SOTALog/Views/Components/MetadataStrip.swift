@@ -103,6 +103,7 @@ struct MetadataStrip: View {
         }
         .font(.appMetadataLine1)
         .foregroundStyle(Color.appTextSecondary)
+        .lineLimit(1)
     }
 
     // MARK: - Line 1 Editor
