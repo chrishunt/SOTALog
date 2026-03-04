@@ -52,13 +52,6 @@ struct ActiveLogView: View {
                     }
                 }
             }
-            if sotaCatService.isConnected {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Image(systemName: "antenna.radiowaves.left.and.right")
-                        .foregroundStyle(.secondary)
-                        .font(.caption)
-                }
-            }
         }
         #endif
         #if os(iOS)

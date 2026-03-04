@@ -38,26 +38,7 @@ struct QSOEntryView: View {
                 editingBanner
             }
 
-            MetadataStrip(
-                rstSent: $viewModel.rstSent,
-                rstReceived: $viewModel.rstReceived,
-                frequencyText: $viewModel.frequencyText,
-                mode: $viewModel.mode,
-                name: $viewModel.name,
-                qth: $viewModel.qth,
-                potaRefInput: $viewModel.potaRefInput,
-                potaRefFormatted: viewModel.potaRefFormatted,
-                potaRefValid: viewModel.potaRefValid,
-                sotaRefInput: $viewModel.sotaRefInput,
-                sotaRefFormatted: viewModel.sotaRefFormatted,
-                sotaRefValid: viewModel.sotaRefValid,
-                onManualOverride: { viewModel.markManualOverride($0) },
-                onModeToggle: { viewModel.toggleMode() },
-                onPOTAChanged: { viewModel.validatePOTARef() },
-                onSOTAChanged: { viewModel.validateSOTARef() },
-                onFrequencyChanged: { viewModel.frequencyChanged() },
-                onSubmit: { focusedField = .callsign }
-            )
+            metadataStrip
 
             if sotaCatService.isConnected && viewModel.mode == "CW" {
                 cwMacroRow
@@ -99,7 +80,7 @@ struct QSOEntryView: View {
         .sheet(item: $editingMacro) { macro in
             CWMacroEditView(
                 macro: macro,
-                expandTemplate: { viewModel.expandTemplate($0) },
+                expandTemplate: { viewModel.previewExpandTemplate($0) },
                 onSave: { updated in
                     saveMacro(updated)
                 },
@@ -133,6 +114,32 @@ struct QSOEntryView: View {
                 focusedField = .callsign
             }
         }
+    }
+
+    // MARK: - Metadata Strip
+
+    private var metadataStrip: some View {
+        MetadataStrip(
+            rstSent: $viewModel.rstSent,
+            rstReceived: $viewModel.rstReceived,
+            frequencyText: $viewModel.frequencyText,
+            mode: $viewModel.mode,
+            name: $viewModel.name,
+            qth: $viewModel.qth,
+            potaRefInput: $viewModel.potaRefInput,
+            potaRefFormatted: viewModel.potaRefFormatted,
+            potaRefValid: viewModel.potaRefValid,
+            sotaRefInput: $viewModel.sotaRefInput,
+            sotaRefFormatted: viewModel.sotaRefFormatted,
+            sotaRefValid: viewModel.sotaRefValid,
+            onManualOverride: { viewModel.markManualOverride($0) },
+            onModeToggle: { viewModel.toggleMode() },
+            onPOTAChanged: { viewModel.validatePOTARef() },
+            onSOTAChanged: { viewModel.validateSOTARef() },
+            isRadioConnected: sotaCatService.isConnected,
+            onFrequencyChanged: { viewModel.frequencyChanged() },
+            onSubmit: { focusedField = .callsign }
+        )
     }
 
     // MARK: - Editing Banner
@@ -176,10 +183,11 @@ struct QSOEntryView: View {
         Text(macro.label)
             .font(.callout.bold())
             .lineLimit(1)
+            .minimumScaleFactor(0.7)
             .foregroundStyle(Color.appOrange)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .frame(minHeight: 44)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .background(Color.appOrange.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
             .scaleEffect(pressedMacroPosition == macro.position ? 0.93 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: pressedMacroPosition)

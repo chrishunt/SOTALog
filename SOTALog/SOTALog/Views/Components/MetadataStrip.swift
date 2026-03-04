@@ -21,6 +21,7 @@ struct MetadataStrip: View {
     var onModeToggle: () -> Void
     var onPOTAChanged: () -> Void
     var onSOTAChanged: () -> Void
+    var isRadioConnected: Bool = false
     var onFrequencyChanged: () -> Void
     var onSubmit: () -> Void
 
@@ -70,7 +71,7 @@ struct MetadataStrip: View {
 
     private var line1Display: some View {
         HStack(spacing: 0) {
-            segment(frequencyText, field: .frequency)
+            frequencySegment
             dot
             modeSegment
             dot
@@ -240,6 +241,25 @@ struct MetadataStrip: View {
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var frequencySegment: some View {
+        Button {
+            editingField = .frequency
+            editFocus = .frequency
+        } label: {
+            HStack(spacing: 3) {
+                Text(frequencyText)
+                if isRadioConnected {
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .foregroundStyle(Color.appGreen)
+                }
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
         }
         .buttonStyle(.plain)
     }

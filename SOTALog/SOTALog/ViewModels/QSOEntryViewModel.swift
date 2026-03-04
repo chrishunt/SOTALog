@@ -595,6 +595,35 @@ final class QSOEntryViewModel {
         return text
     }
 
+    func previewExpandTemplate(_ template: String) -> String {
+        let activity: String
+        if log.sotaReference != nil {
+            activity = "SOTA"
+        } else if log.potaReference != nil {
+            activity = "POTA"
+        } else {
+            activity = ""
+        }
+
+        var text = template
+        let substitutions: [(String, String)] = [
+            ("{myCall}", log.myCallsign),
+            ("{call}", parsedCallsign),
+            ("{rst}", rstSent),
+            ("{mySOTA}", log.sotaReference ?? ""),
+            ("{myPOTA}", log.potaReference ?? ""),
+            ("{activity}", activity),
+        ]
+        for (placeholder, value) in substitutions {
+            if !value.isEmpty {
+                text = text.replacingOccurrences(of: placeholder, with: value)
+            }
+        }
+        text = text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        text = text.trimmingCharacters(in: .whitespaces)
+        return text
+    }
+
     func sendCWMacro(_ template: String) {
         let message = expandTemplate(template)
         guard !message.isEmpty else { return }
