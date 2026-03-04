@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 struct ActiveLogView: View {
     let database: AppDatabase
@@ -51,6 +52,7 @@ struct ActiveLogView: View {
                 } label: {
                     Image(systemName: "antenna.radiowaves.left.and.right")
                 }
+                .popoverTip(SpotsTip())
             }
 
             if !viewModel.qsos.isEmpty {
@@ -75,6 +77,14 @@ struct ActiveLogView: View {
         #endif
         .task {
             await viewModel.startObserving()
+        }
+        .task {
+            for await status in OmniboxTip().statusUpdates {
+                if case .invalidated = status {
+                    SpotsTip.omniboxTipClosed = true
+                    break
+                }
+            }
         }
     }
 

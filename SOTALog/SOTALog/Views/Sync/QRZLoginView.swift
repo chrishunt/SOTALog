@@ -20,13 +20,13 @@ struct QRZLoginView: View {
                         credentialStatus(result: viewModel.apiKeyTestResult, label: "API key")
                     }
                 } header: {
-                    Text("Logbook Sync")
+                    Text("QRZ Logbook API Key")
                 } footer: {
                     Link("Find your API key on QRZ.com",
                          destination: URL(string: "https://www.qrz.com/docs/logbook30/api")!)
                 }
 
-                Section("Callsign Lookup") {
+                Section("QRZ Callsign & Password") {
                     TextField("Callsign", text: $username)
                         .textContentType(.none)
                         .autocorrectionDisabled()
