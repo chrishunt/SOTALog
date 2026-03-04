@@ -12,7 +12,7 @@ final class SOTACatService {
     private var monitoringTask: Task<Void, Never>?
     private var consecutiveFailures = 0
     private let maxConsecutiveFailures = 3
-    private var keyerActive = false
+    private(set) var keyerActive = false
 
     init() {
         let config = URLSessionConfiguration.default
@@ -55,6 +55,14 @@ final class SOTACatService {
         }
     }
 
+    // MARK: - Set Mode
+
+    func setMode(_ mode: String) {
+        Task {
+            await sendPUT("/api/v1/mode?mode=\(mode)")
+        }
+    }
+
     // MARK: - CW Keyer
 
     func sendKeyer(message: String) async -> Bool {
@@ -63,8 +71,8 @@ final class SOTACatService {
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.timeoutInterval = 30
-        keyerActive = true
-        defer { keyerActive = false }
+        await MainActor.run { keyerActive = true }
+        defer { Task { @MainActor in keyerActive = false } }
         do {
             let (_, response) = try await session.data(for: request)
             if let http = response as? HTTPURLResponse {

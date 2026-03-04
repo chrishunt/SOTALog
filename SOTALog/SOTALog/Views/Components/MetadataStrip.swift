@@ -174,16 +174,7 @@ struct MetadataStrip: View {
         .textContentType(.none)
         #if os(iOS)
         .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    let wasFrequency = editingField == .frequency
-                    editingField = nil
-                    editFocus = nil
-                    if wasFrequency { onFrequencyCommitted() }
-                    onSubmit()
-                }
-            }
+            ToolbarItemGroup(placement: .keyboard) { }
         }
         #endif
     }
