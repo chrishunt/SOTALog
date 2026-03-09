@@ -59,3 +59,22 @@ All data lives in a local SQLite database (GRDB). Every feature works without in
 - Bonjour for SOTACat discovery
 - Portrait-only, iPhone-optimized
 - TestFlight distribution
+
+## Development
+
+### Mock SOTACat Server
+
+Test SOTACat integration from the iOS Simulator using the mock server, which impersonates a SOTACat device via Bonjour:
+
+```sh
+sudo python3 tools/mock_sotacat.py
+```
+
+Requires `sudo` (binds to port 80). Python 3 standard library only — no extra dependencies.
+
+The app discovers `sotacat.local` within ~5 seconds. Interactive console commands:
+
+- `f <hz>` — set frequency (e.g. `f 7030000`)
+- `m <mode>` — set mode (e.g. `m SSB`)
+- `w <wpm>` — set CW speed
+- `q` — quit
