@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOTA Log - Support</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: #111;
+    color: #e0e0e0;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+    border-bottom: 1px solid #222;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  header p {
+    margin-top: 0.5rem;
+    color: #999;
+    font-size: 1.1rem;
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  section { margin-bottom: 2.5rem; }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #222;
+  }
+
+  p { margin-bottom: 0.75rem; color: #ccc; }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul li {
+    padding: 0.4rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+    color: #ccc;
+  }
+
+  ul li::before {
+    content: "·";
+    position: absolute;
+    left: 0.25rem;
+    color: #666;
+    font-weight: bold;
+  }
+
+  code {
+    font-family: "SF Mono", Menlo, monospace;
+    background: #1a1a1a;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a54b;
+  }
+
+  a { color: #6ab0f3; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .feature-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .feature-card strong {
+    display: block;
+    color: #fff;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .feature-card span {
+    font-size: 0.85rem;
+    color: #999;
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-top: 1px solid #222;
+    color: #666;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 480px) {
+    .feature-grid { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SOTA Log</h1>
+  <p>Field-optimized QSO logger for SOTA &amp; POTA activators</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>About</h2>
+    <p>A fast, field-optimized QSO logger for SOTA and POTA activators — designed for one-handed use on cold summits and windy picnic tables.</p>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <strong>OmniField Entry</strong>
+        <span>Log callsign, RST, frequency, and references in a single text field</span>
+      </div>
+      <div class="feature-card">
+        <strong>Live Spots</strong>
+        <span>See active SOTA and POTA spots; tap to prefill a QSO</span>
+      </div>
+      <div class="feature-card">
+        <strong>SOTACat Integration</strong>
+        <span>Auto-sync frequency and mode with your radio; send CW macros with one tap</span>
+      </div>
+      <div class="feature-card">
+        <strong>QRZ Sync</strong>
+        <span>Look up operator names, QTH, and profile photos from QRZ.com</span>
+      </div>
+      <div class="feature-card">
+        <strong>ADIF Export</strong>
+        <span>Export logs in standard ADIF format for upload to any logging platform</span>
+      </div>
+      <div class="feature-card">
+        <strong>Offline-First</strong>
+        <span>Everything works without internet — all data stored locally on device</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Privacy Policy</h2>
+    <p>SOTA Log contains no analytics, no ads, no tracking, and no servers. All data is stored locally on your device.</p>
+    <ul>
+      <li><strong>No data collection or third-party sharing.</strong> We collect nothing and share nothing.</li>
+      <li><strong>Optional QRZ sync.</strong> If you enter QRZ.com credentials, they are stored on-device and sent only to QRZ.com.</li>
+      <li><strong>Location.</strong> Used only to calculate your Maidenhead grid square; never transmitted off-device.</li>
+      <li><strong>ADIF export.</strong> Exported files are handled via the iOS share sheet — the app does not upload them.</li>
+      <li><strong>Data retention.</strong> Your data persists until you delete it. Uninstalling removes all stored data.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>System Requirements</h2>
+    <p>iOS 17.0 or later. iPhone.</p>
+  </section>
+
+  <section>
+    <h2>Contact &amp; Support</h2>
+    <p>For questions, bug reports, or feature requests, email <a href="mailto:k2mmt@chrshnt.com">k2mmt@chrshnt.com</a>.</p>
+  </section>
+
+</main>
+
+<footer>
+  &copy; 2025&ndash;2026 SOTA Log
+</footer>
+
+</body>
+</html>
