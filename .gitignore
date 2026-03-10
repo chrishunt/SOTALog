@@ -9,5 +9,8 @@ xcuserdata/
 # Python
 __pycache__/
 
+# Cloudflare Workers
+.wrangler/
+
 # macOS
 .DS_Store
