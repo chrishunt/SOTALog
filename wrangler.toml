@@ -1,0 +1,9 @@
+name = "sotalog"
+compatibility_date = "2026-03-10"
+
+[assets]
+directory = "./docs"
+
+[[routes]]
+pattern = "sotalog.k2mmt.com"
+custom_domain = true

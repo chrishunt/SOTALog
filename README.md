@@ -60,6 +60,16 @@ All data lives in a local SQLite database (GRDB). Every feature works without in
 - Portrait-only, iPhone-optimized
 - TestFlight distribution
 
+## Website
+
+The support page at [sotalog.k2mmt.com](https://sotalog.k2mmt.com) is hosted on Cloudflare Workers.
+
+Deploy from the command line:
+
+```sh
+npx wrangler deploy
+```
+
 ## Development
 
 ### Mock SOTACat Server
