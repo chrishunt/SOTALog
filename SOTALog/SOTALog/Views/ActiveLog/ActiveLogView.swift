@@ -67,7 +67,7 @@ struct ActiveLogView: View {
                     Button {
                         showSpotMe = true
                     } label: {
-                        Image(systemName: "dot.radiowaves.up.forward")
+                        Image(systemName: "megaphone")
                     }
                 }
             }
