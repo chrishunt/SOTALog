@@ -32,6 +32,11 @@ struct SpotMeSheetView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
+                Text("Post your spot via [SOTAmāt](https://sotamat.com/sms-services/) SMS.")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.appTextSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
                 Text(spotMessage ?? "")
                     .font(.subheadline.monospaced())
                     .foregroundStyle(Color.appTextPrimary)
@@ -55,22 +60,11 @@ struct SpotMeSheetView: View {
                 .tint(Color.appOrange)
                 .disabled(spotMessage == nil || !canSendText)
 
-                HStack(spacing: 4) {
-                    Text("Via SOTAmāt")
-                        .font(.caption)
-                        .foregroundStyle(Color.appTextTertiary)
-                    Text("·")
-                        .font(.caption)
-                        .foregroundStyle(Color.appTextTertiary)
-                    Link("Setup SMS", destination: SOTAmatService.setupURL)
-                        .font(.caption)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-
                 Spacer()
             }
             .padding()
             .background(Color.appBackground)
+            .navigationTitle("Spot Me")
             .navigationBarTitleDisplayMode(.inline)
             #if os(iOS)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
