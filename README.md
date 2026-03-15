@@ -16,7 +16,7 @@ The app recognizes callsigns, RST, frequencies, modes, QTH (US states/provinces)
 
 ## SOTACat Radio Control
 
-Auto-discovers your [SOTACat](https://sotacat.com) via Bonjour. Once connected:
+Auto-discovers your [SOTACat](https://sotamat.com/sotacat/) via Bonjour. Once connected:
 
 - **VFO sync** — frequency and mode flow between app and radio
 - **Spot pouncing** — tap a spot to tune your radio directly

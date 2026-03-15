@@ -131,6 +131,11 @@
   .app-store-badge img {
   }
 
+  .bottom-cta {
+    text-align: center;
+    padding: 2rem 0 1rem;
+  }
+
   @media (max-width: 480px) {
     .feature-grid { grid-template-columns: 1fr; }
     header h1 { font-size: clamp(1.5rem, 5vw, 2.75rem); }
@@ -152,7 +157,7 @@
 
   <section>
     <h2>About</h2>
-    <p>A fast, field-optimized QSO logger for SOTA and POTA activators — designed for one-handed use on cold summits and windy picnic tables.</p>
+    <p>A fast, field-optimized QSO logger for SOTA and POTA activators, designed for one-handed use on cold summits and windy picnic tables.</p>
   </section>
 
   <section>
@@ -180,7 +185,7 @@
       </div>
       <div class="feature-card">
         <strong>Offline-First</strong>
-        <span>Everything works without internet — all data stored locally on device</span>
+        <span>Everything works without internet. All data stored locally on device</span>
       </div>
     </div>
   </section>
@@ -192,7 +197,8 @@
       <li><strong>No data collection or third-party sharing.</strong> We collect nothing and share nothing.</li>
       <li><strong>Optional QRZ sync.</strong> If you enter QRZ.com credentials, they are stored on-device and sent only to QRZ.com.</li>
       <li><strong>Location.</strong> Used only to calculate your Maidenhead grid square; never transmitted off-device.</li>
-      <li><strong>ADIF export.</strong> Exported files are handled via the iOS share sheet — the app does not upload them.</li>
+      <li><strong>SOTACat.</strong> Communicates with your SOTACat device over local Wi-Fi. No data leaves your local network.</li>
+      <li><strong>ADIF export.</strong> Exported files are handled via the iOS share sheet. The app does not upload them.</li>
       <li><strong>Data retention.</strong> Your data persists until you delete it. Uninstalling removes all stored data.</li>
     </ul>
   </section>
@@ -200,12 +206,19 @@
   <section>
     <h2>System Requirements</h2>
     <p>iOS 17.0 or later. iPhone.</p>
+    <p>Optional: <a href="https://sotamat.com/sotacat/">SOTACat</a> device for radio integration.</p>
   </section>
 
   <section>
     <h2>Contact &amp; Support</h2>
     <p>For questions, bug reports, or feature requests, email <a href="mailto:k2mmt@chrshnt.com">k2mmt@chrshnt.com</a>.</p>
   </section>
+
+  <div class="bottom-cta">
+    <a href="https://apps.apple.com/us/app/sota-log/id6759876471" class="app-store-badge">
+      <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1736380800" alt="Download on the App Store" height="50">
+    </a>
+  </div>
 
 </main>
 
