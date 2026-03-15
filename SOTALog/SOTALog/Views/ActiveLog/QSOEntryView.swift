@@ -8,6 +8,8 @@ struct QSOEntryView: View {
     @Binding var editingQSO: QSO?
     @Binding var pendingSpot: Spot?
     let onSave: (QSO) -> Void
+    let onFrequencyChanged: ((String) -> Void)?
+    let onModeChanged: ((String) -> Void)?
 
     @Environment(SpotsViewModel.self) private var spotsViewModel
     @Environment(SOTACatService.self) private var sotaCatService
@@ -22,12 +24,19 @@ struct QSOEntryView: View {
         case callsign, frequency, name, qth, sotaRef, potaRef
     }
 
-    init(database: AppDatabase, log: Log, editingQSO: Binding<QSO?>, pendingSpot: Binding<Spot?>, onSave: @escaping (QSO) -> Void) {
+    init(
+        database: AppDatabase, log: Log, editingQSO: Binding<QSO?>, pendingSpot: Binding<Spot?>,
+        onSave: @escaping (QSO) -> Void,
+        onFrequencyChanged: ((String) -> Void)? = nil,
+        onModeChanged: ((String) -> Void)? = nil
+    ) {
         self.database = database
         self.log = log
         self._editingQSO = editingQSO
         self._pendingSpot = pendingSpot
         self.onSave = onSave
+        self.onFrequencyChanged = onFrequencyChanged
+        self.onModeChanged = onModeChanged
         self._viewModel = State(initialValue: QSOEntryViewModel(database: database, log: log))
         let historyRepo = CallsignHistoryRepository(database: database)
         self._qrzService = State(initialValue: QRZLookupService(historyRepo: historyRepo))
@@ -105,6 +114,12 @@ struct QSOEntryView: View {
         }
         .onChange(of: sotaCatService.radioMode) { _, newValue in
             viewModel.updateModeFromRadio(newValue)
+        }
+        .onChange(of: viewModel.frequencyText) { _, newValue in
+            onFrequencyChanged?(newValue)
+        }
+        .onChange(of: viewModel.mode) { _, newValue in
+            onModeChanged?(newValue)
         }
         .onChange(of: editingQSO) { _, newValue in
             if let qso = newValue {

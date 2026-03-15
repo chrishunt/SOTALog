@@ -11,6 +11,8 @@ final class ActiveLogViewModel {
 
     var qsos: [QSO] = []
     var qsoCount: Int = 0
+    var currentFrequencyMHz: String = "14.060"
+    var currentMode: String = "CW"
 
     init(database: AppDatabase, log: Log) {
         self.database = database
