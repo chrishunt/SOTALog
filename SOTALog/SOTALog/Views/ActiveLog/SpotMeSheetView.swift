@@ -57,7 +57,6 @@ struct SpotMeSheetView: View {
                         .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(Color.appOrange)
                 .disabled(spotMessage == nil || !canSendText)
 
                 Spacer()
