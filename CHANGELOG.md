@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1] - 2026-03-15
+
+### Added
+- SOTAmat SMS spotting
+
 ### Fixed
 - SOTACat connectivity when phone has no cellular data service
 
@@ -174,7 +179,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v1.0...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v1.1...HEAD
+[1.1]: https://github.com/chrishunt/Field-Log/compare/v1.0...v1.1
 [1.0]: https://github.com/chrishunt/Field-Log/compare/v0.11...v1.0
 [0.11]: https://github.com/chrishunt/Field-Log/compare/v0.10...v0.11
 [0.10]: https://github.com/chrishunt/Field-Log/compare/v0.9...v0.10
