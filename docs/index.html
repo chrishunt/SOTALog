@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOTA Log - Support</title>
+<title>SOTA Log - Field Logger for SOTA & POTA</title>
+<meta name="apple-itunes-app" content="app-id=6759876471">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -17,12 +18,12 @@
 
   header {
     text-align: center;
-    padding: 3rem 1.5rem 2rem;
+    padding: 5rem 1.5rem 3rem;
     border-bottom: 1px solid #222;
   }
 
   header h1 {
-    font-size: 2rem;
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
     font-weight: 700;
     color: #fff;
     letter-spacing: -0.02em;
@@ -117,17 +118,34 @@
     font-size: 0.85rem;
   }
 
+  .app-icon {
+    border-radius: 22%;
+    margin-bottom: 1rem;
+  }
+
+  .app-store-badge {
+    display: inline-block;
+    margin-top: 1rem;
+  }
+
+  .app-store-badge img {
+  }
+
   @media (max-width: 480px) {
     .feature-grid { grid-template-columns: 1fr; }
-    header h1 { font-size: 1.6rem; }
+    header h1 { font-size: clamp(1.5rem, 5vw, 2.75rem); }
   }
 </style>
 </head>
 <body>
 
 <header>
+  <img src="app-icon.png" alt="SOTA Log" class="app-icon" width="120" height="120">
   <h1>SOTA Log</h1>
   <p>Field-optimized QSO logger for SOTA &amp; POTA activators</p>
+  <a href="https://apps.apple.com/us/app/sota-log/id6759876471" class="app-store-badge">
+    <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1736380800" alt="Download on the App Store" height="50">
+  </a>
 </header>
 
 <main>
@@ -145,8 +163,8 @@
         <span>Log callsign, RST, frequency, and references in a single text field</span>
       </div>
       <div class="feature-card">
-        <strong>Live Spots</strong>
-        <span>See active SOTA and POTA spots; tap to prefill a QSO</span>
+        <strong>Spotting</strong>
+        <span>See live SOTA &amp; POTA spots, and self-spot via SOTAmat SMS when data won't reach</span>
       </div>
       <div class="feature-card">
         <strong>SOTACat Integration</strong>
