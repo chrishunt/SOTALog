@@ -10,6 +10,7 @@ struct ActiveLogView: View {
     @State private var viewModel: ActiveLogViewModel
     @State private var editingQSO: QSO?
     @State private var showSpots = false
+    @State private var showSpotMe = false
 
     init(database: AppDatabase, log: Log) {
         self.database = database
@@ -37,6 +38,12 @@ struct ActiveLogView: View {
                         ),
                         onSave: { qso in
                             viewModel.qsoSaved()
+                        },
+                        onFrequencyChanged: { freq in
+                            viewModel.currentFrequencyMHz = freq
+                        },
+                        onModeChanged: { mode in
+                            viewModel.currentMode = mode
                         }
                     )
                 }
@@ -55,6 +62,16 @@ struct ActiveLogView: View {
                 .popoverTip(SpotsTip())
             }
 
+            if log.isPOTA || log.isSOTA {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showSpotMe = true
+                    } label: {
+                        Image(systemName: "dot.radiowaves.up.forward")
+                    }
+                }
+            }
+
             if !viewModel.qsos.isEmpty {
                 ToolbarItem(placement: .topBarTrailing) {
                     ShareLink(items: viewModel.exportFiles,
@@ -66,6 +83,13 @@ struct ActiveLogView: View {
         }
         .sheet(isPresented: $showSpots) {
             SpotsSheetView(database: database)
+        }
+        .sheet(isPresented: $showSpotMe) {
+            SpotMeSheetView(
+                log: log,
+                frequencyMHz: viewModel.currentFrequencyMHz,
+                mode: viewModel.currentMode
+            )
         }
         #endif
         #if os(iOS)
