@@ -7,7 +7,10 @@ final class SOTACatService {
     private(set) var radioFrequency: Double?
     private(set) var radioMode: String?
 
-    private let baseURL = "http://sotacat.local"
+    private let primaryBaseURL = "http://192.168.4.1"
+    private let fallbackBaseURL = "http://sotacat.local"
+    private var activeBaseURL: String
+
     private let session: URLSession
     private var monitoringTask: Task<Void, Never>?
     private var consecutiveFailures = 0
@@ -15,10 +18,12 @@ final class SOTACatService {
     private(set) var keyerActive = false
 
     init() {
+        self.activeBaseURL = primaryBaseURL
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 2
         config.timeoutIntervalForResource = 5
         config.waitsForConnectivity = false
+        config.allowsCellularAccess = false
         self.session = URLSession(configuration: config)
     }
 
@@ -69,7 +74,7 @@ final class SOTACatService {
         var allowed = CharacterSet.urlQueryAllowed
         allowed.remove(charactersIn: "/?&=+")
         guard let encoded = message.addingPercentEncoding(withAllowedCharacters: allowed),
-              let url = URL(string: "\(baseURL)/api/v1/keyer?message=\(encoded)") else { return false }
+              let url = URL(string: "\(activeBaseURL)/api/v1/keyer?message=\(encoded)") else { return false }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.timeoutInterval = 30
@@ -99,14 +104,20 @@ final class SOTACatService {
     // MARK: - Private
 
     private func probeConnection() async {
-        if await probeVersion() {
+        if await probeVersion(baseURL: primaryBaseURL) {
+            activeBaseURL = primaryBaseURL
+            consecutiveFailures = 0
+            await MainActor.run { isConnected = true }
+        } else if await probeVersion(baseURL: fallbackBaseURL) {
+            activeBaseURL = fallbackBaseURL
             consecutiveFailures = 0
             await MainActor.run { isConnected = true }
         }
     }
 
-    private func probeVersion() async -> Bool {
-        guard let url = URL(string: "\(baseURL)/api/v1/version") else { return false }
+    private func probeVersion(baseURL: String? = nil) async -> Bool {
+        let base = baseURL ?? activeBaseURL
+        guard let url = URL(string: "\(base)/api/v1/version") else { return false }
         do {
             let (_, response) = try await session.data(from: url)
             if let http = response as? HTTPURLResponse, http.statusCode == 200 {
@@ -119,7 +130,7 @@ final class SOTACatService {
     }
 
     private func pollVFO() async {
-        guard let url = URL(string: "\(baseURL)/api/v1/frequency") else { return }
+        guard let url = URL(string: "\(activeBaseURL)/api/v1/frequency") else { return }
         do {
             let (data, response) = try await session.data(from: url)
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -153,6 +164,7 @@ final class SOTACatService {
             if await probeVersion() {
                 consecutiveFailures = 0  // Transient — reset
             } else {
+                activeBaseURL = primaryBaseURL
                 await MainActor.run {
                     isConnected = false
                     radioFrequency = nil
@@ -163,7 +175,7 @@ final class SOTACatService {
     }
 
     private func pollMode() async {
-        guard let url = URL(string: "\(baseURL)/api/v1/mode") else { return }
+        guard let url = URL(string: "\(activeBaseURL)/api/v1/mode") else { return }
         do {
             let (data, response) = try await session.data(from: url)
             guard let http = response as? HTTPURLResponse, http.statusCode == 200,
@@ -190,7 +202,7 @@ final class SOTACatService {
 
     @discardableResult
     private func sendPUT(_ path: String) async -> Bool {
-        guard let url = URL(string: "\(baseURL)\(path)") else { return false }
+        guard let url = URL(string: "\(activeBaseURL)\(path)") else { return false }
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.timeoutInterval = 5
