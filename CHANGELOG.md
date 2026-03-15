@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2] - 2026-03-15
+
+### Changed
+- Redesigned spot sheet header and navigation
+- Changed spot button icon to megaphone
+- Removed custom orange tint from spot button
+
 ## [1.1] - 2026-03-15
 
 ### Added
@@ -179,7 +186,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/Field-Log/compare/v1.1...HEAD
+[unreleased]: https://github.com/chrishunt/Field-Log/compare/v1.2...HEAD
+[1.2]: https://github.com/chrishunt/Field-Log/compare/v1.1...v1.2
 [1.1]: https://github.com/chrishunt/Field-Log/compare/v1.0...v1.1
 [1.0]: https://github.com/chrishunt/Field-Log/compare/v0.11...v1.0
 [0.11]: https://github.com/chrishunt/Field-Log/compare/v0.10...v0.11
