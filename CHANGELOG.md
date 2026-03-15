@@ -6,6 +6,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- SOTACat connectivity when phone has no cellular data service
+
 ## [1.0] - 2026-03-09
 
 ### Changed
