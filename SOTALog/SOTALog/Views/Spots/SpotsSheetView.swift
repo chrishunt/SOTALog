@@ -55,6 +55,7 @@ struct SpotsSheetView: View {
                     .background(Color.appBackground)
                 }
             }
+            .navigationTitle("Spots")
             .navigationBarTitleDisplayMode(.inline)
             #if os(iOS)
             .toolbarBackground(Color.appBackground, for: .navigationBar)
