@@ -118,6 +118,8 @@
     font-size: 0.85rem;
   }
 
+  footer a { color: #888; }
+
   .app-icon {
     border-radius: 22%;
     margin-bottom: 1rem;
@@ -131,10 +133,17 @@
   .app-store-badge img {
   }
 
-  .bottom-cta {
-    text-align: center;
-    padding: 2rem 0 1rem;
+  details summary {
+    font-size: 0.9rem;
+    color: #6ab0f3;
+    cursor: pointer;
+    list-style: none;
   }
+
+  details summary::-webkit-details-marker { display: none; }
+  details summary:hover { text-decoration: underline; }
+
+  details ul { margin-top: 0.75rem; }
 
   @media (max-width: 480px) {
     .feature-grid { grid-template-columns: 1fr; }
@@ -147,7 +156,8 @@
 <header>
   <img src="app-icon.png" alt="SOTA Log" class="app-icon" width="120" height="120">
   <h1>SOTA Log</h1>
-  <p>Field-optimized QSO logger for SOTA &amp; POTA activators</p>
+  <p>Log a QSO in seconds. SOTA &amp; POTA field logger.</p>
+  <p>CW macros, <a href="https://sotamat.com/sotacat/">SOTACat</a> radio control, fully offline.</p>
   <a href="https://apps.apple.com/us/app/sota-log/id6759876471" class="app-store-badge">
     <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1736380800" alt="Download on the App Store" height="50">
   </a>
@@ -156,73 +166,56 @@
 <main>
 
   <section>
-    <h2>About</h2>
-    <p>A fast, field-optimized QSO logger for SOTA and POTA activators, designed for one-handed use on cold summits and windy picnic tables.</p>
-  </section>
-
-  <section>
     <h2>Features</h2>
     <div class="feature-grid">
       <div class="feature-card">
-        <strong>OmniField Entry</strong>
-        <span>Log callsign, RST, frequency, and references in a single text field</span>
+        <strong>One field. Whole QSO.</strong>
+        <span>Callsign, RST, frequency, references &mdash; space-separated in a single line.</span>
       </div>
       <div class="feature-card">
-        <strong>Spotting</strong>
-        <span>See live SOTA &amp; POTA spots, and self-spot via SOTAmat SMS when data won't reach</span>
+        <strong>Live spots &amp; self-spotting</strong>
+        <span>SOTA &amp; POTA spots in real time. Self-spot via <a href="https://sotamat.com/">SOTAmat</a> SMS with no data.</span>
       </div>
       <div class="feature-card">
-        <strong>SOTACat Integration</strong>
-        <span>Auto-sync frequency and mode with your radio; send CW macros with one tap</span>
+        <strong>SOTACat radio control</strong>
+        <span>Auto-sync frequency and mode. One-tap CW macros.</span>
       </div>
       <div class="feature-card">
-        <strong>QRZ Sync</strong>
-        <span>Look up operator names, QTH, and profile photos from QRZ.com</span>
+        <strong>QRZ sync</strong>
+        <span>Upload QSOs, download your logbook, and look up callsigns from QRZ.com.</span>
       </div>
       <div class="feature-card">
-        <strong>ADIF Export</strong>
-        <span>Export logs in standard ADIF format for upload to any logging platform</span>
+        <strong>ADIF export</strong>
+        <span>Standard format. Upload to any logging platform.</span>
       </div>
       <div class="feature-card">
-        <strong>Offline-First</strong>
-        <span>Everything works without internet. All data stored locally on device</span>
+        <strong>Works offline</strong>
+        <span>Everything functions without internet. All data stays on device.</span>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>Privacy Policy</h2>
-    <p>SOTA Log contains no analytics, no ads, no tracking, and no servers. All data is stored locally on your device.</p>
-    <ul>
-      <li><strong>No data collection or third-party sharing.</strong> We collect nothing and share nothing.</li>
-      <li><strong>Optional QRZ sync.</strong> If you enter QRZ.com credentials, they are stored on-device and sent only to QRZ.com.</li>
-      <li><strong>Location.</strong> Used only to calculate your Maidenhead grid square; never transmitted off-device.</li>
-      <li><strong>SOTACat.</strong> Communicates with your SOTACat device over local Wi-Fi. No data leaves your local network.</li>
-      <li><strong>ADIF export.</strong> Exported files are handled via the iOS share sheet. The app does not upload them.</li>
-      <li><strong>Data retention.</strong> Your data persists until you delete it. Uninstalling removes all stored data.</li>
-    </ul>
+    <h2>Privacy</h2>
+    <p>No analytics. No ads. No tracking. No servers.</p>
+    <details>
+      <summary>Read full privacy policy</summary>
+      <ul>
+        <li><strong>No data collection or third-party sharing.</strong> We collect nothing and share nothing.</li>
+        <li><strong>Optional QRZ sync.</strong> If you enter QRZ.com credentials, they are stored on-device and sent only to QRZ.com.</li>
+        <li><strong>Location.</strong> Used only to calculate your Maidenhead grid square; never transmitted off-device.</li>
+        <li><strong>SOTACat.</strong> Communicates with your SOTACat device over local Wi-Fi. No data leaves your local network.</li>
+        <li><strong>ADIF export.</strong> Exported files are handled via the iOS share sheet. The app does not upload them.</li>
+        <li><strong>Data retention.</strong> Your data persists until you delete it. Uninstalling removes all stored data.</li>
+      </ul>
+    </details>
   </section>
-
-  <section>
-    <h2>System Requirements</h2>
-    <p>iOS 17.0 or later. iPhone.</p>
-    <p>Optional: <a href="https://sotamat.com/sotacat/">SOTACat</a> device for radio integration.</p>
-  </section>
-
-  <section>
-    <h2>Contact &amp; Support</h2>
-    <p>For questions, bug reports, or feature requests, email <a href="mailto:k2mmt@chrshnt.com">k2mmt@chrshnt.com</a>.</p>
-  </section>
-
-  <div class="bottom-cta">
-    <a href="https://apps.apple.com/us/app/sota-log/id6759876471" class="app-store-badge">
-      <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1736380800" alt="Download on the App Store" height="50">
-    </a>
-  </div>
 
 </main>
 
 <footer>
+  iOS 17.0+ &middot; iPhone<br>
+  <a href="mailto:k2mmt@chrshnt.com">k2mmt@chrshnt.com</a><br>
   &copy; 2025&ndash;2026 SOTA Log
 </footer>
 
