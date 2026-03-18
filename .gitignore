@@ -12,5 +12,12 @@ __pycache__/
 # Cloudflare Workers
 .wrangler/
 
+# Secrets & certificates
+.env*
+*.pem
+*.p12
+*.cer
+*.key
+
 # macOS
 .DS_Store
