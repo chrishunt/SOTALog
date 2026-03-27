@@ -3,7 +3,10 @@ import SwiftUI
 struct QRZSyncView: View {
     let database: AppDatabase
     @State private var viewModel: QRZSyncViewModel
-    @State private var showLogin = false
+    private struct LoginTrigger: Identifiable { let id = UUID() }
+    @State private var loginTrigger: LoginTrigger?
+    @State private var showRemoveAPIKey = false
+    @State private var showRemoveXML = false
 
     init(database: AppDatabase) {
         self.database = database
@@ -17,7 +20,7 @@ struct QRZSyncView: View {
             Section("QRZ Account") {
                 if !viewModel.hasAPIKey || !viewModel.hasCredentials {
                     Button {
-                        showLogin = true
+                        loginTrigger = LoginTrigger()
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
                             Label("Set Up QRZ Account", systemImage: "person.badge.key")
@@ -33,21 +36,22 @@ struct QRZSyncView: View {
                     Image(systemName: viewModel.hasAPIKey ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(viewModel.hasAPIKey ? Color.appGreen : .secondary)
                     Text(viewModel.hasAPIKey ? "QRZ logbook sync enabled" : "QRZ logbook sync not set up")
-                    Spacer()
-                    if viewModel.hasAPIKey {
-                        Button("Change") { showLogin = true }
-                            .font(.appLabel)
-                    }
                 }
 
                 HStack {
                     Image(systemName: viewModel.hasCredentials ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(viewModel.hasCredentials ? Color.appGreen : .secondary)
                     Text(viewModel.hasCredentials ? "Callsign lookup enabled" : "Callsign lookup not set up")
-                    Spacer()
-                    if viewModel.hasCredentials {
-                        Button("Change") { showLogin = true }
-                            .font(.appLabel)
+                }
+
+                if viewModel.hasAPIKey {
+                    Button("Remove API Key", role: .destructive) {
+                        showRemoveAPIKey = true
+                    }
+                }
+                if viewModel.hasCredentials {
+                    Button("Remove Callsign Login", role: .destructive) {
+                        showRemoveXML = true
                     }
                 }
             }
@@ -104,8 +108,20 @@ struct QRZSyncView: View {
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         #endif
         }
-        .sheet(isPresented: $showLogin) {
+        .sheet(item: $loginTrigger) { _ in
             QRZLoginView(viewModel: viewModel)
+        }
+        .alert("Remove API Key?", isPresented: $showRemoveAPIKey) {
+            Button("Remove", role: .destructive) { viewModel.clearAPIKey() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("QRZ logbook sync will be disabled. Your QSOs are not affected.")
+        }
+        .alert("Remove Callsign Lookup?", isPresented: $showRemoveXML) {
+            Button("Remove", role: .destructive) { viewModel.clearXMLCredentials() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Callsign lookups will be disabled.")
         }
         .task {
             await viewModel.loadState()

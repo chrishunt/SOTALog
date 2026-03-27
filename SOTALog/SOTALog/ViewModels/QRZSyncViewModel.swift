@@ -129,6 +129,21 @@ final class QRZSyncViewModel {
         }
     }
 
+    func clearAPIKey() {
+        KeychainService.delete(key: .qrzAPIKey)
+        hasAPIKey = false
+        syncStatus = .idle
+        apiKeyTestResult = nil
+    }
+
+    func clearXMLCredentials() {
+        KeychainService.delete(key: .qrzUsername)
+        KeychainService.delete(key: .qrzPassword)
+        KeychainService.delete(key: .qrzSessionKey)
+        hasCredentials = false
+        xmlLoginTestResult = nil
+    }
+
     var allTestsPassed: Bool {
         let apiOk = apiKeyTestResult.map { if case .success = $0 { return true } else { return false } } ?? true
         let xmlOk = xmlLoginTestResult.map { if case .success = $0 { return true } else { return false } } ?? true
