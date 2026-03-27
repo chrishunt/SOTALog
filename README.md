@@ -12,9 +12,16 @@
   <a href="https://apps.apple.com/us/app/sota-log/id6759876471">
     <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1736380800" alt="Download on the App Store" height="44">
   </a>
-  <br>
+</p>
+
+<p align="center">
   <a href="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml">
-    <img src="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml/badge.svg" alt="Tests">
+    <img src="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml/badge.svg?branch=main" alt="Tests">
+  </a>
+  <img src="https://img.shields.io/badge/platform-iOS_17+-000000?logo=apple" alt="Platform: iOS 17+">
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT">
   </a>
 </p>
 
@@ -24,17 +31,17 @@ Built for summits and parks — cold hands, wind, rain. One text field. One tap 
 
 ## Features
 
-**OmniField entry** — Log a contact in a single line. Type space-separated tokens and they're automatically parsed: `W1AW 59 14.060 CA US4431`. Callsigns, RST, frequencies, modes, QTH, park and summit references all route to the right field.
+⌨ **OmniField entry** — Log a contact in a single line. Type space-separated tokens and they're automatically parsed: `W1AW 59 14.060 CA US4431`. Callsigns, RST, frequencies, modes, QTH, park and summit references all route to the right field.
 
-**SOTACat radio control** — Auto-discovers your [SOTACat](https://sotamat.com/sotacat/) via Bonjour. VFO sync, spot pouncing, and six programmable CW macro buttons with template variables.
+⏚ **SOTACat radio control** — Auto-discovers your [SOTACat](https://sotamat.com/sotacat/) via Bonjour. VFO sync, spot pouncing, and six programmable CW macro buttons with template variables.
 
-**Live spots** — Pull SOTA and POTA spots into a half-sheet overlay. Filter by program and mode. Tap a spot to prefill your QSO and tune your radio.
+◉ **Live spots** — Pull SOTA and POTA spots into a half-sheet overlay. Filter by program and mode. Tap a spot to prefill your QSO and tune your radio.
 
-**Smart defaults** — Mode derives from frequency. RST defaults match mode. Frequency persists between contacts. Name and QTH auto-populate from history. Dupe detection per callsign+band.
+✦ **Smart defaults** — Mode derives from frequency. RST defaults match mode. Frequency persists between contacts. Name and QTH auto-populate from history. Dupe detection per callsign+band.
 
-**QRZ sync** — Look up callsign info. Sync your log to QRZ Logbook. ADIF import/export.
+⇄ **QRZ sync** — Look up callsign info. Sync your log to QRZ Logbook. ADIF import/export.
 
-**Offline-first** — All data lives in a local SQLite database. Every feature works without internet. Network operations happen only when you trigger them.
+▣ **Offline-first** — All data lives in a local SQLite database. Every feature works without internet. Network operations happen only when you trigger them.
 
 ## Design Philosophy
 
