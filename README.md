@@ -12,6 +12,10 @@
   <a href="https://apps.apple.com/us/app/sota-log/id6759876471">
     <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1736380800" alt="Download on the App Store" height="44">
   </a>
+  <br>
+  <a href="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml">
+    <img src="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml/badge.svg" alt="Tests">
+  </a>
 </p>
 
 ---
