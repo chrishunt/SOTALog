@@ -15,14 +15,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml">
-    <img src="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml/badge.svg?branch=main" alt="Tests">
-  </a>
+  <a href="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml"><img src="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml/badge.svg?branch=main" alt="Tests"></a>
   <img src="https://img.shields.io/badge/platform-iOS_17+-000000?logo=apple" alt="Platform: iOS 17+">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT">
-  </a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
 </p>
 
 ---
