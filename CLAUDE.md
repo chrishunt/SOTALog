@@ -98,7 +98,7 @@ open build/SOTALog.xcarchive   # opens in Organizer
 Then: **Distribute App → TestFlight & App Store → Upload**.
 
 Key details:
-- **Team ID**: `8CV6QZZ6BE`
+- **Team ID**: Set `DEVELOPMENT_TEAM` in `project.yml` to your own Apple Developer Team ID
 - **Bundle ID**: `com.sotalog.app`
 - **Signing**: Automatic (Apple Development certificate)
 

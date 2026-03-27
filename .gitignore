@@ -19,5 +19,14 @@ __pycache__/
 *.cer
 *.key
 
+# Generated Xcode project (regenerate with xcodegen)
+SOTALog/SOTALog.xcodeproj/
+
+# Deployment config (contains Team ID)
+SOTALog/ExportOptions.plist
+
+# Python
+.pytest_cache/
+
 # macOS
 .DS_Store

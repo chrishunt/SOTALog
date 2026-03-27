@@ -1,90 +1,76 @@
-# SOTA Log
+<p align="center">
+  <img src="docs/app-icon.png" width="128" height="128" alt="SOTA Log">
+</p>
 
-A field-optimized QSO logger for [SOTA](https://www.sota.org.uk) and [POTA](https://pota.app) activations on iOS.
+<h1 align="center">SOTA Log</h1>
 
-Built for summits and parks — cold hands, wind, rain. One text field. One tap to save. No settings.
+<p align="center">
+  Log a QSO in seconds. Field logger for SOTA and POTA activations on iOS.
+</p>
 
-## OmniField Entry
+<p align="center">
+  <a href="https://apps.apple.com/us/app/sota-log/id6759876471">
+    <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1736380800" alt="Download on the App Store" height="44">
+  </a>
+</p>
 
-Log a contact in a single line. Type space-separated tokens and they're automatically parsed:
+---
 
+Built for summits and parks — cold hands, wind, rain. One text field. One tap to save. No settings. The app makes the right choice so you don't have to.
+
+## Features
+
+**OmniField entry** — Log a contact in a single line. Type space-separated tokens and they're automatically parsed: `W1AW 59 14.060 CA US4431`. Callsigns, RST, frequencies, modes, QTH, park and summit references all route to the right field.
+
+**SOTACat radio control** — Auto-discovers your [SOTACat](https://sotamat.com/sotacat/) via Bonjour. VFO sync, spot pouncing, and six programmable CW macro buttons with template variables.
+
+**Live spots** — Pull SOTA and POTA spots into a half-sheet overlay. Filter by program and mode. Tap a spot to prefill your QSO and tune your radio.
+
+**Smart defaults** — Mode derives from frequency. RST defaults match mode. Frequency persists between contacts. Name and QTH auto-populate from history. Dupe detection per callsign+band.
+
+**QRZ sync** — Look up callsign info. Sync your log to QRZ Logbook. ADIF import/export.
+
+**Offline-first** — All data lives in a local SQLite database. Every feature works without internet. Network operations happen only when you trigger them.
+
+## Design Philosophy
+
+- **One happy path, perfected.** No settings screen. No user-configurable options.
+- **Elegant, not minimal.** The right information at the right time with zero friction.
+- **Field-optimized.** Large touch targets. Haptic confirmation. Keyboard Send saves from any field.
+- **CW and SSB.** Mode auto-derives from frequency. No other modes.
+
+Read the full design philosophy in [DESIGN.md](DESIGN.md).
+
+## Building from Source
+
+**Prerequisites:** Xcode 16+, iOS 17 SDK, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
+
+```sh
+cd SOTALog
+xcodegen generate
+swift test
 ```
-W1AW 59 14.060 CA US4431
-```
 
-The app recognizes callsigns, RST, frequencies, modes, QTH (US states/provinces), POTA parks, and SOTA summits — then routes each token to the right field. Unrecognized input is silently ignored. Keyboard Send saves from any field.
+Set your `DEVELOPMENT_TEAM` in `project.yml`, then build in Xcode or from the command line. See [CLAUDE.md](CLAUDE.md) for detailed build, simulator, and deployment instructions.
 
-## SOTACat Radio Control
+## Working with AI
 
-Auto-discovers your [SOTACat](https://sotamat.com/sotacat/) via Bonjour. Once connected:
+AI coding tools are encouraged. Be thoughtful of the person reviewing your PR.
 
-- **VFO sync** — frequency and mode flow between app and radio
-- **Spot pouncing** — tap a spot to tune your radio directly
-- **CW keyer** — six programmable macro buttons send CW through your radio with template variables (`{call}`, `{myCall}`, `{rst}`, `{mySOTA}`)
+- **Keep PRs small and focused.** Don't let AI generate sprawling changes that are painful to review.
+- **Understand every line you submit.** If you can't explain why a change exists, don't submit it.
+- **Read [DESIGN.md](DESIGN.md) first** — it's written as a guardrail document that works for both humans and AI agents.
+- **[CLAUDE.md](CLAUDE.md)** has build, test, and deploy instructions for AI coding agents.
+- Don't reference AI tools in commits or code.
 
-## Live Spots
+## Contributing
 
-Pull SOTA and POTA spots into a half-sheet overlay. Filter by program and mode. Each spot shows activator, frequency, reference name, and age. Tap any spot to prefill your QSO form and tune your radio. Worked stations are marked.
-
-## Smart Defaults
-
-- **Mode auto-derives from frequency** — CW sub-band vs SSB sub-band
-- **RST defaults match mode** — 599 for CW, 59 for SSB
-- **Frequency persists** between contacts
-- **Name and QTH auto-populate** from contact history
-- **Dupe detection** per callsign+band (mode-aware)
-- **Activation progress** tracks QSO count toward thresholds (SOTA: 4, POTA: 10)
-
-## QRZ Integration
-
-Look up callsign info (name, QTH, grid) from QRZ. Sync your log to QRZ Logbook with a 3-tier merge strategy. ADIF import/export with program-specific fields.
-
-## Offline-First
-
-All data lives in a local SQLite database (GRDB). Every feature works without internet. Network operations — QRZ sync, spot fetching, reference downloads — happen only when you trigger them.
-
-## Design Principles
-
-- **No settings screen.** The app makes the right choice.
-- **No modals in the logging flow.** Type, send, repeat.
-- **Large touch targets.** Gloves-friendly.
-- **Haptic feedback on save.** The only confirmation you need.
-- **Dark theme with semantic colors.** Orange = editing, green = POTA, blue = SOTA.
-- **Colorblind-safe palette.**
-
-## Technical Details
-
-- SwiftUI + iOS 17+
-- GRDB (SQLite) for local persistence
-- Bonjour for SOTACat discovery
-- Portrait-only, iPhone-optimized
-- TestFlight distribution
+Read the [contributing guide](CONTRIBUTING.md) and [DESIGN.md](DESIGN.md) before submitting a pull request.
 
 ## Website
 
-The support page at [sotalog.k2mmt.com](https://sotalog.k2mmt.com) is hosted on Cloudflare Workers.
+The support page at [sotalog.k2mmt.com](https://sotalog.k2mmt.com) is hosted on Cloudflare Workers. Deploy: `npx wrangler deploy`
 
-Deploy from the command line:
+## License
 
-```sh
-npx wrangler deploy
-```
-
-## Development
-
-### Mock SOTACat Server
-
-Test SOTACat integration from the iOS Simulator using the mock server, which impersonates a SOTACat device via Bonjour:
-
-```sh
-sudo python3 tools/mock_sotacat.py
-```
-
-Requires `sudo` (binds to port 80). Python 3 standard library only — no extra dependencies.
-
-The app discovers `sotacat.local` within ~5 seconds. Interactive console commands:
-
-- `f <hz>` — set frequency (e.g. `f 7030000`)
-- `m <mode>` — set mode (e.g. `m SSB`)
-- `w <wpm>` — set CW speed
-- `q` — quit
+[MIT](LICENSE)
