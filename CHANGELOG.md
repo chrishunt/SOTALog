@@ -6,6 +6,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- QRZ credential removal with confirmation alerts
+
 ## [1.2] - 2026-03-15
 
 ### Changed
