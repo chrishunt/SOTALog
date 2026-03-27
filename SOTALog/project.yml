@@ -55,7 +55,7 @@ targets:
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.sotalog.app
-        DEVELOPMENT_TEAM: 8CV6QZZ6BE
+        DEVELOPMENT_TEAM: 8CV6QZZ6BE # Replace with your Apple Developer Team ID
         MARKETING_VERSION: "1.2"
         CURRENT_PROJECT_VERSION: 14
         CODE_SIGN_STYLE: Automatic
