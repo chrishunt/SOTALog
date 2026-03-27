@@ -56,6 +56,31 @@ swift test
 
 All tests should pass. Run tests before submitting any PR.
 
+## Mock SOTACat Server
+
+To test SOTACat integration from the iOS Simulator, run the mock server which impersonates a SOTACat device via Bonjour:
+
+```sh
+sudo python3 tools/mock_sotacat.py
+```
+
+Requires `sudo` because the real SOTACat serves on port 80. The app discovers `sotacat.local` within ~5 seconds. The console logs all radio commands and CW keyer messages.
+
+**Interactive console commands:**
+
+| Command | Description |
+|---------|-------------|
+| `f <hz>` | Set frequency (e.g. `f 7030000`) |
+| `m <mode>` | Set mode (e.g. `m SSB`) |
+| `w <wpm>` | Set CW speed (0 = no delay) |
+| `q` | Quit |
+
+**Run mock server tests** (no sudo needed):
+
+```sh
+python3 -m pytest tools/test_mock_sotacat.py -v
+```
+
 ## Submitting a Pull Request
 
 1. **Read [DESIGN.md](DESIGN.md)** — understand the design philosophy before writing code
