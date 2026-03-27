@@ -138,6 +138,14 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
 12. In App Store Connect, add "What to Test" notes from the changelog
 13. Verify build appears in TestFlight for beta testers
 
+**App Store release:**
+
+14. In App Store Connect: **Apps → SOTA Log → App Store → + (new version) → enter version number**
+15. Select the uploaded build under **Build**
+16. Print the **"What's New in This Version"** summary for the user to paste. Format: no bullets, short plain-English lines (one per feature/fix), no markdown. Derive from the changelog entries for this version.
+17. Update **Version** field to match the new version number
+18. **Add for Review → Submit to App Review**
+
 ## Workflow
 
 - After completing a change, always run tests first (`swift test` from `SOTALog/`). If tests pass, build for the simulator, install, and launch the app so the user can test. Follow the "iOS Simulator build, install, and launch" steps above.
