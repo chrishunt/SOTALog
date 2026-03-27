@@ -11,6 +11,7 @@ final class QRZSyncViewModel {
 
     var hasAPIKey = false
     var hasCredentials = false
+    var username: String? { KeychainService.load(key: .qrzUsername) }
     var unsyncedCount = 0
     var syncStatus: SyncStatus = .idle
     var lastSyncDate: Date?
@@ -84,28 +85,40 @@ final class QRZSyncViewModel {
         )
     }
 
-    func saveCredentials(apiKey: String, username: String, password: String) async {
-        if !apiKey.isEmpty {
-            try? KeychainService.save(key: .qrzAPIKey, value: apiKey)
-            hasAPIKey = true
-        }
-        if !username.isEmpty {
-            try? KeychainService.save(key: .qrzUsername, value: username)
-            hasCredentials = true
-        }
-        if !password.isEmpty {
-            try? KeychainService.save(key: .qrzPassword, value: password)
-        }
+    func saveAPIKey(_ apiKey: String) async {
+        guard !apiKey.isEmpty else { return }
 
         isTestingCredentials = true
         apiKeyTestResult = nil
-        xmlLoginTestResult = nil
-
-        async let apiTest: Void = testAPIKey(apiKey)
-        async let xmlTest: Void = testXMLLogin(username, password)
-        _ = await (apiTest, xmlTest)
-
+        await testAPIKey(apiKey)
         isTestingCredentials = false
+
+        if apiKeyTestPassed {
+            try? KeychainService.save(key: .qrzAPIKey, value: apiKey)
+            hasAPIKey = true
+        } else {
+            KeychainService.delete(key: .qrzAPIKey)
+            hasAPIKey = false
+        }
+    }
+
+    func saveCallsignCredentials(username: String, password: String) async {
+        guard !username.isEmpty, !password.isEmpty else { return }
+
+        isTestingCredentials = true
+        xmlLoginTestResult = nil
+        await testXMLLogin(username, password)
+        isTestingCredentials = false
+
+        if callsignTestPassed {
+            try? KeychainService.save(key: .qrzUsername, value: username)
+            try? KeychainService.save(key: .qrzPassword, value: password)
+            hasCredentials = true
+        } else {
+            KeychainService.delete(key: .qrzUsername)
+            KeychainService.delete(key: .qrzPassword)
+            hasCredentials = false
+        }
     }
 
     private func testAPIKey(_ apiKey: String) async {
@@ -144,10 +157,14 @@ final class QRZSyncViewModel {
         xmlLoginTestResult = nil
     }
 
-    var allTestsPassed: Bool {
-        let apiOk = apiKeyTestResult.map { if case .success = $0 { return true } else { return false } } ?? true
-        let xmlOk = xmlLoginTestResult.map { if case .success = $0 { return true } else { return false } } ?? true
-        return apiOk && xmlOk
+    var apiKeyTestPassed: Bool {
+        if case .success = apiKeyTestResult { return true }
+        return false
+    }
+
+    var callsignTestPassed: Bool {
+        if case .success = xmlLoginTestResult { return true }
+        return false
     }
 
     // MARK: - Upload

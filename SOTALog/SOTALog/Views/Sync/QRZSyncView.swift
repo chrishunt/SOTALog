@@ -3,10 +3,10 @@ import SwiftUI
 struct QRZSyncView: View {
     let database: AppDatabase
     @State private var viewModel: QRZSyncViewModel
-    private struct LoginTrigger: Identifiable { let id = UUID() }
-    @State private var loginTrigger: LoginTrigger?
-    @State private var showRemoveAPIKey = false
-    @State private var showRemoveXML = false
+    @State private var showLogbookSignIn = false
+    @State private var showCallsignSignIn = false
+    @State private var showLogbookSignOut = false
+    @State private var showCallsignSignOut = false
 
     init(database: AppDatabase) {
         self.database = database
@@ -16,59 +16,10 @@ struct QRZSyncView: View {
     var body: some View {
         NavigationStack {
         List {
-            // QRZ Account
-            Section("QRZ Account") {
-                if !viewModel.hasAPIKey || !viewModel.hasCredentials {
-                    Button {
-                        loginTrigger = LoginTrigger()
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("Set Up QRZ Account", systemImage: "person.badge.key")
-                                .font(.body.bold())
-                            Text("API key syncs your logbook. Username & password enable callsign lookups.")
-                                .font(.appLabel)
-                                .foregroundStyle(Color.appTextSecondary)
-                        }
-                    }
-                }
-
-                HStack {
-                    Image(systemName: viewModel.hasAPIKey ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(viewModel.hasAPIKey ? Color.appGreen : .secondary)
-                    Text(viewModel.hasAPIKey ? "QRZ logbook sync enabled" : "QRZ logbook sync not set up")
-                }
-
-                HStack {
-                    Image(systemName: viewModel.hasCredentials ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(viewModel.hasCredentials ? Color.appGreen : .secondary)
-                    Text(viewModel.hasCredentials ? "Callsign lookup enabled" : "Callsign lookup not set up")
-                }
-
+            // Logbook Sync
+            Section {
                 if viewModel.hasAPIKey {
-                    Button("Remove API Key", role: .destructive) {
-                        showRemoveAPIKey = true
-                    }
-                }
-                if viewModel.hasCredentials {
-                    Button("Remove Callsign Login", role: .destructive) {
-                        showRemoveXML = true
-                    }
-                }
-            }
-
-            if viewModel.hasAPIKey {
-                // Sync
-                Section("Sync") {
                     syncStatusRow
-
-                    if viewModel.unsyncedCount > 0 {
-                        Button {
-                            Task { await viewModel.uploadAll() }
-                        } label: {
-                            Label("Upload \(viewModel.unsyncedCount) QSOs", systemImage: "arrow.up.circle")
-                        }
-                        .disabled(viewModel.isBusy)
-                    }
 
                     Button {
                         Task { await viewModel.refreshFromQRZ() }
@@ -82,6 +33,51 @@ struct QRZSyncView: View {
                             .font(.appLabel)
                             .foregroundStyle(Color.appTextSecondary)
                     }
+
+                    Button("Sign Out", role: .destructive) {
+                        showLogbookSignOut = true
+                    }
+                } else {
+                    Button {
+                        showLogbookSignIn = true
+                    } label: {
+                        Label("Sign In to QRZ", systemImage: "person.badge.key")
+                            .font(.body.bold())
+                    }
+                }
+            } header: {
+                Text("Logbook Sync")
+            } footer: {
+                if !viewModel.hasAPIKey {
+                    Text("Upload and download QSOs with QRZ.com")
+                }
+            }
+
+            // Callsign Lookup
+            Section {
+                if viewModel.hasCredentials {
+                    if let callsign = viewModel.username {
+                        Text("Signed in as ")
+                         + Text(callsign.uppercased())
+                            .font(.body.monospaced())
+                    }
+
+                    Button("Sign Out", role: .destructive) {
+                        showCallsignSignOut = true
+                    }
+                } else {
+                    Button {
+                        showCallsignSignIn = true
+                    } label: {
+                        Label("Sign In to QRZ", systemImage: "person.badge.key")
+                            .font(.body.bold())
+                    }
+                }
+            } header: {
+                Text("Callsign Lookup")
+            } footer: {
+                if !viewModel.hasCredentials {
+                    Text("Look up name and location for callsigns.")
                 }
             }
 
@@ -108,20 +104,23 @@ struct QRZSyncView: View {
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         #endif
         }
-        .sheet(item: $loginTrigger) { _ in
-            QRZLoginView(viewModel: viewModel)
+        .sheet(isPresented: $showLogbookSignIn) {
+            LogbookSyncSignInView(viewModel: viewModel)
         }
-        .alert("Remove API Key?", isPresented: $showRemoveAPIKey) {
-            Button("Remove", role: .destructive) { viewModel.clearAPIKey() }
+        .sheet(isPresented: $showCallsignSignIn) {
+            CallsignLookupSignInView(viewModel: viewModel)
+        }
+        .alert("Sign Out of Logbook Sync?", isPresented: $showLogbookSignOut) {
+            Button("Sign Out", role: .destructive) { viewModel.clearAPIKey() }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("QRZ logbook sync will be disabled. Your QSOs are not affected.")
+            Text("Your QSOs are not affected.")
         }
-        .alert("Remove Callsign Lookup?", isPresented: $showRemoveXML) {
-            Button("Remove", role: .destructive) { viewModel.clearXMLCredentials() }
+        .alert("Sign Out of Callsign Lookup?", isPresented: $showCallsignSignOut) {
+            Button("Sign Out", role: .destructive) { viewModel.clearXMLCredentials() }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("Callsign lookups will be disabled.")
+            Text("Callsign lookups will stop working.")
         }
         .task {
             await viewModel.loadState()
@@ -142,12 +141,17 @@ struct QRZSyncView: View {
                         .foregroundStyle(Color.appGreen)
                 }
             } else {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(Color.appOrange)
-                    Text("\(viewModel.unsyncedCount) QSOs not uploaded")
-                        .foregroundStyle(Color.appOrange)
+                Button {
+                    Task { await viewModel.uploadAll() }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .foregroundStyle(Color.appOrange)
+                        Text("Upload \(viewModel.unsyncedCount) QSOs")
+                            .foregroundStyle(Color.appOrange)
+                    }
                 }
+                .disabled(viewModel.isBusy)
             }
 
         case .uploading(let done, let total):

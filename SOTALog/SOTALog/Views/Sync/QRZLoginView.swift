@@ -1,12 +1,10 @@
 import SwiftUI
 
-struct QRZLoginView: View {
+struct LogbookSyncSignInView: View {
     @Bindable var viewModel: QRZSyncViewModel
     @Environment(\.dismiss) private var dismiss
 
     @State private var apiKey = ""
-    @State private var username = ""
-    @State private var password = ""
     @State private var didSave = false
 
     var body: some View {
@@ -17,27 +15,18 @@ struct QRZLoginView: View {
                         .textContentType(.none)
                         .autocorrectionDisabled()
                     if didSave {
-                        credentialStatus(result: viewModel.apiKeyTestResult, label: "API key")
+                        CredentialStatusView(
+                            isTesting: viewModel.isTestingCredentials,
+                            result: viewModel.apiKeyTestResult,
+                            label: "API key"
+                        )
                     }
-                } header: {
-                    Text("QRZ Logbook API Key")
                 } footer: {
-                    Link("Find your API key on QRZ.com",
+                    Link("Find your API key at QRZ.com",
                          destination: URL(string: "https://www.qrz.com/docs/logbook30/api")!)
                 }
-
-                Section("QRZ Callsign & Password") {
-                    TextField("Callsign", text: $username)
-                        .textContentType(.none)
-                        .autocorrectionDisabled()
-                    SecureField("Password", text: $password)
-                        .textContentType(.none)
-                    if didSave {
-                        credentialStatus(result: viewModel.xmlLoginTestResult, label: "Login")
-                    }
-                }
             }
-            .navigationTitle("QRZ Account")
+            .navigationTitle("Logbook Sync")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -47,12 +36,8 @@ struct QRZLoginView: View {
                     Button("Save") {
                         didSave = true
                         Task {
-                            await viewModel.saveCredentials(
-                                apiKey: apiKey,
-                                username: username,
-                                password: password
-                            )
-                            if viewModel.allTestsPassed {
+                            await viewModel.saveAPIKey(apiKey)
+                            if viewModel.apiKeyTestPassed {
                                 dismiss()
                             }
                         }
@@ -63,14 +48,77 @@ struct QRZLoginView: View {
             }
             .onAppear {
                 apiKey = KeychainService.load(key: .qrzAPIKey) ?? ""
-                username = KeychainService.load(key: .qrzUsername) ?? ""
             }
         }
     }
 
-    @ViewBuilder
-    private func credentialStatus(result: QRZSyncViewModel.CredentialTestResult?, label: String) -> some View {
-        if viewModel.isTestingCredentials && result == nil {
+}
+
+struct CallsignLookupSignInView: View {
+    @Bindable var viewModel: QRZSyncViewModel
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var username = ""
+    @State private var password = ""
+    @State private var didSave = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Callsign", text: $username)
+                        .textContentType(.none)
+                        .autocorrectionDisabled()
+                    SecureField("Password", text: $password)
+                        .textContentType(.none)
+                    if didSave {
+                        CredentialStatusView(
+                            isTesting: viewModel.isTestingCredentials,
+                            result: viewModel.xmlLoginTestResult,
+                            label: "Credentials"
+                        )
+                    }
+                }
+            }
+            .navigationTitle("Callsign Lookup")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        didSave = true
+                        Task {
+                            await viewModel.saveCallsignCredentials(
+                                username: username,
+                                password: password
+                            )
+                            if viewModel.callsignTestPassed {
+                                dismiss()
+                            }
+                        }
+                    }
+                    .bold()
+                    .disabled(viewModel.isTestingCredentials)
+                }
+            }
+            .onAppear {
+                username = KeychainService.load(key: .qrzUsername) ?? ""
+            }
+        }
+    }
+}
+
+// MARK: - Shared credential status indicator
+
+private struct CredentialStatusView: View {
+    let isTesting: Bool
+    let result: QRZSyncViewModel.CredentialTestResult?
+    let label: String
+
+    var body: some View {
+        if isTesting && result == nil {
             HStack(spacing: 8) {
                 ProgressView()
                 Text("Testing \(label.lowercased())...")
@@ -88,12 +136,14 @@ struct QRZLoginView: View {
                         .foregroundStyle(Color.appGreen)
                 }
             case .failure(let message):
-                HStack(spacing: 6) {
+                HStack(alignment: .top, spacing: 6) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(Color.appRed)
                     Text(message)
                         .font(.appLabel)
                         .foregroundStyle(Color.appRed)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
