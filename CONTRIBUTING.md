@@ -31,14 +31,14 @@ These aren't negotiable. They're the app's identity.
 - Xcode 16+ with iOS 17 SDK
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 
-**Build:**
+**Build (iOS):**
 
 ```sh
-cd SOTALog
+cd ios
 xcodegen generate
 ```
 
-Set your own Apple Developer Team ID in `project.yml` under `DEVELOPMENT_TEAM`, then open the generated project in Xcode or build from the command line:
+Set your own Apple Developer Team ID in `ios/project.yml` under `DEVELOPMENT_TEAM`, then open the generated project in Xcode or build from the command line:
 
 ```sh
 xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
@@ -48,13 +48,21 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
   build
 ```
 
+**Build (Android):**
+
+```sh
+cd android
+./gradlew assembleDebug
+```
+
 **Run tests:**
 
 ```sh
-swift test
+cd ios && swift test          # iOS
+cd android && ./gradlew testDebugUnitTest  # Android
 ```
 
-All tests should pass. Run tests before submitting any PR.
+All tests should pass on both platforms. Run tests before submitting any PR.
 
 ## Mock SOTACat Server
 
@@ -85,7 +93,7 @@ python3 -m pytest tools/test_mock_sotacat.py -v
 
 1. **Read [DESIGN.md](DESIGN.md)** — understand the design philosophy before writing code
 2. **Keep changes small and focused** — one concern per PR
-3. **Run tests** — `swift test` from `SOTALog/`
+3. **Run tests** — `swift test` from `ios/` (and `./gradlew testDebugUnitTest` from `android/`)
 4. **Match existing style** — follow the patterns you see in the codebase
 5. **No new dependencies** without discussion — the app has one external dependency (GRDB) and we'd like to keep it that way
 
@@ -96,5 +104,5 @@ AI coding tools are encouraged. Be thoughtful of the person reviewing your PR:
 - **Keep PRs small and focused.** Don't let AI generate sprawling changes that are painful to review.
 - **Understand every line you submit.** If you can't explain why a change exists, don't submit it.
 - **Read [DESIGN.md](DESIGN.md) first** — it's written as a guardrail document that works for both humans and AI agents. Feed it to your AI tool as context.
-- **[CLAUDE.md](CLAUDE.md)** has build, test, and deploy instructions formatted for AI coding agents.
+- **[CLAUDE.md](CLAUDE.md)** has cross-platform workflow instructions. **[ios/CLAUDE.md](ios/CLAUDE.md)** and **[android/CLAUDE.md](android/CLAUDE.md)** have platform-specific build and deploy instructions.
 - **Don't reference AI tools** in commits or code.

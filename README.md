@@ -5,7 +5,7 @@
 <h1 align="center">SOTA Log</h1>
 
 <p align="center">
-  Log a QSO in seconds. Field logger for SOTA and POTA activations on iOS.
+  Log a QSO in seconds. Field logger for SOTA and POTA activations.
 </p>
 
 <p align="center">
@@ -17,7 +17,9 @@
 <p align="center">
   <a href="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml"><img src="https://github.com/chrishunt/SOTALog/actions/workflows/test.yml/badge.svg?branch=main" alt="Tests"></a>
   <img src="https://img.shields.io/badge/platform-iOS_17+-000000?logo=apple" alt="Platform: iOS 17+">
+  <img src="https://img.shields.io/badge/platform-Android_9+-34A853?logo=android&logoColor=white" alt="Platform: Android 9+">
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
+  <img src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin 2.0">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
 </p>
 
@@ -50,15 +52,28 @@ Read the full design philosophy in [DESIGN.md](DESIGN.md).
 
 ## Building from Source
 
+### iOS
+
 **Prerequisites:** Xcode 16+, iOS 17 SDK, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
 
 ```sh
-cd SOTALog
+cd ios
 xcodegen generate
 swift test
 ```
 
-Set your `DEVELOPMENT_TEAM` in `project.yml`, then build in Xcode or from the command line. See [CLAUDE.md](CLAUDE.md) for detailed build, simulator, and deployment instructions.
+Set your `DEVELOPMENT_TEAM` in `ios/project.yml`, then build in Xcode or from the command line. See [ios/CLAUDE.md](ios/CLAUDE.md) for detailed build, simulator, and deployment instructions.
+
+### Android
+
+**Prerequisites:** Android Studio, JDK 17+
+
+```sh
+cd android
+./gradlew testDebugUnitTest
+```
+
+See [android/CLAUDE.md](android/CLAUDE.md) for detailed build, emulator, and deployment instructions.
 
 ## Working with AI
 
@@ -67,7 +82,7 @@ AI coding tools are encouraged. Be thoughtful of the person reviewing your PR.
 - **Keep PRs small and focused.** Don't let AI generate sprawling changes that are painful to review.
 - **Understand every line you submit.** If you can't explain why a change exists, don't submit it.
 - **Read [DESIGN.md](DESIGN.md) first** — it's written as a guardrail document that works for both humans and AI agents.
-- **[CLAUDE.md](CLAUDE.md)** has build, test, and deploy instructions for AI coding agents.
+- **[CLAUDE.md](CLAUDE.md)** has cross-platform workflow instructions. **[ios/CLAUDE.md](ios/CLAUDE.md)** and **[android/CLAUDE.md](android/CLAUDE.md)** have platform-specific build and deploy instructions.
 - Don't reference AI tools in commits or code.
 
 ## Contributing

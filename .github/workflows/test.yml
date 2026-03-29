@@ -7,11 +7,11 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  test-ios:
     runs-on: macos-15
     defaults:
       run:
-        working-directory: SOTALog
+        working-directory: ios
     steps:
       - uses: actions/checkout@v4
       - run: swift test
