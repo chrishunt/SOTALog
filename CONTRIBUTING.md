@@ -95,7 +95,7 @@ python3 -m pytest tools/test_mock_sotacat.py -v
 2. **Keep changes small and focused** — one concern per PR
 3. **Run tests** — `swift test` from `ios/` (and `./gradlew testDebugUnitTest` from `android/`)
 4. **Match existing style** — follow the patterns you see in the codebase
-5. **No new dependencies** without discussion — the app has one external dependency (GRDB) and we'd like to keep it that way
+5. **No new dependencies** without discussion — iOS has one external dependency (GRDB), Android uses the standard Jetpack stack (Room, Hilt, Retrofit, OkHttp). Minimize additions on both platforms
 
 ## Working with AI
 

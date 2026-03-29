@@ -66,6 +66,7 @@ class SpotsViewModel @Inject constructor(
     private var potaSpots: List<Spot> = emptyList()
     private var sotaSpots: List<Spot> = emptyList()
     private var autoRefreshJob: Job? = null
+    private var sotaEpoch: String? = null
 
     data class SpotBandGroup(
         val band: String,
@@ -123,6 +124,7 @@ class SpotsViewModel @Inject constructor(
                 val sotaResult = try { parseSOTASpots(sotaSpotApi.getSpots()) } catch (_: Exception) { emptyList() }
                 potaSpots = potaResult
                 sotaSpots = sotaResult
+                sotaEpoch = null // Reset epoch so next poll fetches fresh
                 _spots.value = potaSpots + sotaSpots
                 _errorMessage.value = null
             } catch (e: Exception) {
@@ -144,8 +146,14 @@ class SpotsViewModel @Inject constructor(
                 tickCount++
 
                 try {
-                    sotaSpots = try { parseSOTASpots(sotaSpotApi.getSpots()) } catch (_: Exception) { sotaSpots }
+                    // Check SOTA epoch — only refetch if spots have changed
+                    val epoch = try { sotaSpotApi.getEpoch().trim('"', ' ') } catch (_: Exception) { null }
+                    if (epoch != null && epoch != sotaEpoch) {
+                        sotaSpots = try { parseSOTASpots(sotaSpotApi.getSpots()) } catch (_: Exception) { sotaSpots }
+                        sotaEpoch = epoch
+                    }
 
+                    // Every 3rd tick (~60s): also fetch POTA
                     if (tickCount % 3 == 0) {
                         potaSpots = try { parsePOTASpots(potaSpotApi.getActivatorSpots()) } catch (_: Exception) { potaSpots }
                     }
@@ -162,6 +170,10 @@ class SpotsViewModel @Inject constructor(
     fun stopAutoRefresh() {
         autoRefreshJob?.cancel()
         autoRefreshJob = null
+    }
+
+    internal fun setSpots(spots: List<Spot>) {
+        _spots.value = spots
     }
 
     fun spotForCallsign(callsign: String): Spot? {

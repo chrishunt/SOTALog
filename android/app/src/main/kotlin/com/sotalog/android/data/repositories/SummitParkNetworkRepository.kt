@@ -1,17 +1,47 @@
 package com.sotalog.android.data.repositories
 
+import com.sotalog.android.data.remote.api.POTALocationApi
 import com.sotalog.android.domain.models.POTAPark
 import com.sotalog.android.domain.models.SOTASummit
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.cos
+import kotlin.math.sqrt
+
+data class ParkCoordinate(
+    val reference: String,
+    val latitude: Double?,
+    val longitude: Double?,
+)
+
+data class POTALocation(
+    val locationCode: String,
+    val latitude: Double?,
+    val longitude: Double?,
+    val entityId: Int?,
+)
 
 @Singleton
 class SummitParkNetworkRepository @Inject constructor(
     private val client: OkHttpClient,
+    private val potaLocationApi: POTALocationApi,
+    private val json: Json,
 ) {
 
     companion object {
@@ -166,5 +196,101 @@ class SummitParkNetworkRepository @Inject constructor(
         }
         fields.add(current.toString())
         return fields
+    }
+
+    // MARK: - POTA Park Coordinate Enrichment
+
+    suspend fun fetchLocations(): List<POTALocation> = withContext(Dispatchers.IO) {
+        try {
+            val body = potaLocationApi.getLocations()
+            val array = json.parseToJsonElement(body).jsonArray
+            array.mapNotNull { element ->
+                val obj = element.jsonObject
+                val code = obj["locationDesc"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                POTALocation(
+                    locationCode = code,
+                    latitude = obj["latitude"]?.jsonPrimitive?.doubleOrNull,
+                    longitude = obj["longitude"]?.jsonPrimitive?.doubleOrNull,
+                    entityId = obj["entityId"]?.jsonPrimitive?.intOrNull,
+                )
+            }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun fetchParksInLocation(locationCode: String): List<ParkCoordinate> =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = potaLocationApi.getParksByLocation(locationCode)
+                val array = json.parseToJsonElement(body).jsonArray
+                array.mapNotNull { element ->
+                    val obj = element.jsonObject
+                    val ref = obj["reference"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                    ParkCoordinate(
+                        reference = ref,
+                        latitude = obj["latitude"]?.jsonPrimitive?.doubleOrNull,
+                        longitude = obj["longitude"]?.jsonPrimitive?.doubleOrNull,
+                    )
+                }
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+
+    fun nearestLocationCodes(
+        latitude: Double,
+        longitude: Double,
+        locations: List<POTALocation>,
+        limit: Int = 10,
+    ): List<POTALocation> {
+        val cosLat = cos(Math.toRadians(latitude))
+        return locations
+            .filter { it.latitude != null && it.longitude != null }
+            .sortedBy { loc ->
+                val dLat = loc.latitude!! - latitude
+                val dLon = (loc.longitude!! - longitude) * cosLat
+                sqrt(dLat * dLat + dLon * dLon)
+            }
+            .take(limit)
+    }
+
+    suspend fun enrichParks(
+        refRepo: ReferenceRepository,
+        userLatitude: Double?,
+        userLongitude: Double?,
+    ) = withContext(Dispatchers.IO) {
+        val allLocations = fetchLocations()
+        if (allLocations.isEmpty()) return@withContext
+
+        // Find user's country (entityId) from nearest location
+        val targetEntityId = if (userLatitude != null && userLongitude != null) {
+            val nearest = nearestLocationCodes(userLatitude, userLongitude, allLocations, 1)
+            nearest.firstOrNull()?.entityId ?: 291
+        } else {
+            291 // Default to US
+        }
+
+        // Filter to all locations in the same country
+        val countryLocations = allLocations.filter { it.entityId == targetEntityId }
+
+        // Fetch parks for each location with concurrency limit
+        val semaphore = Semaphore(5)
+        val allParkCoords = coroutineScope {
+            countryLocations.map { loc ->
+                async {
+                    semaphore.withPermit {
+                        fetchParksInLocation(loc.locationCode)
+                    }
+                }
+            }.awaitAll().flatten()
+        }
+
+        // Batch-update the database
+        val validCoords = allParkCoords
+            .filter { it.latitude != null && it.longitude != null }
+            .map { Triple(it.reference, it.latitude!!, it.longitude!!) }
+
+        refRepo.enrichParksWithCoordinates(validCoords)
     }
 }

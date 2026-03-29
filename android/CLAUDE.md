@@ -9,6 +9,14 @@
 - [Android Studio](https://developer.android.com/studio) (includes JDK, Android SDK, Gradle, emulator)
 - On first launch, install Android SDK via SDK Manager
 
+### Troubleshooting
+
+If `./gradlew` fails with "Unable to locate a Java Runtime", set `JAVA_HOME` to Android Studio's bundled JDK:
+
+```sh
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+```
+
 ### Quick compile check
 
 ```sh
@@ -93,6 +101,13 @@ Upload to Google Play Console via the web interface.
 
 9. Commit version bump + changelog: `git commit -m "Release <version>"`
 10. Tag: `git tag v<version>` and push with `git push --tags`
+
+**Google Play release:**
+
+11. In Google Play Console: **All apps → SOTA Log → Release → Production → Create new release**
+12. Upload the AAB from step 7
+13. Print the **"What's new"** summary for the user to paste. Format: no bullets, short plain-English lines (one per feature/fix), no markdown. Derive from the changelog entries for this version.
+14. **Review release → Start rollout to Production**
 
 ## Architecture
 

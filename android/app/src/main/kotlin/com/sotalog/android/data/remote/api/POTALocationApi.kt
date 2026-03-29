@@ -5,11 +5,11 @@ import retrofit2.http.Path
 
 interface POTALocationApi {
 
-    @GET("programs")
-    suspend fun getPrograms(): String
+    @GET("locations")
+    suspend fun getLocations(): String
 
-    @GET("location/{locationId}/parks")
+    @GET("location/parks/{locationCode}")
     suspend fun getParksByLocation(
-        @Path("locationId") locationId: String,
+        @Path("locationCode") locationCode: String,
     ): String
 }

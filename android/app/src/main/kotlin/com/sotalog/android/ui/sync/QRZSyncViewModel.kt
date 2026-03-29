@@ -7,10 +7,13 @@ import com.sotalog.android.data.local.database.dao.LogDao
 import com.sotalog.android.data.local.database.dao.QSODao
 import com.sotalog.android.data.local.database.dao.ReferenceDao
 import com.sotalog.android.data.local.preferences.CredentialStore
+import com.sotalog.android.data.local.preferences.LocationService
 import com.sotalog.android.data.remote.api.POTAParkApi
 import com.sotalog.android.data.remote.api.QRZLogbookApi
 import com.sotalog.android.data.remote.api.QRZLookupApi
 import com.sotalog.android.data.remote.api.SOTASummitApi
+import com.sotalog.android.data.repositories.ReferenceRepository
+import com.sotalog.android.data.repositories.SummitParkNetworkRepository
 import com.sotalog.android.domain.models.CallsignHistory
 import com.sotalog.android.domain.models.Log
 import com.sotalog.android.domain.models.POTAPark
@@ -54,6 +57,9 @@ class QRZSyncViewModel @Inject constructor(
     private val qrzLookupApi: QRZLookupApi,
     private val potaParkApi: POTAParkApi,
     private val sotaSummitApi: SOTASummitApi,
+    private val summitParkNetworkRepo: SummitParkNetworkRepository,
+    private val referenceRepo: ReferenceRepository,
+    private val locationService: LocationService,
 ) : ViewModel() {
 
     private val _hasAPIKey = MutableStateFlow(false)
@@ -502,11 +508,23 @@ class QRZSyncViewModel @Inject constructor(
 
     fun downloadParks() {
         viewModelScope.launch {
+            _syncStatus.value = SyncStatus.PreparingReferences
             try {
-                // This would need a full POTA park download endpoint
-                // For now we use the existing API and import
+                val parks = summitParkNetworkRepo.fetchPOTAParks()
                 referenceDao.deleteAllParks()
-                // Parks are imported via the POTAParkApi in a real implementation
+                referenceRepo.importParks(parks)
+
+                // Enrich with coordinates from POTA location API
+                try {
+                    summitParkNetworkRepo.enrichParks(
+                        refRepo = referenceRepo,
+                        userLatitude = locationService.currentLatitude.value,
+                        userLongitude = locationService.currentLongitude.value,
+                    )
+                } catch (_: Exception) {
+                    // Partial enrichment is fine — keep whatever parks were imported
+                }
+
                 referenceDao.upsertMetadata(
                     ReferenceMetadata(
                         key = "potaParks",
@@ -515,6 +533,7 @@ class QRZSyncViewModel @Inject constructor(
                     ),
                 )
                 _parkCount.value = referenceDao.getParkCount()
+                _syncStatus.value = SyncStatus.Idle
             } catch (e: Exception) {
                 _syncStatus.value = SyncStatus.Error("Failed to download parks: ${e.message}")
             }
@@ -523,9 +542,11 @@ class QRZSyncViewModel @Inject constructor(
 
     fun downloadSummits() {
         viewModelScope.launch {
+            _syncStatus.value = SyncStatus.PreparingReferences
             try {
+                val summits = summitParkNetworkRepo.fetchSOTASummits()
                 referenceDao.deleteAllSummits()
-                // Summits are imported via the SOTASummitApi in a real implementation
+                referenceRepo.importSummits(summits)
                 referenceDao.upsertMetadata(
                     ReferenceMetadata(
                         key = "sotaSummits",
@@ -534,6 +555,7 @@ class QRZSyncViewModel @Inject constructor(
                     ),
                 )
                 _summitCount.value = referenceDao.getSummitCount()
+                _syncStatus.value = SyncStatus.Idle
             } catch (e: Exception) {
                 _syncStatus.value = SyncStatus.Error("Failed to download summits: ${e.message}")
             }
