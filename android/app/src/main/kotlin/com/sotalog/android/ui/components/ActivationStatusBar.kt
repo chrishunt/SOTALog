@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sotalog.android.ui.theme.SOTALogTheme
 
-private const val POTA_THRESHOLD = 10
-private const val SOTA_THRESHOLD = 4
+const val POTA_THRESHOLD = 10
+const val SOTA_THRESHOLD = 4
 
 /**
  * Activation progress display.

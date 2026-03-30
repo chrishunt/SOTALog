@@ -90,32 +90,32 @@ class QSORepository @Inject constructor(
 
     suspend fun loadValidPotaRefs(): Map<String, String> = withContext(Dispatchers.IO) {
         val sqlDb = db.openHelper.readableDatabase
-        val cursor = sqlDb.query(
+        sqlDb.query(
             "SELECT referenceNormalized, reference FROM potaPark WHERE referenceNormalized IS NOT NULL"
-        )
-        val result = mutableMapOf<String, String>()
-        while (cursor.moveToNext()) {
-            val normalized = cursor.getString(0)
-            val formatted = cursor.getString(1)
-            result[normalized] = formatted
+        ).use { cursor ->
+            val result = mutableMapOf<String, String>()
+            while (cursor.moveToNext()) {
+                val normalized = cursor.getString(0)
+                val formatted = cursor.getString(1)
+                result[normalized] = formatted
+            }
+            result
         }
-        cursor.close()
-        result
     }
 
     suspend fun loadValidSotaCodes(): Map<String, String> = withContext(Dispatchers.IO) {
         val sqlDb = db.openHelper.readableDatabase
-        val cursor = sqlDb.query(
+        sqlDb.query(
             "SELECT codeNormalized, code FROM sotaSummit WHERE codeNormalized IS NOT NULL"
-        )
-        val result = mutableMapOf<String, String>()
-        while (cursor.moveToNext()) {
-            val normalized = cursor.getString(0)
-            val formatted = cursor.getString(1)
-            result[normalized] = formatted
+        ).use { cursor ->
+            val result = mutableMapOf<String, String>()
+            while (cursor.moveToNext()) {
+                val normalized = cursor.getString(0)
+                val formatted = cursor.getString(1)
+                result[normalized] = formatted
+            }
+            result
         }
-        cursor.close()
-        result
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
@@ -141,7 +141,8 @@ class QSORepository @Inject constructor(
             // Import grouped QSOs into activations
             for ((key, records) in groupedQSOs) {
                 // Try to find an existing log matching this activation
-                val existingLogCursor = sqlDb.query(
+                val logId: Long
+                val existingId = sqlDb.query(
                     """SELECT id FROM log WHERE date = ?
                        AND COALESCE(potaReference, '') = COALESCE(?, '')
                        AND COALESCE(sotaReference, '') = COALESCE(?, '')
@@ -151,31 +152,24 @@ class QSORepository @Inject constructor(
                         key.potaReference ?: "",
                         key.sotaReference ?: "",
                     )
-                )
+                ).use { c -> if (c.moveToFirst()) c.getLong(0) else null }
 
-                val logId: Long
-                if (existingLogCursor.moveToFirst()) {
-                    logId = existingLogCursor.getLong(0)
+                if (existingId != null) {
+                    logId = existingId
                     activationsReused++
                 } else {
                     // Look up park/summit names
                     val parkName = key.potaReference?.let { ref ->
-                        val c = sqlDb.query(
+                        sqlDb.query(
                             "SELECT name FROM potaPark WHERE reference = ?",
                             arrayOf(ref),
-                        )
-                        val name = if (c.moveToFirst()) c.getString(0) else null
-                        c.close()
-                        name
+                        ).use { c -> if (c.moveToFirst()) c.getString(0) else null }
                     }
                     val summitName = key.sotaReference?.let { ref ->
-                        val c = sqlDb.query(
+                        sqlDb.query(
                             "SELECT name FROM sotaSummit WHERE code = ?",
                             arrayOf(ref),
-                        )
-                        val name = if (c.moveToFirst()) c.getString(0) else null
-                        c.close()
-                        name
+                        ).use { c -> if (c.moveToFirst()) c.getString(0) else null }
                     }
 
                     val contentValues = android.content.ContentValues().apply {
@@ -191,7 +185,6 @@ class QSORepository @Inject constructor(
                     logId = sqlDb.insert("log", 0, contentValues)
                     activationsCreated++
                 }
-                existingLogCursor.close()
 
                 for (record in records) {
                     val qrzLogIdStr = record.rawFields["APP_QRZLOG_LOGID"]
@@ -199,12 +192,10 @@ class QSORepository @Inject constructor(
 
                     // Skip if already exists by qrzLogId
                     if (qrzLogId != null) {
-                        val existCursor = sqlDb.query(
+                        val exists = sqlDb.query(
                             "SELECT id FROM qso WHERE qrzLogId = ? LIMIT 1",
                             arrayOf(qrzLogId.toString()),
-                        )
-                        val exists = existCursor.moveToFirst()
-                        existCursor.close()
+                        ).use { c -> c.moveToFirst() }
                         if (exists) continue
                     }
 
@@ -219,12 +210,10 @@ class QSORepository @Inject constructor(
                 val qrzLogId = qrzLogIdStr?.toLongOrNull()
 
                 if (qrzLogId != null) {
-                    val existCursor = sqlDb.query(
+                    val exists = sqlDb.query(
                         "SELECT id FROM qso WHERE qrzLogId = ? LIMIT 1",
                         arrayOf(qrzLogId.toString()),
-                    )
-                    val exists = existCursor.moveToFirst()
-                    existCursor.close()
+                    ).use { c -> c.moveToFirst() }
                     if (exists) continue
                 }
 

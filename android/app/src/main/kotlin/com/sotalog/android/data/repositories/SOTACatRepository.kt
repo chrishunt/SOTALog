@@ -1,15 +1,16 @@
 package com.sotalog.android.data.repositories
 
 import com.sotalog.android.di.SOTACatClient
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -46,6 +47,7 @@ class SOTACatRepository @Inject constructor(
     private val _keyerActive = MutableStateFlow(false)
     val keyerActive: StateFlow<Boolean> = _keyerActive.asStateFlow()
 
+    private val monitorScope = kotlinx.coroutines.CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var monitorJob: Job? = null
     private var activeBaseUrl: String = PRIMARY_URL
     private var consecutiveFailures = 0
@@ -53,7 +55,7 @@ class SOTACatRepository @Inject constructor(
     fun startMonitoring() {
         if (monitorJob?.isActive == true) return
 
-        monitorJob = CoroutineScope(Dispatchers.IO).launch {
+        monitorJob = monitorScope.launch {
             while (isActive) {
                 if (_isConnected.value) {
                     pollRadioState()
@@ -99,8 +101,7 @@ class SOTACatRepository @Inject constructor(
                 .put("".toRequestBody("text/plain".toMediaType()))
                 .build()
 
-            val response = keyerClient.newCall(request).execute()
-            response.isSuccessful
+            keyerClient.newCall(request).execute().use { it.isSuccessful }
         } catch (e: Exception) {
             false
         } finally {
@@ -118,8 +119,8 @@ class SOTACatRepository @Inject constructor(
                     .get()
                     .build()
 
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
+                val success = client.newCall(request).execute().use { it.isSuccessful }
+                if (success) {
                     activeBaseUrl = url
                     _isConnected.value = true
                     consecutiveFailures = 0
@@ -140,16 +141,17 @@ class SOTACatRepository @Inject constructor(
                 .get()
                 .build()
 
-            val freqResponse = client.newCall(freqRequest).execute()
-            if (freqResponse.isSuccessful) {
-                val hzStr = freqResponse.body?.string()?.trim()
-                val hz = hzStr?.toDoubleOrNull()
-                if (hz != null) {
-                    _radioFrequency.value = hz / 1_000_000.0
+            client.newCall(freqRequest).execute().use { freqResponse ->
+                if (freqResponse.isSuccessful) {
+                    val hzStr = freqResponse.body?.string()?.trim()
+                    val hz = hzStr?.toDoubleOrNull()
+                    if (hz != null) {
+                        _radioFrequency.value = hz / 1_000_000.0
+                    }
+                    consecutiveFailures = 0
+                } else {
+                    consecutiveFailures++
                 }
-                consecutiveFailures = 0
-            } else {
-                consecutiveFailures++
             }
 
             // Poll mode
@@ -159,10 +161,11 @@ class SOTACatRepository @Inject constructor(
                 .get()
                 .build()
 
-            val modeResponse = client.newCall(modeRequest).execute()
-            if (modeResponse.isSuccessful) {
-                val rawMode = modeResponse.body?.string()?.trim()?.uppercase()
-                _radioMode.value = normalizeMode(rawMode)
+            client.newCall(modeRequest).execute().use { modeResponse ->
+                if (modeResponse.isSuccessful) {
+                    val rawMode = modeResponse.body?.string()?.trim()?.uppercase()
+                    _radioMode.value = normalizeMode(rawMode)
+                }
             }
         } catch (_: Exception) {
             consecutiveFailures++
@@ -182,8 +185,8 @@ class SOTACatRepository @Inject constructor(
                 .get()
                 .build()
 
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
+            val success = client.newCall(request).execute().use { it.isSuccessful }
+            if (success) {
                 consecutiveFailures = 0
             } else {
                 disconnect()
@@ -207,7 +210,7 @@ class SOTACatRepository @Inject constructor(
             .put("".toRequestBody("text/plain".toMediaType()))
             .build()
 
-        client.newCall(request).execute()
+        client.newCall(request).execute().close()
     }
 
     private fun normalizeMode(mode: String?): String? = when (mode) {

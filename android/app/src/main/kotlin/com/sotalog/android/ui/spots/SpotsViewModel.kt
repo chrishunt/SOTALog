@@ -11,8 +11,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -73,40 +76,41 @@ class SpotsViewModel @Inject constructor(
         val spots: List<Spot>,
     )
 
-    val spotsByBand: List<SpotBandGroup>
-        get() {
-            val consolidated = consolidateSpots(_spots.value)
-                .filter { !it.isQRT && !it.isExpired() }
+    val spotsByBand: StateFlow<List<SpotBandGroup>> = combine(
+        _spots, _sourceFilter, _modeFilter,
+    ) { spots, source, mode ->
+        val consolidated = consolidateSpots(spots)
+            .filter { !it.isQRT && !it.isExpired() }
 
-            val sourceFiltered = when (_sourceFilter.value) {
-                SourceFilter.ALL -> consolidated
-                SourceFilter.POTA -> consolidated.filter { it.potaReference != null }
-                SourceFilter.SOTA -> consolidated.filter { it.sotaReference != null }
-            }
-
-            val filtered = when (_modeFilter.value) {
-                ModeFilter.ALL -> sourceFiltered
-                ModeFilter.CW -> sourceFiltered.filter { it.mode == "CW" }
-                ModeFilter.SSB -> sourceFiltered.filter { it.mode == "SSB" }
-            }
-
-            val grouped = mutableMapOf<String, MutableList<Spot>>()
-            for (spot in filtered) {
-                grouped.getOrPut(spot.band) { mutableListOf() }.add(spot)
-            }
-
-            for ((band, bandSpots) in grouped) {
-                grouped[band] = bandSpots.sortedWith(
-                    compareBy<Spot> { it.frequency }.thenByDescending { it.timestamp },
-                ).toMutableList()
-            }
-
-            return BandPlan.allBands.mapNotNull { band ->
-                val bandSpots = grouped[band]
-                if (bandSpots.isNullOrEmpty()) null
-                else SpotBandGroup(band = band, spots = bandSpots)
-            }
+        val sourceFiltered = when (source) {
+            SourceFilter.ALL -> consolidated
+            SourceFilter.POTA -> consolidated.filter { it.potaReference != null }
+            SourceFilter.SOTA -> consolidated.filter { it.sotaReference != null }
         }
+
+        val filtered = when (mode) {
+            ModeFilter.ALL -> sourceFiltered
+            ModeFilter.CW -> sourceFiltered.filter { it.mode == "CW" }
+            ModeFilter.SSB -> sourceFiltered.filter { it.mode == "SSB" }
+        }
+
+        val grouped = mutableMapOf<String, MutableList<Spot>>()
+        for (spot in filtered) {
+            grouped.getOrPut(spot.band) { mutableListOf() }.add(spot)
+        }
+
+        for ((band, bandSpots) in grouped) {
+            grouped[band] = bandSpots.sortedWith(
+                compareBy<Spot> { it.frequency }.thenByDescending { it.timestamp },
+            ).toMutableList()
+        }
+
+        BandPlan.allBands.mapNotNull { band ->
+            val bandSpots = grouped[band]
+            if (bandSpots.isNullOrEmpty()) null
+            else SpotBandGroup(band = band, spots = bandSpots)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun setSourceFilter(filter: SourceFilter) {
         _sourceFilter.value = filter

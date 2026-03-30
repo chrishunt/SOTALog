@@ -4,15 +4,34 @@ import com.sotalog.android.data.remote.api.POTASpotApi
 import com.sotalog.android.data.remote.api.SOTASpotApi
 import com.sotalog.android.makeSpot
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.Date
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class SpotsViewModelTest {
+
+    private val testDispatcher = UnconfinedTestDispatcher()
+
+    @BeforeEach
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     private fun makeVM(): SpotsViewModel {
         val potaApi = mockk<POTASpotApi>(relaxed = true)
@@ -38,7 +57,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertEquals("US-0002", all[0].potaReference)
         }
@@ -55,7 +74,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertNotNull(all[0].potaReference)
             assertNotNull(all[0].sotaReference)
@@ -73,7 +92,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertEquals("US-0002", all[0].potaReference)
         }
@@ -96,7 +115,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            assertEquals(2, vm.spotsByBand.size)
+            assertEquals(2, vm.spotsByBand.value.size)
         }
 
         @Test
@@ -111,7 +130,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            val twentyM = vm.spotsByBand.first { it.band == "20m" }
+            val twentyM = vm.spotsByBand.value.first { it.band == "20m" }
             assertEquals(14.060, twentyM.spots[0].frequency)
             assertEquals(14.070, twentyM.spots[1].frequency)
         }
@@ -126,7 +145,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(0, all.size)
         }
 
@@ -140,7 +159,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(0, all.size)
         }
 
@@ -157,7 +176,7 @@ class SpotsViewModelTest {
                 )
             )
 
-            val bandNames = vm.spotsByBand.map { it.band }
+            val bandNames = vm.spotsByBand.value.map { it.band }
             assertEquals(listOf("40m", "20m", "15m"), bandNames)
         }
     }
@@ -180,7 +199,7 @@ class SpotsViewModelTest {
             )
             vm.setSourceFilter(SourceFilter.POTA)
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertEquals("W1AW", all[0].activatorCallsign)
         }
@@ -198,7 +217,7 @@ class SpotsViewModelTest {
             )
             vm.setSourceFilter(SourceFilter.SOTA)
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertEquals("K3ABC", all[0].activatorCallsign)
         }
@@ -216,7 +235,7 @@ class SpotsViewModelTest {
             )
             vm.setSourceFilter(SourceFilter.ALL)
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(2, all.size)
         }
     }
@@ -239,7 +258,7 @@ class SpotsViewModelTest {
             )
             vm.setModeFilter(ModeFilter.CW)
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertEquals("W1AW", all[0].activatorCallsign)
         }
@@ -257,7 +276,7 @@ class SpotsViewModelTest {
             )
             vm.setModeFilter(ModeFilter.SSB)
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertEquals("K3ABC", all[0].activatorCallsign)
         }
@@ -275,7 +294,7 @@ class SpotsViewModelTest {
             )
             vm.setModeFilter(ModeFilter.ALL)
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(2, all.size)
         }
 
@@ -294,7 +313,7 @@ class SpotsViewModelTest {
             vm.setSourceFilter(SourceFilter.POTA)
             vm.setModeFilter(ModeFilter.CW)
 
-            val all = vm.spotsByBand.flatMap { it.spots }
+            val all = vm.spotsByBand.value.flatMap { it.spots }
             assertEquals(1, all.size)
             assertEquals("W1AW", all[0].activatorCallsign)
         }

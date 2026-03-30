@@ -83,7 +83,7 @@ fun SpotsScreen(
                 onModeFilterChanged = viewModel::setModeFilter,
             )
 
-            val spotsByBand = viewModel.spotsByBand
+            val spotsByBand by viewModel.spotsByBand.collectAsStateWithLifecycle()
 
             PullToRefreshBox(
                 isRefreshing = isLoading,
@@ -235,15 +235,13 @@ private fun isWorked(spot: Spot, workedKeys: Set<String>): Boolean {
 
     val potaRef = spot.potaReference
     if (potaRef != null) {
-        for (key in workedKeys) {
-            if (key.contains("|$callsign|$potaRef|$band|$mode")) return true
-        }
+        val suffix = "|$callsign|$potaRef|$band|$mode"
+        if (workedKeys.any { it.endsWith(suffix) }) return true
     }
     val sotaRef = spot.sotaReference
     if (sotaRef != null) {
-        for (key in workedKeys) {
-            if (key.contains("|$callsign|$sotaRef|$band|$mode")) return true
-        }
+        val suffix = "|$callsign|$sotaRef|$band|$mode"
+        if (workedKeys.any { it.endsWith(suffix) }) return true
     }
     return false
 }

@@ -53,7 +53,7 @@ class CallsignHistoryRepository @Inject constructor(
 
     suspend fun rebuildFromQSOTable() = withContext(Dispatchers.IO) {
         val sqlDb = db.openHelper.readableDatabase
-        val cursor = sqlDb.query(
+        sqlDb.query(
             """
             SELECT callsign,
                    COUNT(*) as cnt,
@@ -64,27 +64,27 @@ class CallsignHistoryRepository @Inject constructor(
             FROM qso
             GROUP BY callsign
             """.trimIndent()
-        )
-        while (cursor.moveToNext()) {
-            val cs = cursor.getString(0)
-            val count = cursor.getInt(1)
-            val nameVal = cursor.getString(3).takeIf { it.isNotEmpty() }
-            val qthVal = cursor.getString(4).takeIf { it.isNotEmpty() }
-            val gridVal = cursor.getString(5).takeIf { it.isNotEmpty() }
+        ).use { cursor ->
+            while (cursor.moveToNext()) {
+                val cs = cursor.getString(0)
+                val count = cursor.getInt(1)
+                val nameVal = cursor.getString(3).takeIf { it.isNotEmpty() }
+                val qthVal = cursor.getString(4).takeIf { it.isNotEmpty() }
+                val gridVal = cursor.getString(5).takeIf { it.isNotEmpty() }
 
-            val existing = callsignHistoryDao.getByCallsign(cs)
-            callsignHistoryDao.upsert(
-                CallsignHistory(
-                    callsign = cs,
-                    name = nameVal ?: existing?.name,
-                    qth = qthVal ?: existing?.qth,
-                    grid = gridVal ?: existing?.grid,
-                    lastWorked = existing?.lastWorked ?: Date(),
-                    timesWorked = count,
+                val existing = callsignHistoryDao.getByCallsign(cs)
+                callsignHistoryDao.upsert(
+                    CallsignHistory(
+                        callsign = cs,
+                        name = nameVal ?: existing?.name,
+                        qth = qthVal ?: existing?.qth,
+                        grid = gridVal ?: existing?.grid,
+                        lastWorked = existing?.lastWorked ?: Date(),
+                        timesWorked = count,
+                    )
                 )
-            )
+            }
         }
-        cursor.close()
     }
 
     suspend fun updateFromLookup(

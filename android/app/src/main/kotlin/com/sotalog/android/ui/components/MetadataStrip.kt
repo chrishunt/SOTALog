@@ -1,5 +1,6 @@
 package com.sotalog.android.ui.components
 
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
@@ -72,6 +74,7 @@ fun MetadataStrip(
     modifier: Modifier = Modifier,
 ) {
     val appColors = SOTALogTheme.appColors
+    val view = LocalView.current
     var editingField by remember { mutableStateOf(EditField.NONE) }
 
     val isEditingLine1 = editingField in listOf(
@@ -119,7 +122,10 @@ fun MetadataStrip(
             DotSeparator()
             MetadataChip(
                 text = mode,
-                onClick = onModeToggle,
+                onClick = {
+                    view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    onModeToggle()
+                },
                 textStyle = chipTextStyle,
             )
             DotSeparator()

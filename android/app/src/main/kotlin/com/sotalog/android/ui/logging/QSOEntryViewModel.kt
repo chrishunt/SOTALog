@@ -28,9 +28,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Collections
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 @HiltViewModel
@@ -96,8 +98,8 @@ class QSOEntryViewModel @Inject constructor(
     private val _notes = MutableStateFlow("")
     val notes: StateFlow<String> = _notes.asStateFlow()
 
-    // Tracks which fields were manually edited
-    private val manualOverrides = mutableSetOf<String>()
+    // Tracks which fields were manually edited (accessed from multiple coroutines)
+    private val manualOverrides: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
 
     // Editing state
     private val _editingQSO = MutableStateFlow<QSO?>(null)
@@ -129,7 +131,7 @@ class QSOEntryViewModel @Inject constructor(
     var spotLookup: ((String) -> Spot?)? = null
 
     private var lookupJob: Job? = null
-    private var grid: String? = null
+    @Volatile private var grid: String? = null
 
     val parsedCallsign: String
         get() {

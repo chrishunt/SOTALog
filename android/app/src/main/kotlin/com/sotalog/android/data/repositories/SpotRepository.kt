@@ -44,6 +44,10 @@ class SpotRepository @Inject constructor(
             .build()
 
         val response = client.newCall(request).execute()
+        if (!response.isSuccessful) {
+            response.close()
+            return@withContext emptyList()
+        }
         val body = response.body?.string() ?: return@withContext emptyList()
 
         try {
@@ -62,6 +66,10 @@ class SpotRepository @Inject constructor(
             .build()
 
         val response = client.newCall(request).execute()
+        if (!response.isSuccessful) {
+            response.close()
+            return@withContext emptyList()
+        }
         val body = response.body?.string() ?: return@withContext emptyList()
 
         try {

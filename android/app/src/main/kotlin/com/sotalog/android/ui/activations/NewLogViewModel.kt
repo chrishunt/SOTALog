@@ -110,12 +110,16 @@ class NewLogViewModel @Inject constructor(
     }
 
     fun onPotaReferenceChanged(ref: String) {
+        if (ref == _potaReference.value) return
         _potaReference.value = ref
+        _parkName.value = null
         searchParks()
     }
 
     fun onSotaReferenceChanged(ref: String) {
+        if (ref == _sotaReference.value) return
         _sotaReference.value = ref
+        _summitName.value = null
         searchSummits()
     }
 
@@ -215,10 +219,8 @@ class NewLogViewModel @Inject constructor(
         val query = _potaReference.value
         if (query.length < 2) {
             _parkSearchResults.value = emptyList()
-            _parkName.value = null
             return
         }
-        _parkName.value = null
         parkSearchJob = viewModelScope.launch {
             delay(300)
             val normalized = POTAPark.normalize(query)
@@ -236,10 +238,8 @@ class NewLogViewModel @Inject constructor(
         val query = _sotaReference.value
         if (query.length < 2) {
             _summitSearchResults.value = emptyList()
-            _summitName.value = null
             return
         }
-        _summitName.value = null
         summitSearchJob = viewModelScope.launch {
             delay(300)
             val normalized = SOTASummit.normalize(query)
