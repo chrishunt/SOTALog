@@ -12,10 +12,18 @@ final class NewLogViewModel {
     var myCallsign: String = ""
     var myGrid: String = ""
     var potaReference: String = "" {
-        didSet { searchParks() }
+        didSet {
+            guard potaReference != oldValue else { return }
+            parkName = nil
+            searchParks()
+        }
     }
     var sotaReference: String = "" {
-        didSet { searchSummits() }
+        didSet {
+            guard sotaReference != oldValue else { return }
+            summitName = nil
+            searchSummits()
+        }
     }
     var parkName: String?
     var summitName: String?
@@ -43,7 +51,14 @@ final class NewLogViewModel {
         isSotaFieldFocused && sotaReference.count < 2 && !nearbySummits.isEmpty
     }
 
-    private var searchTask: Task<Void, Never>?
+    var canCreate: Bool {
+        !myCallsign.isEmpty
+        && (potaReference.isEmpty || parkName != nil)
+        && (sotaReference.isEmpty || summitName != nil)
+    }
+
+    private var parkSearchTask: Task<Void, Never>?
+    private var summitSearchTask: Task<Void, Never>?
 
     init(database: AppDatabase) {
         self.database = database
@@ -131,41 +146,41 @@ final class NewLogViewModel {
     }
 
     private func searchParks() {
-        searchTask?.cancel()
+        parkSearchTask?.cancel()
         let query = potaReference
         guard query.count >= 2 else {
             parkSearchResults = []
-            parkName = nil
             return
         }
-        searchTask = Task {
+        parkSearchTask = Task {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
+            guard parkName == nil else { return }
             let results = try? await refRepo.searchParks(query: query, limit: Self.suggestionLimit)
-            let normalized = POTAPark.normalize(query)
-            parkSearchResults = results ?? []
-            // Exact match on normalized reference
-            if let exact = results?.first(where: { $0.referenceNormalized == normalized }) {
-                parkName = exact.name
+            if let results, results.count == 1 {
+                selectPark(results[0])
+            } else {
+                parkSearchResults = results ?? []
             }
         }
     }
 
     private func searchSummits() {
-        searchTask?.cancel()
+        summitSearchTask?.cancel()
         let query = sotaReference
         guard query.count >= 2 else {
             summitSearchResults = []
-            summitName = nil
             return
         }
-        searchTask = Task {
+        summitSearchTask = Task {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
+            guard summitName == nil else { return }
             let results = try? await refRepo.searchSummits(query: query, limit: Self.suggestionLimit)
-            summitSearchResults = results ?? []
-            if let exact = results?.first(where: { $0.code == query.uppercased() }) {
-                summitName = exact.name
+            if let results, results.count == 1 {
+                selectSummit(results[0])
+            } else {
+                summitSearchResults = results ?? []
             }
         }
     }

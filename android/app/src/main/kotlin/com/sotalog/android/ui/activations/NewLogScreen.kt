@@ -68,6 +68,7 @@ fun NewLogScreen(
     val nearbySummits by viewModel.nearbySummits.collectAsStateWithLifecycle()
     val hasPOTAData by viewModel.hasPOTAData.collectAsStateWithLifecycle()
     val hasSOTAData by viewModel.hasSOTAData.collectAsStateWithLifecycle()
+    val canCreate by viewModel.canCreate.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.checkReferenceData()
@@ -90,7 +91,7 @@ fun NewLogScreen(
                                 onLogCreated(logId)
                             }
                         },
-                        enabled = myCallsign.isNotEmpty(),
+                        enabled = canCreate,
                         modifier = Modifier.padding(end = 8.dp),
                     ) {
                         Text("Start", fontWeight = FontWeight.Bold)

@@ -204,7 +204,7 @@ struct NewLogView: View {
                             }
                         }
                     }
-                    .disabled(viewModel.myCallsign.isEmpty)
+                    .disabled(!viewModel.canCreate)
                     .bold()
                 }
             }

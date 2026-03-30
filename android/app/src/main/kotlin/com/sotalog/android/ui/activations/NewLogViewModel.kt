@@ -13,8 +13,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -77,7 +80,20 @@ class NewLogViewModel @Inject constructor(
     private val _hasSOTAData = MutableStateFlow(false)
     val hasSOTAData: StateFlow<Boolean> = _hasSOTAData.asStateFlow()
 
-    private var searchJob: Job? = null
+    val canCreate: StateFlow<Boolean> = combine(
+        _myCallsign,
+        _potaReference,
+        _parkName,
+        _sotaReference,
+        _summitName,
+    ) { callsign, potaRef, parkName, sotaRef, summitName ->
+        callsign.isNotEmpty()
+            && (potaRef.isEmpty() || parkName != null)
+            && (sotaRef.isEmpty() || summitName != null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    private var parkSearchJob: Job? = null
+    private var summitSearchJob: Job? = null
 
     init {
         loadSavedCallsign()
@@ -195,41 +211,43 @@ class NewLogViewModel @Inject constructor(
     }
 
     private fun searchParks() {
-        searchJob?.cancel()
+        parkSearchJob?.cancel()
         val query = _potaReference.value
         if (query.length < 2) {
             _parkSearchResults.value = emptyList()
             _parkName.value = null
             return
         }
-        searchJob = viewModelScope.launch {
+        _parkName.value = null
+        parkSearchJob = viewModelScope.launch {
             delay(300)
             val normalized = POTAPark.normalize(query)
             val results = referenceDao.searchParksByNormalizedPrefix(normalized, SUGGESTION_LIMIT)
-            _parkSearchResults.value = results
-            val exact = results.firstOrNull { it.referenceNormalized == normalized }
-            if (exact != null) {
-                _parkName.value = exact.name
+            if (results.size == 1) {
+                selectPark(results.first())
+            } else {
+                _parkSearchResults.value = results
             }
         }
     }
 
     private fun searchSummits() {
-        searchJob?.cancel()
+        summitSearchJob?.cancel()
         val query = _sotaReference.value
         if (query.length < 2) {
             _summitSearchResults.value = emptyList()
             _summitName.value = null
             return
         }
-        searchJob = viewModelScope.launch {
+        _summitName.value = null
+        summitSearchJob = viewModelScope.launch {
             delay(300)
             val normalized = SOTASummit.normalize(query)
             val results = referenceDao.searchSummitsByNormalizedPrefix(normalized, SUGGESTION_LIMIT)
-            _summitSearchResults.value = results
-            val exact = results.firstOrNull { it.code == query.uppercase() }
-            if (exact != null) {
-                _summitName.value = exact.name
+            if (results.size == 1) {
+                selectSummit(results.first())
+            } else {
+                _summitSearchResults.value = results
             }
         }
     }
