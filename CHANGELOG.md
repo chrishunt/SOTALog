@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Android app (Kotlin/Jetpack Compose) with full feature parity
+- Reference validation requiring park/summit name resolution before log creation
+
+### Changed
+- Restructured repository for cross-platform: iOS moved to `ios/`, Android in `android/`
+
 ## [1.3] - 2026-03-27
 
 ### Changed
