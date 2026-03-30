@@ -1,13 +1,26 @@
-# Build artifacts
-SOTALog/build/
-SOTALog/.build/
+# iOS build artifacts
+ios/build/
+ios/.build/
+
+# Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
 
 # Xcode user state
 *.xcuserdata
 xcuserdata/
 
+# Generated Xcode project (regenerate with xcodegen)
+ios/SOTALog.xcodeproj/
+
+# Deployment config (contains Team ID)
+ios/ExportOptions.plist
+
 # Python
 __pycache__/
+.pytest_cache/
 
 # Cloudflare Workers
 .wrangler/
@@ -18,15 +31,12 @@ __pycache__/
 *.p12
 *.cer
 *.key
-
-# Generated Xcode project (regenerate with xcodegen)
-SOTALog/SOTALog.xcodeproj/
-
-# Deployment config (contains Team ID)
-SOTALog/ExportOptions.plist
-
-# Python
-.pytest_cache/
+*.jks
+*.keystore
 
 # macOS
 .DS_Store
+
+# IDE
+.idea/
+*.iml

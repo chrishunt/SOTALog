@@ -1,0 +1,14 @@
+{
+  "usCallAreas": {
+    "1": ["CT", "MA", "ME", "NH", "RI", "VT"],
+    "2": ["NJ", "NY"],
+    "3": ["DE", "MD", "PA"],
+    "4": ["AL", "FL", "GA", "KY", "NC", "SC", "TN", "VA"],
+    "5": ["AR", "LA", "MS", "NM", "OK", "TX"],
+    "6": ["CA"],
+    "7": ["AZ", "ID", "MT", "NV", "OR", "UT", "WA", "WY"],
+    "8": ["MI", "OH", "WV"],
+    "9": ["IL", "IN", "WI"],
+    "0": ["CO", "IA", "KS", "MN", "MO", "NE", "ND", "SD"]
+  }
+}
