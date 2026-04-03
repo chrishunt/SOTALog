@@ -56,8 +56,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.sotalog.app
         DEVELOPMENT_TEAM: 8CV6QZZ6BE # Replace with your Apple Developer Team ID
-        MARKETING_VERSION: "1.3"
-        CURRENT_PROJECT_VERSION: 15
+        MARKETING_VERSION: "1.4"
+        CURRENT_PROJECT_VERSION: 16
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: GRDB
