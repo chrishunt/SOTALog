@@ -31,18 +31,38 @@ cd android && ./gradlew testDebugUnitTest
 
 ### Android Emulator build, install, and launch
 
-Create an emulator via Android Studio: **Tools → Device Manager → Create Virtual Device → Pixel 8 → API 35**.
+All commands below run from `android/` (the subdirectory containing `build.gradle.kts`).
 
-Build and install:
+Set up environment variables (required for CLI emulator management):
 
 ```sh
-cd android
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+```
+
+If no AVD exists yet (`emulator -list-avds` returns nothing), install a system image and create one:
+
+```sh
+sdkmanager "system-images;android-35;google_apis;arm64-v8a"
+echo "no" | avdmanager create avd -n Pixel_8_API_35 \
+  -k "system-images;android-35;google_apis;arm64-v8a" -d "pixel_8"
+```
+
+Boot the emulator, build, install, and launch:
+
+```sh
+emulator -avd Pixel_8_API_35 -no-audio -no-snapshot-load &  # background
+adb wait-for-device                                          # block until ready
+
 ./gradlew installDebug
-adb shell am start -n com.sotalog.app/.MainActivity
+adb shell am start -n com.sotalog.app/com.sotalog.android.MainActivity
 ```
 
 Key details:
 - **Application ID**: `com.sotalog.app`
+- **Activity class**: `com.sotalog.android.MainActivity`
+- **Emulator AVD**: `Pixel_8_API_35` (create once, reuse)
 - **Min SDK**: 28 (Android 9)
 - **Target SDK**: 35 (Android 15)
 - **Build output**: `app/build/outputs/apk/debug/app-debug.apk`
@@ -122,4 +142,4 @@ Upload to Google Play Console via the web interface.
 
 ## Workflow
 
-- After completing a change, always run tests first (`./gradlew testDebugUnitTest` from `android/`). If tests pass, build and install on the emulator so the user can test.
+- After completing a change, always run tests first (`./gradlew testDebugUnitTest` from `android/`). If tests pass, build for the emulator, install, and launch the app so the user can test. Follow the "Android Emulator build, install, and launch" steps above.
