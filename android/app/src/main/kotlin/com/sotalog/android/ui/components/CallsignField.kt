@@ -14,12 +14,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sotalog.android.ui.theme.SOTALogTheme
@@ -30,8 +32,8 @@ import com.sotalog.android.ui.theme.SOTALogTheme
  */
 @Composable
 fun CallsignField(
-    text: String,
-    onTextChanged: (String) -> Unit,
+    textFieldValue: TextFieldValue,
+    onTextFieldValueChanged: (TextFieldValue) -> Unit,
     timesWorked: Int = 0,
     workedToday: Int = 0,
     isDupe: Boolean = false,
@@ -53,11 +55,16 @@ fun CallsignField(
         modifier = modifier,
     ) {
         TextField(
-            value = text,
+            value = textFieldValue,
             onValueChange = { newValue ->
-                onTextChanged(newValue.uppercase().filter { c ->
+                val filtered = newValue.text.uppercase().filter { c ->
                     c.isLetterOrDigit() || c == '/' || c == ' ' || c == '.'
-                })
+                }
+                val cursorOffset = filtered.length - newValue.text.length
+                val newSelection = TextRange(
+                    (newValue.selection.start + cursorOffset).coerceIn(0, filtered.length),
+                )
+                onTextFieldValueChanged(TextFieldValue(filtered, newSelection))
             },
             placeholder = {
                 Text(
@@ -68,6 +75,8 @@ fun CallsignField(
                         fontSize = 28.sp,
                     ),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                    maxLines = 1,
+                    softWrap = false,
                 )
             },
             textStyle = TextStyle(

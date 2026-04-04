@@ -1,8 +1,15 @@
 package com.sotalog.android.ui.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -54,37 +61,46 @@ enum class TopLevelRoute(
     val icon: ImageVector,
     val route: Any,
 ) {
-    Activations("Activations", Icons.Default.List, LogList),
+    Activations("Activations", Icons.AutoMirrored.Filled.List, LogList),
     Sync("Sync", Icons.Default.Sync, QRZSync),
 }
 
 @Composable
 fun SOTALogNavigation() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    val showBottomBar = TopLevelRoute.entries.any { tab ->
+        currentDestination?.hierarchy?.any { it.hasRoute(tab.route::class) } == true
+    }
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-
-                TopLevelRoute.entries.forEach { tab ->
-                    NavigationBarItem(
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
-                        selected = currentDestination?.hierarchy?.any {
-                            it.hasRoute(tab.route::class)
-                        } == true,
-                        onClick = {
-                            navController.navigate(tab.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it },
+            ) {
+                NavigationBar {
+                    TopLevelRoute.entries.forEach { tab ->
+                        NavigationBarItem(
+                            icon = { Icon(tab.icon, contentDescription = tab.label) },
+                            label = { Text(tab.label) },
+                            selected = currentDestination?.hierarchy?.any {
+                                it.hasRoute(tab.route::class)
+                            } == true,
+                            onClick = {
+                                navController.navigate(tab.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                    )
+                            },
+                        )
+                    }
                 }
             }
         },
@@ -92,6 +108,10 @@ fun SOTALogNavigation() {
         NavHost(
             navController = navController,
             startDestination = LogList,
+            enterTransition = { fadeIn() + slideInHorizontally { it / 4 } },
+            exitTransition = { fadeOut() + slideOutHorizontally { -it / 4 } },
+            popEnterTransition = { fadeIn() + slideInHorizontally { -it / 4 } },
+            popExitTransition = { fadeOut() + slideOutHorizontally { it / 4 } },
             modifier = Modifier.padding(innerPadding),
         ) {
             composable<LogList> {

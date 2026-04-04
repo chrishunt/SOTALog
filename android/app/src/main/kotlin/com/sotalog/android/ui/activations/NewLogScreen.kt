@@ -1,5 +1,8 @@
 package com.sotalog.android.ui.activations
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -69,6 +72,16 @@ fun NewLogScreen(
     val hasPOTAData by viewModel.hasPOTAData.collectAsStateWithLifecycle()
     val hasSOTAData by viewModel.hasSOTAData.collectAsStateWithLifecycle()
     val canCreate by viewModel.canCreate.collectAsStateWithLifecycle()
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) {
+            viewModel.requestLocation()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.checkReferenceData()
@@ -147,7 +160,14 @@ fun NewLogScreen(
                     ),
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { viewModel.requestLocation() }) {
+                IconButton(onClick = {
+                    locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                        ),
+                    )
+                }) {
                     Icon(
                         Icons.Default.LocationOn,
                         contentDescription = "Get location",
@@ -282,7 +302,7 @@ private fun ParkRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 6.dp),
+            .padding(vertical = 12.dp),
     ) {
         Icon(
             imageVector = if (isNearby) Icons.Default.LocationOn else Icons.Default.Forest,
@@ -333,7 +353,7 @@ private fun SummitRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 6.dp),
+            .padding(vertical = 12.dp),
     ) {
         Icon(
             imageVector = if (isNearby) Icons.Default.LocationOn else Icons.Default.Landscape,

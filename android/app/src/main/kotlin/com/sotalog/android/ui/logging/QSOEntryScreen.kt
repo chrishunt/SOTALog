@@ -19,13 +19,17 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,6 +52,15 @@ fun QSOEntryPanel(
     val view = LocalView.current
 
     val entryText by viewModel.entryText.collectAsStateWithLifecycle()
+    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+
+    // Sync ViewModel → TextFieldValue when ViewModel clears/changes the text externally
+    LaunchedEffect(entryText) {
+        if (entryText != textFieldValue.text) {
+            textFieldValue = TextFieldValue(entryText, TextRange(entryText.length))
+        }
+    }
+
     val rstSent by viewModel.rstSent.collectAsStateWithLifecycle()
     val rstReceived by viewModel.rstReceived.collectAsStateWithLifecycle()
     val frequencyText by viewModel.frequencyText.collectAsStateWithLifecycle()
@@ -148,8 +161,11 @@ fun QSOEntryPanel(
 
             // Callsign OmniField
             CallsignField(
-                text = entryText,
-                onTextChanged = { viewModel.onEntryTextChanged(it) },
+                textFieldValue = textFieldValue,
+                onTextFieldValueChanged = { newValue ->
+                    textFieldValue = newValue
+                    viewModel.onEntryTextChanged(newValue.text)
+                },
                 timesWorked = timesWorked,
                 workedToday = workedToday,
                 isDupe = isDupe,
@@ -163,7 +179,12 @@ fun QSOEntryPanel(
             // Number key row for quick digit/slash entry
             NumberKeyRow(
                 onKey = { char ->
-                    viewModel.onEntryTextChanged(entryText + char)
+                    val cursor = textFieldValue.selection.start
+                    val newText = textFieldValue.text.substring(0, cursor) + char +
+                        textFieldValue.text.substring(cursor)
+                    val newCursor = cursor + char.length
+                    textFieldValue = TextFieldValue(newText, TextRange(newCursor))
+                    viewModel.onEntryTextChanged(newText)
                 },
             )
         }

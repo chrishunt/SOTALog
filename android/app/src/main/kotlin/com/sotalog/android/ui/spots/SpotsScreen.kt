@@ -1,11 +1,13 @@
 package com.sotalog.android.ui.spots
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,10 +24,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sotalog.android.domain.models.Spot
 
@@ -45,106 +46,105 @@ fun SpotsScreen(
     onDismiss: () -> Unit = {},
     viewModel: SpotsViewModel = hiltViewModel(),
 ) {
-    val spots by viewModel.spots.collectAsStateWithLifecycle()
-    val sourceFilter by viewModel.sourceFilter.collectAsStateWithLifecycle()
-    val modeFilter by viewModel.modeFilter.collectAsStateWithLifecycle()
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val spots by viewModel.spots.collectAsState()
+    val sourceFilter by viewModel.sourceFilter.collectAsState()
+    val modeFilter by viewModel.modeFilter.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     DisposableEffect(Unit) {
         viewModel.startAutoRefresh()
         onDispose { viewModel.stopAutoRefresh() }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Spots") },
-                actions = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Done")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
-            )
-        },
-    ) { innerPadding ->
-        Column(
+    Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+        // Title bar
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 4.dp, top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Filter row
-            FilterRow(
-                sourceFilter = sourceFilter,
-                modeFilter = modeFilter,
-                onSourceFilterChanged = viewModel::setSourceFilter,
-                onModeFilterChanged = viewModel::setModeFilter,
+            Text(
+                text = "Spots",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f),
             )
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Default.Close, contentDescription = "Done")
+            }
+        }
 
-            val spotsByBand by viewModel.spotsByBand.collectAsStateWithLifecycle()
+        // Filter row
+        FilterRow(
+            sourceFilter = sourceFilter,
+            modeFilter = modeFilter,
+            onSourceFilterChanged = viewModel::setSourceFilter,
+            onModeFilterChanged = viewModel::setModeFilter,
+        )
 
-            PullToRefreshBox(
-                isRefreshing = isLoading,
-                onRefresh = { viewModel.refresh() },
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                when {
-                    isLoading && spots.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                CircularProgressIndicator()
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    "Loading spots...",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+        val spotsByBand by viewModel.spotsByBand.collectAsState()
+
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.refresh() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
+            when {
+                isLoading && spots.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Loading spots...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
-                    spotsByBand.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    "No Spots",
-                                    style = MaterialTheme.typography.titleLarge,
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    "Pull to refresh or wait for activators.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
+                }
+                spotsByBand.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "No Spots",
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "Pull to refresh or wait for activators.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
-                    else -> {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            spotsByBand.forEach { group ->
-                                item(key = "header_${group.band}") {
-                                    BandHeader(band = group.band, count = group.spots.size)
-                                }
-                                items(
-                                    items = group.spots,
-                                    key = { it.id },
-                                ) { spot ->
-                                    SpotRowComposable(
-                                        spot = spot,
-                                        isWorked = isWorked(spot, workedKeys),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { onSpotSelected(spot) }
-                                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                                    )
-                                }
+                }
+                else -> {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        spotsByBand.forEach { group ->
+                            item(key = "header_${group.band}") {
+                                BandHeader(band = group.band, count = group.spots.size)
+                            }
+                            items(
+                                items = group.spots,
+                                key = { it.id },
+                            ) { spot ->
+                                SpotRowComposable(
+                                    spot = spot,
+                                    isWorked = isWorked(spot, workedKeys),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onSpotSelected(spot) }
+                                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                                )
                             }
                         }
                     }
@@ -164,6 +164,7 @@ private fun FilterRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

@@ -89,6 +89,12 @@ class QRZSyncViewModel @Inject constructor(
     private val _summitCount = MutableStateFlow(0)
     val summitCount: StateFlow<Int> = _summitCount.asStateFlow()
 
+    private val _isParkLoading = MutableStateFlow(false)
+    val isParkLoading: StateFlow<Boolean> = _isParkLoading.asStateFlow()
+
+    private val _isSummitLoading = MutableStateFlow(false)
+    val isSummitLoading: StateFlow<Boolean> = _isSummitLoading.asStateFlow()
+
     // Credential testing
     private val _isTestingCredentials = MutableStateFlow(false)
     val isTestingCredentials: StateFlow<Boolean> = _isTestingCredentials.asStateFlow()
@@ -508,6 +514,7 @@ class QRZSyncViewModel @Inject constructor(
 
     fun downloadParks() {
         viewModelScope.launch {
+            _isParkLoading.value = true
             _syncStatus.value = SyncStatus.PreparingReferences
             try {
                 val parks = summitParkNetworkRepo.fetchPOTAParks()
@@ -536,12 +543,15 @@ class QRZSyncViewModel @Inject constructor(
                 _syncStatus.value = SyncStatus.Idle
             } catch (e: Exception) {
                 _syncStatus.value = SyncStatus.Error("Failed to download parks: ${e.message}")
+            } finally {
+                _isParkLoading.value = false
             }
         }
     }
 
     fun downloadSummits() {
         viewModelScope.launch {
+            _isSummitLoading.value = true
             _syncStatus.value = SyncStatus.PreparingReferences
             try {
                 val summits = summitParkNetworkRepo.fetchSOTASummits()
@@ -558,6 +568,8 @@ class QRZSyncViewModel @Inject constructor(
                 _syncStatus.value = SyncStatus.Idle
             } catch (e: Exception) {
                 _syncStatus.value = SyncStatus.Error("Failed to download summits: ${e.message}")
+            } finally {
+                _isSummitLoading.value = false
             }
         }
     }

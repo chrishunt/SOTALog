@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.view.HapticFeedbackConstants
 import android.view.WindowManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Campaign
+import androidx.compose.material.icons.filled.CellTower
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,15 +24,20 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +47,7 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sotalog.android.ui.components.ActivationStatusBar
+import com.sotalog.android.ui.spots.SpotsScreen
 import com.sotalog.android.ui.theme.SOTALogTheme
 import java.io.File
 
@@ -48,10 +57,14 @@ fun ActiveLogScreen(
     logId: Long,
     onBack: () -> Unit,
     viewModel: ActiveLogViewModel = hiltViewModel(),
+    entryViewModel: QSOEntryViewModel = hiltViewModel(),
 ) {
     val log by viewModel.log.collectAsStateWithLifecycle()
     val qsos by viewModel.qsos.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    var showSpots by remember { mutableStateOf(false) }
+    var showSpotMe by remember { mutableStateOf(false) }
 
     // Keep screen on while logging
     DisposableEffect(Unit) {
@@ -63,6 +76,8 @@ fun ActiveLogScreen(
     }
 
     val currentLog = log ?: return
+    val frequencyText by entryViewModel.frequencyText.collectAsStateWithLifecycle()
+    val mode by entryViewModel.mode.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -79,6 +94,12 @@ fun ActiveLogScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { showSpots = true }) {
+                        Icon(Icons.Default.CellTower, contentDescription = "Spots")
+                    }
+                    IconButton(onClick = { showSpotMe = true }) {
+                        Icon(Icons.Default.Campaign, contentDescription = "Spot Me")
+                    }
                     if (qsos.isNotEmpty()) {
                         IconButton(onClick = { shareExportFiles(context, viewModel) }) {
                             Icon(Icons.Default.Share, contentDescription = "Export")
@@ -135,7 +156,7 @@ fun ActiveLogScreen(
                                     .fillMaxWidth()
                                     .then(
                                         if (canEdit) Modifier.clickable {
-                                            // QSO editing is handled via the entry view model
+                                            entryViewModel.loadForEditing(qso)
                                         } else Modifier
                                     )
                                     .padding(horizontal = 16.dp, vertical = 4.dp),
@@ -148,6 +169,39 @@ fun ActiveLogScreen(
 
             // QSO Entry panel pinned at bottom
             QSOEntryPanel(logId = logId)
+        }
+    }
+
+    // Spots bottom sheet
+    if (showSpots) {
+        val spotsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+        ModalBottomSheet(
+            onDismissRequest = { showSpots = false },
+            sheetState = spotsSheetState,
+        ) {
+            SpotsScreen(
+                onSpotSelected = { spot ->
+                    entryViewModel.prefillFromSpot(spot)
+                    showSpots = false
+                },
+                onDismiss = { showSpots = false },
+            )
+        }
+    }
+
+    // Spot Me bottom sheet
+    if (showSpotMe) {
+        val spotMeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showSpotMe = false },
+            sheetState = spotMeSheetState,
+        ) {
+            SpotMeScreen(
+                log = currentLog,
+                frequencyMHz = frequencyText,
+                mode = mode,
+                onDismiss = { showSpotMe = false },
+            )
         }
     }
 }
@@ -182,18 +236,21 @@ private fun SwipeToDeleteQSO(
                 contentAlignment = Alignment.CenterEnd,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(SOTALogTheme.appColors.red)
                     .padding(horizontal = 20.dp),
             ) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Delete",
-                    tint = SOTALogTheme.appColors.red,
+                    tint = MaterialTheme.colorScheme.onError,
                 )
             }
         },
         enableDismissFromStartToEnd = false,
     ) {
-        content()
+        Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+            content()
+        }
     }
 }
 

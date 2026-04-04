@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -68,7 +70,7 @@ fun LogListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNewLog) {
+            FloatingActionButton(onClick = onNewLog, shape = CircleShape) {
                 Icon(Icons.Default.Add, contentDescription = "New Activation")
             }
         },
@@ -85,7 +87,9 @@ fun LogListScreen(
                         Icons.Default.Radio,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(bottom = 8.dp),
                     )
                     Text(
                         "No Activations",

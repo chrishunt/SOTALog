@@ -12,8 +12,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,7 +31,8 @@ fun ReferenceManagerScreen(
 ) {
     val parkCount by viewModel.parkCount.collectAsStateWithLifecycle()
     val summitCount by viewModel.summitCount.collectAsStateWithLifecycle()
-    val syncStatus by viewModel.syncStatus.collectAsStateWithLifecycle()
+    val isParkLoading by viewModel.isParkLoading.collectAsStateWithLifecycle()
+    val isSummitLoading by viewModel.isSummitLoading.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.loadCounts()
@@ -40,15 +41,12 @@ fun ReferenceManagerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { androidx.compose.material3.Text("Reference Databases") },
+                title = { Text("Reference Databases") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
             )
         },
     ) { innerPadding ->
@@ -63,7 +61,7 @@ fun ReferenceManagerScreen(
                 title = "POTA Parks",
                 count = parkCount,
                 unitName = "parks",
-                isLoading = syncStatus is SyncStatus.PreparingReferences,
+                isLoading = isParkLoading,
                 onRefresh = { viewModel.downloadParks() },
             )
 
@@ -73,7 +71,7 @@ fun ReferenceManagerScreen(
                 title = "SOTA Summits",
                 count = summitCount,
                 unitName = "summits",
-                isLoading = syncStatus is SyncStatus.PreparingReferences,
+                isLoading = isSummitLoading,
                 onRefresh = { viewModel.downloadSummits() },
             )
         }

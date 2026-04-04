@@ -80,12 +80,12 @@ class SpotsViewModel @Inject constructor(
         _spots, _sourceFilter, _modeFilter,
     ) { spots, source, mode ->
         val consolidated = consolidateSpots(spots)
-            .filter { !it.isQRT && !it.isExpired() }
+        val afterFilter = consolidated.filter { !it.isQRT && !it.isExpired() }
 
         val sourceFiltered = when (source) {
-            SourceFilter.ALL -> consolidated
-            SourceFilter.POTA -> consolidated.filter { it.potaReference != null }
-            SourceFilter.SOTA -> consolidated.filter { it.sotaReference != null }
+            SourceFilter.ALL -> afterFilter
+            SourceFilter.POTA -> afterFilter.filter { it.potaReference != null }
+            SourceFilter.SOTA -> afterFilter.filter { it.sotaReference != null }
         }
 
         val filtered = when (mode) {
@@ -124,8 +124,8 @@ class SpotsViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val potaResult = try { parsePOTASpots(potaSpotApi.getActivatorSpots()) } catch (_: Exception) { emptyList() }
-                val sotaResult = try { parseSOTASpots(sotaSpotApi.getSpots()) } catch (_: Exception) { emptyList() }
+                val potaResult = try { parsePOTASpots(potaSpotApi.getActivatorSpots().string()) } catch (_: Exception) { emptyList() }
+                val sotaResult = try { parseSOTASpots(sotaSpotApi.getSpots().string()) } catch (_: Exception) { emptyList() }
                 potaSpots = potaResult
                 sotaSpots = sotaResult
                 sotaEpoch = null // Reset epoch so next poll fetches fresh
@@ -151,15 +151,15 @@ class SpotsViewModel @Inject constructor(
 
                 try {
                     // Check SOTA epoch — only refetch if spots have changed
-                    val epoch = try { sotaSpotApi.getEpoch().trim('"', ' ') } catch (_: Exception) { null }
+                    val epoch = try { sotaSpotApi.getEpoch().string().trim('"', ' ') } catch (_: Exception) { null }
                     if (epoch != null && epoch != sotaEpoch) {
-                        sotaSpots = try { parseSOTASpots(sotaSpotApi.getSpots()) } catch (_: Exception) { sotaSpots }
+                        sotaSpots = try { parseSOTASpots(sotaSpotApi.getSpots().string()) } catch (_: Exception) { sotaSpots }
                         sotaEpoch = epoch
                     }
 
                     // Every 3rd tick (~60s): also fetch POTA
                     if (tickCount % 3 == 0) {
-                        potaSpots = try { parsePOTASpots(potaSpotApi.getActivatorSpots()) } catch (_: Exception) { potaSpots }
+                        potaSpots = try { parsePOTASpots(potaSpotApi.getActivatorSpots().string()) } catch (_: Exception) { potaSpots }
                     }
 
                     _spots.value = potaSpots + sotaSpots

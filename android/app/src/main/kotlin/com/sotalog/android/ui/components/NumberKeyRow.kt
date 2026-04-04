@@ -13,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -43,6 +45,9 @@ fun NumberKeyRow(
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(5.dp),
                     )
+                    .semantics {
+                        contentDescription = if (key == "/") "slash" else key
+                    }
                     .clickable { onKey(key) },
             ) {
                 Text(

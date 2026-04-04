@@ -4,10 +4,12 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -236,17 +238,22 @@ private fun MetadataChip(
     onClick: () -> Unit,
     textStyle: TextStyle,
 ) {
-    Text(
-        text = text,
-        style = textStyle,
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = Modifier
+            .sizeIn(minHeight = 36.dp)
             .clickable(onClick = onClick)
             .background(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
                 shape = CircleShape,
             )
-            .padding(horizontal = 6.dp, vertical = 2.dp),
-    )
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Text(
+            text = text,
+            style = textStyle,
+        )
+    }
 }
 
 @Composable
@@ -260,12 +267,13 @@ private fun ReferenceChip(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(3.dp),
         modifier = Modifier
+            .sizeIn(minHeight = 36.dp)
             .clickable(onClick = onClick)
             .background(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
                 shape = CircleShape,
             )
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
         Text(text = text, style = textStyle)
         Icon(
