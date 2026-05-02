@@ -264,14 +264,20 @@ class SpotsViewModel @Inject constructor(
                 val obj = element.jsonObject
                 val callsign = obj["activatorCallsign"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
                 val freq = obj["frequency"]?.jsonPrimitive?.doubleOrNull ?: return@mapNotNull null
+                if (freq <= 0.0) return@mapNotNull null
                 val mode = obj["mode"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "CW"
-                val reference = obj["associationCode"]?.jsonPrimitive?.contentOrNull?.let { assoc ->
-                    val summit = obj["summitCode"]?.jsonPrimitive?.contentOrNull
-                    if (summit != null) "$assoc/$summit" else null
-                }
-                val refName = obj["summitDetails"]?.jsonPrimitive?.contentOrNull
+                val reference = obj["summitCode"]?.jsonPrimitive?.contentOrNull
+                val refName = obj["summitName"]?.jsonPrimitive?.contentOrNull
                 val spotter = obj["callsign"]?.jsonPrimitive?.contentOrNull
-                val comments = obj["comments"]?.jsonPrimitive?.contentOrNull
+                val rawComments = obj["comments"]?.jsonPrimitive?.contentOrNull
+                val type = obj["type"]?.jsonPrimitive?.contentOrNull
+                val comments = if (type?.uppercase() == "QRT") {
+                    val existing = rawComments ?: ""
+                    if (existing.uppercase().contains("QRT")) existing else "QRT $existing".trim()
+                } else {
+                    rawComments
+                }
+                val spotId = obj["id"]?.jsonPrimitive?.contentOrNull ?: "0"
                 val timestamp = obj["timeStamp"]?.jsonPrimitive?.contentOrNull?.let { parseTimestamp(it) } ?: Date()
 
                 val normalizedMode = when {
@@ -282,7 +288,7 @@ class SpotsViewModel @Inject constructor(
                 }
 
                 Spot(
-                    id = "sota_${callsign}_${reference}",
+                    id = "sota-${spotId}-${callsign}",
                     activatorCallsign = callsign,
                     frequency = freq,
                     mode = normalizedMode,
