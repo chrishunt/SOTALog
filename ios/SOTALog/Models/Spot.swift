@@ -46,7 +46,7 @@ struct Spot: Identifiable, Equatable {
     }
 
     /// Whether this spot is older than the expiry threshold
-    func isExpired(after minutes: Double = 10) -> Bool {
+    func isExpired(after minutes: Double = 60) -> Bool {
         Date().timeIntervalSince(timestamp) > minutes * 60
     }
 

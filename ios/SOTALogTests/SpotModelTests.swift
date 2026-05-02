@@ -28,14 +28,14 @@ final class SpotModelTests: XCTestCase {
     }
 
     func testOldSpotExpired() {
-        let spot = makeSpot(timestamp: Date().addingTimeInterval(-11 * 60))
+        let spot = makeSpot(timestamp: Date().addingTimeInterval(-61 * 60))
         XCTAssertTrue(spot.isExpired())
     }
 
     func testIsExpiredCustomThreshold() {
-        let spot = makeSpot(timestamp: Date().addingTimeInterval(-6 * 60))
-        XCTAssertFalse(spot.isExpired(after: 10))
-        XCTAssertTrue(spot.isExpired(after: 5))
+        let spot = makeSpot(timestamp: Date().addingTimeInterval(-30 * 60))
+        XCTAssertFalse(spot.isExpired(after: 60))
+        XCTAssertTrue(spot.isExpired(after: 15))
     }
 
     // MARK: - isQRT

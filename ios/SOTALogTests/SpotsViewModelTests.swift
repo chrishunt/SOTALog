@@ -81,7 +81,7 @@ final class SpotsViewModelTests: XCTestCase {
         let vm = SpotsViewModel()
 
         vm.spots = [
-            makeSpot(id: "1", callsign: "W1AW", frequency: 14.060, potaReference: "US-0001", timestamp: Date().addingTimeInterval(-11 * 60)),
+            makeSpot(id: "1", callsign: "W1AW", frequency: 14.060, potaReference: "US-0001", timestamp: Date().addingTimeInterval(-61 * 60)),
         ]
 
         let all = vm.spotsByBand.flatMap(\.spots)
@@ -248,7 +248,7 @@ final class SpotsViewModelTests: XCTestCase {
     func testSpotForCallsignExcludesExpired() {
         let vm = SpotsViewModel()
         vm.spots = [
-            makeSpot(callsign: "W1AW", frequency: 14.060, potaReference: "US-0001", timestamp: Date().addingTimeInterval(-11 * 60)),
+            makeSpot(callsign: "W1AW", frequency: 14.060, potaReference: "US-0001", timestamp: Date().addingTimeInterval(-61 * 60)),
         ]
 
         let spot = vm.spotForCallsign("W1AW")

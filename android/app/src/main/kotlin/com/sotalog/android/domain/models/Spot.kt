@@ -36,7 +36,7 @@ data class Spot(
     val referenceName: String?
         get() = potaReferenceName ?: sotaReferenceName
 
-    fun isExpired(afterMinutes: Double = 10.0): Boolean {
+    fun isExpired(afterMinutes: Double = 60.0): Boolean {
         return (Date().time - timestamp.time) > (afterMinutes * 60 * 1000).toLong()
     }
 

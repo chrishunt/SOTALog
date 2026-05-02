@@ -44,15 +44,15 @@ class SpotModelTest {
 
         @Test
         fun `old spot expired`() {
-            val spot = makeSpot(timestamp = Date(Date().time - 11 * 60 * 1000))
+            val spot = makeSpot(timestamp = Date(Date().time - 61 * 60 * 1000))
             assertTrue(spot.isExpired())
         }
 
         @Test
         fun `isExpired custom threshold`() {
-            val spot = makeSpot(timestamp = Date(Date().time - 6 * 60 * 1000))
-            assertFalse(spot.isExpired(afterMinutes = 10.0))
-            assertTrue(spot.isExpired(afterMinutes = 5.0))
+            val spot = makeSpot(timestamp = Date(Date().time - 30 * 60 * 1000))
+            assertFalse(spot.isExpired(afterMinutes = 60.0))
+            assertTrue(spot.isExpired(afterMinutes = 15.0))
         }
     }
 

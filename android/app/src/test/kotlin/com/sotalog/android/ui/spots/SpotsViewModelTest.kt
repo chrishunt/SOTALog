@@ -141,7 +141,7 @@ class SpotsViewModelTest {
 
             vm.setSpots(
                 listOf(
-                    makeSpot(id = "1", callsign = "W1AW", frequency = 14.060, potaReference = "US-0001", timestamp = Date(Date().time - 11 * 60 * 1000)),
+                    makeSpot(id = "1", callsign = "W1AW", frequency = 14.060, potaReference = "US-0001", timestamp = Date(Date().time - 61 * 60 * 1000)),
                 )
             )
 
@@ -356,7 +356,7 @@ class SpotsViewModelTest {
             val vm = makeVM()
             vm.setSpots(
                 listOf(
-                    makeSpot(callsign = "W1AW", frequency = 14.060, potaReference = "US-0001", timestamp = Date(Date().time - 11 * 60 * 1000)),
+                    makeSpot(callsign = "W1AW", frequency = 14.060, potaReference = "US-0001", timestamp = Date(Date().time - 61 * 60 * 1000)),
                 )
             )
 
