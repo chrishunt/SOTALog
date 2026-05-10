@@ -6,8 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.5] - 2026-05-10
+
 ### Added
 - FM mode support: 3-way mode toggle (CW → SSB → FM), FM auto-derive on 2m (above 145.000 MHz) and 6m (above 51.000 MHz), FM filter chip on the spots sheet, and FM spot ingestion from POTA and SOTA APIs
+
+### Changed
+- Spot expiry threshold extended from 10 to 60 minutes
+- Android: spots and spot-me bottom sheets on the active log screen, navigation transitions, auto-hide bottom bar, predictive back gesture, accessibility improvements, and improved touch targets
+
+### Fixed
+- Android: SOTA spots API parsing
 
 ## [1.4] - 2026-04-03
 
@@ -206,7 +215,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.4...HEAD
+[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.5...HEAD
+[1.5]: https://github.com/chrishunt/SOTALog/compare/v1.4...v1.5
 [1.4]: https://github.com/chrishunt/SOTALog/compare/v1.3...v1.4
 [1.3]: https://github.com/chrishunt/SOTALog/compare/v1.2...v1.3
 [1.2]: https://github.com/chrishunt/SOTALog/compare/v1.1...v1.2
