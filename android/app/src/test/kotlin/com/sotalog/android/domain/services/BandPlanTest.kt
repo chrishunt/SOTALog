@@ -83,6 +83,43 @@ class BandPlanTest {
             assertNull(BandPlan.mode(0.5))
             assertNull(BandPlan.mode(100.0))
         }
+
+        @Test
+        fun `2m FM sub-band returns FM`() {
+            assertEquals("FM", BandPlan.mode(146.520))
+            assertEquals("FM", BandPlan.mode(145.000)) // at boundary
+            assertEquals("FM", BandPlan.mode(147.000))
+        }
+
+        @Test
+        fun `2m between SSB and FM boundaries returns SSB`() {
+            assertEquals("SSB", BandPlan.mode(144.999))
+            assertEquals("SSB", BandPlan.mode(144.200))
+        }
+
+        @Test
+        fun `2m below SSB boundary returns CW`() {
+            assertEquals("CW", BandPlan.mode(144.060))
+        }
+
+        @Test
+        fun `6m FM sub-band returns FM`() {
+            assertEquals("FM", BandPlan.mode(52.525))
+            assertEquals("FM", BandPlan.mode(51.000)) // at boundary
+        }
+
+        @Test
+        fun `6m between SSB and FM boundaries returns SSB`() {
+            assertEquals("SSB", BandPlan.mode(50.999))
+            assertEquals("SSB", BandPlan.mode(50.500))
+        }
+
+        @Test
+        fun `HF bands have no FM derivation`() {
+            assertEquals("SSB", BandPlan.mode(14.260))
+            assertEquals("SSB", BandPlan.mode(28.400))
+            assertEquals("SSB", BandPlan.mode(29.600)) // 10m FM happens here, but operator must toggle
+        }
     }
 
     @Nested
@@ -107,6 +144,34 @@ class BandPlanTest {
                 if (freq != null) {
                     assertEquals(bandName, BandPlan.band(freq))
                     assertEquals("SSB", BandPlan.mode(freq))
+                }
+            }
+        }
+    }
+
+    @Nested
+    inner class `Default FM Frequencies` {
+
+        @Test
+        fun `FM-capable bands have defaults`() {
+            assertEquals(146.520, BandPlan.defaultFMFrequency("2m"))
+            assertEquals(52.525, BandPlan.defaultFMFrequency("6m"))
+        }
+
+        @Test
+        fun `HF bands return null`() {
+            assertNull(BandPlan.defaultFMFrequency("20m"))
+            assertNull(BandPlan.defaultFMFrequency("40m"))
+            assertNull(BandPlan.defaultFMFrequency("10m"))
+        }
+
+        @Test
+        fun `default FM frequencies are within band and return FM mode`() {
+            for (bandName in BandPlan.allBands) {
+                val freq = BandPlan.defaultFMFrequency(bandName)
+                if (freq != null) {
+                    assertEquals(bandName, BandPlan.band(freq))
+                    assertEquals("FM", BandPlan.mode(freq))
                 }
             }
         }

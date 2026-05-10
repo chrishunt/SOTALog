@@ -187,6 +187,26 @@ class QSOEntryViewModelTest {
         }
 
         @Test
+        fun `save creates QSO with FM mode`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { qsoDao.insert(any()) } returns 1L
+
+            vm.onEntryTextChanged("W1AW")
+            advanceUntilIdle()
+            vm.onFrequencyChanged("146.520")
+            advanceUntilIdle()
+            vm.saveQSO()
+            advanceUntilIdle()
+
+            assertNotNull(vm.lastSavedQSO.value)
+            assertEquals("FM", vm.lastSavedQSO.value?.mode)
+            assertEquals("2m", vm.lastSavedQSO.value?.band)
+            assertEquals("59", vm.lastSavedQSO.value?.rstSent)
+        }
+
+        @Test
         fun `save uppercases callsign`() = runTest {
             val vm = makeVM()
             advanceUntilIdle()
@@ -443,7 +463,7 @@ class QSOEntryViewModelTest {
         }
 
         @Test
-        fun `toggle mode switches CW to SSB and back`() = runTest {
+        fun `toggle mode cycles CW SSB FM`() = runTest {
             val vm = makeVM()
             advanceUntilIdle()
 
@@ -455,9 +475,26 @@ class QSOEntryViewModelTest {
             assertEquals("59", vm.rstReceived.value)
 
             vm.toggleMode()
+            assertEquals("FM", vm.mode.value)
+            assertEquals("59", vm.rstSent.value)
+            assertEquals("59", vm.rstReceived.value)
+
+            vm.toggleMode()
             assertEquals("CW", vm.mode.value)
             assertEquals("599", vm.rstSent.value)
             assertEquals("599", vm.rstReceived.value)
+        }
+
+        @Test
+        fun `mode auto-derives to FM on 2m`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            assertEquals("CW", vm.mode.value)
+
+            vm.onFrequencyChanged("146.520")
+            assertEquals("FM", vm.mode.value)
+            assertEquals("59", vm.rstSent.value)
         }
 
         @Test

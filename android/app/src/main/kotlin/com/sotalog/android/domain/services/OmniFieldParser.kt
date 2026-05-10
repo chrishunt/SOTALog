@@ -106,7 +106,7 @@ object OmniFieldParser {
 
     private fun isModeToken(token: String): Boolean {
         val upper = token.uppercase()
-        return upper == "CW" || upper == "SSB"
+        return upper == "CW" || upper == "SSB" || upper == "FM"
     }
 
     private fun isFrequency(token: String): Boolean =

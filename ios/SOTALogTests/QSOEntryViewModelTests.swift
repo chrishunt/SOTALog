@@ -121,6 +121,39 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.lastSavedQSO?.rstSent, "59")
     }
 
+    func testSaveCreatesQSOWithFMMode() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        vm.frequencyText = "146.520"
+        vm.mode = "FM"
+        vm.rstSent = "59"
+        vm.rstReceived = "59"
+
+        await vm.saveQSO()
+
+        XCTAssertNotNil(vm.lastSavedQSO)
+        XCTAssertEqual(vm.lastSavedQSO?.mode, "FM")
+        XCTAssertEqual(vm.lastSavedQSO?.band, "2m")
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "59")
+    }
+
+    func testModeAutoDerivesToFMOn2m() {
+        let vm = makeVM()
+        XCTAssertEqual(vm.mode, "CW")
+
+        vm.frequencyText = "146.520"
+        vm.frequencyChanged()
+        XCTAssertEqual(vm.mode, "FM")
+        XCTAssertEqual(vm.rstSent, "59")
+    }
+
+    func testRadioModeUpdateAcceptsFM() {
+        let vm = makeVM()
+        vm.updateModeFromRadio("FM")
+        XCTAssertEqual(vm.mode, "FM")
+        XCTAssertEqual(vm.rstSent, "59")
+    }
+
     func testSaveUppercasesCallsign() async throws {
         let vm = makeVM()
         vm.entryText = "w1aw"
@@ -514,12 +547,17 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.defaultRST, "599")
     }
 
-    func testToggleMode() {
+    func testToggleModeCyclesCWSSBFM() {
         let vm = makeVM()
         XCTAssertEqual(vm.mode, "CW")
 
         vm.toggleMode()
         XCTAssertEqual(vm.mode, "SSB")
+        XCTAssertEqual(vm.rstSent, "59")
+        XCTAssertEqual(vm.rstReceived, "59")
+
+        vm.toggleMode()
+        XCTAssertEqual(vm.mode, "FM")
         XCTAssertEqual(vm.rstSent, "59")
         XCTAssertEqual(vm.rstReceived, "59")
 

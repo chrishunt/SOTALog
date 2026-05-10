@@ -299,6 +299,26 @@ class SpotsViewModelTest {
         }
 
         @Test
+        fun `FM filter shows only FM`() {
+            val vm = makeVM()
+            val now = Date()
+
+            vm.setSpots(
+                listOf(
+                    makeSpot(id = "1", callsign = "W1AW", frequency = 14.060, mode = "CW", potaReference = "US-0001", timestamp = now),
+                    makeSpot(id = "2", callsign = "K3ABC", frequency = 146.520, mode = "FM", potaReference = "US-0002", timestamp = now),
+                    makeSpot(id = "3", callsign = "K6ABC", frequency = 14.262, mode = "SSB", potaReference = "US-0003", timestamp = now),
+                )
+            )
+            vm.setModeFilter(ModeFilter.FM)
+
+            val all = vm.spotsByBand.value.flatMap { it.spots }
+            assertEquals(1, all.size)
+            assertEquals("K3ABC", all[0].activatorCallsign)
+            assertEquals("FM", all[0].mode)
+        }
+
+        @Test
         fun `mode and source filters combine`() {
             val vm = makeVM()
             val now = Date()

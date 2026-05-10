@@ -74,6 +74,7 @@ struct SpotsSheetView: View {
                         Text("All").tag(SpotsViewModel.ModeFilter.all)
                         Text("CW").tag(SpotsViewModel.ModeFilter.cw)
                         Text("SSB").tag(SpotsViewModel.ModeFilter.ssb)
+                        Text("FM").tag(SpotsViewModel.ModeFilter.fm)
                     }
                     .pickerStyle(.segmented)
                 }

@@ -60,6 +60,34 @@ final class BandPlanTests: XCTestCase {
         XCTAssertEqual(BandPlan.mode(for: 5.332), "CW")   // 60m
     }
 
+    func testModeFMSubBand() {
+        // 2m: above 145.000 is FM
+        XCTAssertEqual(BandPlan.mode(for: 146.520), "FM")
+        XCTAssertEqual(BandPlan.mode(for: 145.000), "FM")  // at boundary
+        XCTAssertEqual(BandPlan.mode(for: 147.000), "FM")
+        // 2m: between SSB and FM boundaries is SSB
+        XCTAssertEqual(BandPlan.mode(for: 144.999), "SSB")
+        XCTAssertEqual(BandPlan.mode(for: 144.200), "SSB")
+        // 2m: below SSB boundary is CW
+        XCTAssertEqual(BandPlan.mode(for: 144.060), "CW")
+
+        // 6m: above 51.000 is FM
+        XCTAssertEqual(BandPlan.mode(for: 52.525), "FM")
+        XCTAssertEqual(BandPlan.mode(for: 51.000), "FM")  // at boundary
+        // 6m: between SSB and FM boundaries is SSB
+        XCTAssertEqual(BandPlan.mode(for: 50.999), "SSB")
+        XCTAssertEqual(BandPlan.mode(for: 50.500), "SSB")
+        // 6m: below SSB boundary is CW
+        XCTAssertEqual(BandPlan.mode(for: 50.060), "CW")
+    }
+
+    func testHFBandsHaveNoFMDerivation() {
+        // HF bands have no FM sub-band — even high frequencies derive to SSB
+        XCTAssertEqual(BandPlan.mode(for: 14.260), "SSB")
+        XCTAssertEqual(BandPlan.mode(for: 28.400), "SSB")
+        XCTAssertEqual(BandPlan.mode(for: 29.600), "SSB")  // 10m FM happens here, but operator must toggle
+    }
+
     func testModeOutOfBand() {
         XCTAssertNil(BandPlan.mode(for: 0.5))
         XCTAssertNil(BandPlan.mode(for: 100.0))
@@ -80,6 +108,26 @@ final class BandPlanTests: XCTestCase {
             if let freq = BandPlan.defaultSSBFrequency(for: bandName) {
                 XCTAssertEqual(BandPlan.band(for: freq), bandName)
                 XCTAssertEqual(BandPlan.mode(for: freq), "SSB")
+            }
+        }
+    }
+
+    func testDefaultFMFrequencies() {
+        // FM-capable bands have defaults
+        XCTAssertEqual(BandPlan.defaultFMFrequency(for: "2m"), 146.520)
+        XCTAssertEqual(BandPlan.defaultFMFrequency(for: "6m"), 52.525)
+
+        // HF bands return nil
+        XCTAssertNil(BandPlan.defaultFMFrequency(for: "20m"))
+        XCTAssertNil(BandPlan.defaultFMFrequency(for: "40m"))
+        XCTAssertNil(BandPlan.defaultFMFrequency(for: "10m"))
+    }
+
+    func testDefaultFMFrequenciesAreWithinBand() {
+        for bandName in BandPlan.allBands {
+            if let freq = BandPlan.defaultFMFrequency(for: bandName) {
+                XCTAssertEqual(BandPlan.band(for: freq), bandName)
+                XCTAssertEqual(BandPlan.mode(for: freq), "FM")
             }
         }
     }
@@ -632,6 +680,23 @@ final class OmniFieldParserTests: XCTestCase {
         XCTAssertEqual(result.mode, "SSB")
         XCTAssertEqual(result.rstSent, "59")
         XCTAssertEqual(result.frequency, "14.260")
+    }
+
+    func testModeTokenFM() {
+        let result = OmniFieldParser.parse("W1AW FM")
+        XCTAssertEqual(result.mode, "FM")
+    }
+
+    func testModeTokenFMCaseInsensitive() {
+        let result = OmniFieldParser.parse("W1AW fm")
+        XCTAssertEqual(result.mode, "FM")
+    }
+
+    func testFMModeWithFrequencyAndRST() {
+        let result = OmniFieldParser.parse("W1AW 59 146.520 FM")
+        XCTAssertEqual(result.mode, "FM")
+        XCTAssertEqual(result.rstSent, "59")
+        XCTAssertEqual(result.frequency, "146.520")
     }
 
     func testEmptyInput() {

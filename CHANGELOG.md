@@ -6,6 +6,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- FM mode support: 3-way mode toggle (CW → SSB → FM), FM auto-derive on 2m (above 145.000 MHz) and 6m (above 51.000 MHz), FM filter chip on the spots sheet, and FM spot ingestion from POTA and SOTA APIs
+
 ## [1.4] - 2026-04-03
 
 ### Added

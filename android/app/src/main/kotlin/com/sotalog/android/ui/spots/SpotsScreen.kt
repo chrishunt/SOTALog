@@ -198,6 +198,7 @@ private fun FilterRow(
                             ModeFilter.ALL -> "All"
                             ModeFilter.CW -> "CW"
                             ModeFilter.SSB -> "SSB"
+                            ModeFilter.FM -> "FM"
                         },
                     )
                 },

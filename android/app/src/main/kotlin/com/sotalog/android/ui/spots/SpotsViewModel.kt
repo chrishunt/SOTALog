@@ -42,6 +42,7 @@ enum class ModeFilter(val value: String) {
     ALL("all"),
     CW("cw"),
     SSB("ssb"),
+    FM("fm"),
 }
 
 @HiltViewModel
@@ -92,6 +93,7 @@ class SpotsViewModel @Inject constructor(
             ModeFilter.ALL -> sourceFiltered
             ModeFilter.CW -> sourceFiltered.filter { it.mode == "CW" }
             ModeFilter.SSB -> sourceFiltered.filter { it.mode == "SSB" }
+            ModeFilter.FM -> sourceFiltered.filter { it.mode == "FM" }
         }
 
         val grouped = mutableMapOf<String, MutableList<Spot>>()
@@ -235,6 +237,7 @@ class SpotsViewModel @Inject constructor(
 
                 val normalizedMode = when {
                     mode.contains("CW") -> "CW"
+                    mode.contains("FM") -> "FM"
                     mode.contains("SSB") || mode.contains("LSB") || mode.contains("USB") || mode.contains("PHONE") -> "SSB"
                     mode.contains("FT") || mode.contains("DIGI") -> "FT8"
                     else -> mode
@@ -282,7 +285,8 @@ class SpotsViewModel @Inject constructor(
 
                 val normalizedMode = when {
                     mode.contains("CW") -> "CW"
-                    mode.contains("SSB") || mode.contains("LSB") || mode.contains("USB") || mode.contains("FM") -> "SSB"
+                    mode.contains("FM") -> "FM"
+                    mode.contains("SSB") || mode.contains("LSB") || mode.contains("USB") -> "SSB"
                     mode.contains("FT") || mode.contains("DATA") -> "FT8"
                     else -> mode
                 }

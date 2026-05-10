@@ -8,6 +8,6 @@ interface SOTASpotApi {
     @GET("api/spots/epoch")
     suspend fun getEpoch(): ResponseBody
 
-    @GET("api/spots/-1/all/cw,ssb")
+    @GET("api/spots/-1/all/cw,ssb,fm")
     suspend fun getSpots(): ResponseBody
 }

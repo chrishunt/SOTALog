@@ -8,7 +8,7 @@ final class SpotsViewModel {
     }
 
     enum ModeFilter: String {
-        case all, cw, ssb
+        case all, cw, ssb, fm
     }
 
     var spots: [Spot] = []
@@ -48,6 +48,7 @@ final class SpotsViewModel {
         case .all: filtered = sourceFiltered
         case .cw:  filtered = sourceFiltered.filter { $0.mode == "CW" }
         case .ssb: filtered = sourceFiltered.filter { $0.mode == "SSB" }
+        case .fm:  filtered = sourceFiltered.filter { $0.mode == "FM" }
         }
 
         // Group by band

@@ -15,9 +15,9 @@ enum SOTASpotService {
         return raw
     }
 
-    /// Fetches current SOTA CW and SSB spots (last 1 hour, all bands).
+    /// Fetches current SOTA CW, SSB, and FM spots (last 1 hour, all bands).
     static func fetchSpots() async throws -> [Spot] {
-        let url = URL(string: "\(baseURL)/api/spots/-1/all/cw,ssb")!
+        let url = URL(string: "\(baseURL)/api/spots/-1/all/cw,ssb,fm")!
         var request = URLRequest(url: url)
         request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
 

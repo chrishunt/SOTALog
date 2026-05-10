@@ -47,9 +47,9 @@ final class QSOEntryViewModel {
         return first.sanitizedCallsign
     }
 
-    /// Default RST based on current mode
+    /// Default RST based on current mode (CW = 599, voice modes = 59)
     var defaultRST: String {
-        mode == "SSB" ? "59" : "599"
+        mode == "CW" ? "599" : "59"
     }
 
     // CW Keyer
@@ -75,9 +75,13 @@ final class QSOEntryViewModel {
 
     // MARK: - Mode
 
-    /// Toggles between CW and SSB, marks as manual override, updates RST defaults
+    /// Cycles CW → SSB → FM → CW, marks as manual override, updates RST defaults
     func toggleMode() {
-        mode = mode == "CW" ? "SSB" : "CW"
+        switch mode {
+        case "CW":  mode = "SSB"
+        case "SSB": mode = "FM"
+        default:    mode = "CW"
+        }
         markManualOverride("mode")
         updateRSTForMode()
         recheckDupe()
@@ -102,7 +106,7 @@ final class QSOEntryViewModel {
         guard let radioMode, !radioMode.isEmpty else { return }
         if let pushTime = modePushTime, Date().timeIntervalSince(pushTime) < pushCooldown { return }
         let upper = radioMode.uppercased()
-        guard upper == "CW" || upper == "SSB" else { return }
+        guard upper == "CW" || upper == "SSB" || upper == "FM" else { return }
         if mode != upper {
             mode = upper
             updateRSTForMode()

@@ -81,10 +81,10 @@ enum OmniFieldParser {
         return token
     }
 
-    /// Matches "CW" or "SSB" (case-insensitive)
+    /// Matches "CW", "SSB", or "FM" (case-insensitive)
     private static func isModeToken(_ token: String) -> Bool {
         let upper = token.uppercased()
-        return upper == "CW" || upper == "SSB"
+        return upper == "CW" || upper == "SSB" || upper == "FM"
     }
 
     /// Matches a decimal number (frequency in MHz)

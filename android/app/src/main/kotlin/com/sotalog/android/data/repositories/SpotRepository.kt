@@ -31,7 +31,7 @@ class SpotRepository @Inject constructor(
 ) {
 
     companion object {
-        private const val SOTA_SPOTS_URL = "https://api-db2.sota.org.uk/api/spots/-1/all/cw,ssb"
+        private const val SOTA_SPOTS_URL = "https://api-db2.sota.org.uk/api/spots/-1/all/cw,ssb,fm"
         private const val POTA_SPOTS_URL = "https://api.pota.app/spot/activator"
         private const val USER_AGENT = "SOTA Log/1.0"
     }
@@ -137,9 +137,9 @@ class SpotRepository @Inject constructor(
         val comments = obj["comments"]?.jsonPrimitive?.contentOrNull
         val spotTime = obj["spotTime"]?.jsonPrimitive?.contentOrNull
 
-        // Filter: only CW and SSB modes
+        // Filter: only CW, SSB, and FM modes
         val modeUpper = modeStr.uppercase()
-        if (modeUpper != "CW" && modeUpper != "SSB") return null
+        if (modeUpper != "CW" && modeUpper != "SSB" && modeUpper != "FM") return null
 
         // Frequency may be in kHz (>1000) or MHz
         var frequency = freqStr.toDoubleOrNull() ?: return null

@@ -205,6 +205,23 @@ final class SpotsViewModelTests: XCTestCase {
         XCTAssertEqual(all.count, 2)
     }
 
+    func testFMFilterShowsOnlyFM() {
+        let vm = SpotsViewModel()
+        let now = Date()
+
+        vm.spots = [
+            makeSpot(id: "1", callsign: "W1AW", frequency: 14.060, mode: "CW", potaReference: "US-0001", timestamp: now),
+            makeSpot(id: "2", callsign: "K3ABC", frequency: 146.520, mode: "FM", potaReference: "US-0002", timestamp: now),
+            makeSpot(id: "3", callsign: "K6ABC", frequency: 14.262, mode: "SSB", potaReference: "US-0003", timestamp: now),
+        ]
+        vm.modeFilter = .fm
+
+        let all = vm.spotsByBand.flatMap(\.spots)
+        XCTAssertEqual(all.count, 1)
+        XCTAssertEqual(all[0].activatorCallsign, "K3ABC")
+        XCTAssertEqual(all[0].mode, "FM")
+    }
+
     func testModeAndSourceFiltersCombine() {
         let vm = SpotsViewModel()
         let now = Date()

@@ -112,6 +112,26 @@ class OmniFieldParserTest {
             assertEquals("59", result.rstSent)
             assertEquals("14.260", result.frequency)
         }
+
+        @Test
+        fun `mode token FM`() {
+            val result = OmniFieldParser.parse("W1AW FM")
+            assertEquals("FM", result.mode)
+        }
+
+        @Test
+        fun `mode token FM case insensitive`() {
+            val result = OmniFieldParser.parse("W1AW fm")
+            assertEquals("FM", result.mode)
+        }
+
+        @Test
+        fun `FM mode with frequency and RST`() {
+            val result = OmniFieldParser.parse("W1AW 59 146.520 FM")
+            assertEquals("FM", result.mode)
+            assertEquals("59", result.rstSent)
+            assertEquals("146.520", result.frequency)
+        }
     }
 
     @Nested

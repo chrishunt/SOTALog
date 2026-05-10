@@ -140,7 +140,7 @@ class QSOEntryViewModel @Inject constructor(
         }
 
     val defaultRST: String
-        get() = if (_mode.value == "SSB") "59" else "599"
+        get() = if (_mode.value == "CW") "599" else "59"
 
     init {
         viewModelScope.launch {
@@ -201,7 +201,11 @@ class QSOEntryViewModel @Inject constructor(
     // MARK: - Mode
 
     fun toggleMode() {
-        _mode.value = if (_mode.value == "CW") "SSB" else "CW"
+        _mode.value = when (_mode.value) {
+            "CW" -> "SSB"
+            "SSB" -> "FM"
+            else -> "CW"
+        }
         markManualOverride("mode")
         updateRSTForMode()
         recheckDupe()

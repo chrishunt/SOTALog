@@ -12,7 +12,7 @@ enum POTASpotService {
 
         return decoded.compactMap { dto -> Spot? in
             let upperMode = dto.mode?.uppercased()
-            guard upperMode == "CW" || upperMode == "SSB" else { return nil }
+            guard upperMode == "CW" || upperMode == "SSB" || upperMode == "FM" else { return nil }
             guard let freq = Double(dto.frequency ?? "") else { return nil }
 
             let freqMHz = freq > 1000 ? freq / 1000.0 : freq
