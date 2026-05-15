@@ -6,6 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.6] - 2026-05-15
+
+### Added
+- Maidenhead grid omnifield support: type a 4/6/8-character grid into the omnifield, tap the grid chip on the metadata strip to edit inline, and the field/subsquare canonicalize automatically on save
+
+### Fixed
+- Stale QTH, grid, POTA, and SOTA previews no longer linger when the trailing omnifield token changes kind
+
 ## [1.5] - 2026-05-10
 
 ### Added
@@ -215,7 +223,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.5...HEAD
+[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.6...HEAD
+[1.6]: https://github.com/chrishunt/SOTALog/compare/v1.5...v1.6
 [1.5]: https://github.com/chrishunt/SOTALog/compare/v1.4...v1.5
 [1.4]: https://github.com/chrishunt/SOTALog/compare/v1.3...v1.4
 [1.3]: https://github.com/chrishunt/SOTALog/compare/v1.2...v1.3
