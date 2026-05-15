@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Compact metadata display for QSO entry. Two lines:
 /// Line 1 (always): frequency · RST sent · RST received [· park ref ✓] [· summit ref ✓]
-/// Line 2 (when populated): name · QTH
+/// Line 2 (when populated): name · QTH · grid
 /// Tap any segment to edit inline. Send saves the QSO.
 struct MetadataStrip: View {
     @Binding var rstSent: String
@@ -17,6 +17,7 @@ struct MetadataStrip: View {
     @Binding var sotaRefInput: String
     var sotaRefFormatted: String?
     var sotaRefValid: Bool
+    @Binding var gridInput: String
     var onManualOverride: (String) -> Void
     var onModeToggle: () -> Void
     var onPOTAChanged: () -> Void
@@ -30,7 +31,7 @@ struct MetadataStrip: View {
     @State private var editingField: EditField?
 
     private enum EditField: Hashable {
-        case rstSent, rstReceived, frequency, name, qth, potaRef, sotaRef
+        case rstSent, rstReceived, frequency, name, qth, potaRef, sotaRef, grid
     }
 
     private var isEditingLine1: Bool {
@@ -42,7 +43,7 @@ struct MetadataStrip: View {
 
     private var isEditingLine2: Bool {
         switch editingField {
-        case .name, .qth: return true
+        case .name, .qth, .grid: return true
         default: return false
         }
     }
@@ -57,7 +58,7 @@ struct MetadataStrip: View {
 
             if isEditingLine2 {
                 line2Editor
-            } else if !name.isEmpty || !qth.isEmpty {
+            } else if !name.isEmpty || !qth.isEmpty || !gridInput.isEmpty {
                 line2Display
             }
         }
@@ -205,6 +206,12 @@ struct MetadataStrip: View {
                 segment(qth, field: .qth)
             }
 
+            if !gridInput.isEmpty {
+                if !name.isEmpty || !qth.isEmpty { dot }
+                segment(gridInput, field: .grid)
+                    .monospacedDigit()
+            }
+
             Spacer()
         }
         .font(.appMetadataLine2)
@@ -228,6 +235,11 @@ struct MetadataStrip: View {
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .onChange(of: qth) { _, _ in onManualOverride("qth") }
+            case .grid:
+                TextField("Grid", text: $gridInput)
+                    .focused($editFocus, equals: .grid)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
             default:
                 EmptyView()
             }

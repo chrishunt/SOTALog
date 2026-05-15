@@ -152,6 +152,7 @@ struct QSOEntryView: View {
             sotaRefInput: $viewModel.sotaRefInput,
             sotaRefFormatted: viewModel.sotaRefFormatted,
             sotaRefValid: viewModel.sotaRefValid,
+            gridInput: $viewModel.gridInput,
             onManualOverride: { viewModel.markManualOverride($0) },
             onModeToggle: { viewModel.toggleMode() },
             onPOTAChanged: { viewModel.validatePOTARef() },

@@ -43,7 +43,7 @@ import com.sotalog.android.ui.theme.SOTALogTheme
  * Editable field types for the metadata strip.
  */
 private enum class EditField {
-    RST_SENT, RST_RECEIVED, FREQUENCY, NAME, QTH, POTA_REF, SOTA_REF, NONE
+    RST_SENT, RST_RECEIVED, FREQUENCY, NAME, QTH, POTA_REF, SOTA_REF, GRID, NONE
 }
 
 /**
@@ -72,6 +72,8 @@ fun MetadataStrip(
     onSotaRefChanged: (String) -> Unit,
     sotaRefFormatted: String?,
     sotaRefValid: Boolean,
+    gridInput: String,
+    onGridChanged: (String) -> Unit,
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -83,7 +85,7 @@ fun MetadataStrip(
         EditField.RST_SENT, EditField.RST_RECEIVED, EditField.FREQUENCY,
         EditField.POTA_REF, EditField.SOTA_REF,
     )
-    val isEditingLine2 = editingField in listOf(EditField.NAME, EditField.QTH)
+    val isEditingLine2 = editingField in listOf(EditField.NAME, EditField.QTH, EditField.GRID)
 
     val chipTextStyle = TextStyle(
         fontFamily = FontFamily.Monospace,
@@ -200,12 +202,14 @@ fun MetadataStrip(
             onNameChanged = onNameChanged,
             qth = qth,
             onQthChanged = onQthChanged,
+            gridInput = gridInput,
+            onGridChanged = onGridChanged,
             onDismiss = {
                 editingField = EditField.NONE
                 onSubmit()
             },
         )
-    } else if (name.isNotEmpty() || qth.isNotEmpty()) {
+    } else if (name.isNotEmpty() || qth.isNotEmpty() || gridInput.isNotEmpty()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
@@ -225,6 +229,16 @@ fun MetadataStrip(
                     text = qth,
                     onClick = { editingField = EditField.QTH },
                     textStyle = chipTextStyle.copy(fontFamily = FontFamily.Default),
+                )
+            }
+            if (gridInput.isNotEmpty()) {
+                if (name.isNotEmpty() || qth.isNotEmpty()) {
+                    DotSeparator()
+                }
+                MetadataChip(
+                    text = gridInput,
+                    onClick = { editingField = EditField.GRID },
+                    textStyle = chipTextStyle,
                 )
             }
             Spacer(Modifier.weight(1f))
@@ -312,6 +326,8 @@ private fun MetadataEditor(
     onNameChanged: (String) -> Unit = {},
     qth: String = "",
     onQthChanged: (String) -> Unit = {},
+    gridInput: String = "",
+    onGridChanged: (String) -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -427,6 +443,22 @@ private fun MetadataEditor(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Characters,
+                    autoCorrectEnabled = false,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(onDone = { onDismiss() }),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+            )
+        }
+        EditField.GRID -> {
+            OutlinedTextField(
+                value = gridInput,
+                onValueChange = onGridChanged,
+                label = { Text("Grid (e.g. CM87wa)") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
                     autoCorrectEnabled = false,
                     imeAction = ImeAction.Done,
                 ),

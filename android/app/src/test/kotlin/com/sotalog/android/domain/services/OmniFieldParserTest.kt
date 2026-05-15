@@ -188,4 +188,88 @@ class OmniFieldParserTest {
             // XYZZY doesn't match any pattern -- silently ignored
         }
     }
+
+    @Nested
+    inner class `Maidenhead Grid` {
+
+        @Test
+        fun `4 char grid`() {
+            val result = OmniFieldParser.parse("W1AW CM87")
+            assertEquals("CM87", result.gridSquare)
+            assertNull(result.potaRef, "CM87 must classify as grid, not POTA")
+        }
+
+        @Test
+        fun `6 char grid lowercase subsquare`() {
+            val result = OmniFieldParser.parse("W1AW FN31pr")
+            assertEquals("FN31pr", result.gridSquare)
+        }
+
+        @Test
+        fun `8 char grid`() {
+            val result = OmniFieldParser.parse("W1AW FN31pr12")
+            assertEquals("FN31pr12", result.gridSquare)
+        }
+
+        @Test
+        fun `mixed case input canonicalizes`() {
+            val result = OmniFieldParser.parse("W1AW fn31PR")
+            assertEquals("FN31pr", result.gridSquare)
+        }
+
+        @Test
+        fun `subsquare letters out of range`() {
+            // 'y' is outside the a-x sub-square range
+            val result = OmniFieldParser.parse("W1AW FN31py")
+            assertNull(result.gridSquare)
+        }
+
+        @Test
+        fun `field letters out of range`() {
+            // 'S' is outside the A-R field range
+            val result = OmniFieldParser.parse("W1AW SS00")
+            assertNull(result.gridSquare)
+        }
+
+        @Test
+        fun `POTA prefix outside A-R stays POTA`() {
+            // 'U' is outside A-R, so US4431 stays POTA
+            val result = OmniFieldParser.parse("W1AW US4431")
+            assertEquals("US4431", result.potaRef)
+            assertNull(result.gridSquare)
+        }
+
+        @Test
+        fun `POTA prefix VK stays POTA`() {
+            val result = OmniFieldParser.parse("W1AW VK0001")
+            assertEquals("VK0001", result.potaRef)
+            assertNull(result.gridSquare)
+        }
+
+        @Test
+        fun `single letter POTA prefix still works`() {
+            val result = OmniFieldParser.parse("W1AW K1234")
+            assertEquals("K1234", result.potaRef)
+            assertNull(result.gridSquare)
+        }
+
+        @Test
+        fun `SOTA reference still classifies as SOTA`() {
+            val result = OmniFieldParser.parse("W1AW W4CCM001")
+            assertEquals("W4CCM001", result.sotaRef)
+            assertNull(result.gridSquare)
+        }
+
+        @Test
+        fun `5 char input not recognized`() {
+            val result = OmniFieldParser.parse("W1AW FN31p")
+            assertNull(result.gridSquare)
+        }
+
+        @Test
+        fun `7 char input not recognized`() {
+            val result = OmniFieldParser.parse("W1AW FN31pr1")
+            assertNull(result.gridSquare)
+        }
+    }
 }

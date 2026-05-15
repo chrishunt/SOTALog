@@ -2,7 +2,7 @@ import Foundation
 
 struct ParsedEntry {
     enum TokenKind {
-        case callsign, rst, frequency, mode, qth, potaRef, sotaRef, unrecognized
+        case callsign, rst, frequency, mode, qth, gridSquare, potaRef, sotaRef, unrecognized
     }
 
     struct ClassifiedToken {
@@ -16,6 +16,7 @@ struct ParsedEntry {
     var frequency: String?
     var mode: String?
     var qth: String?
+    var gridSquare: String?
     var potaRef: String?
     var sotaRef: String?
     var tokens: [ClassifiedToken] = []
@@ -49,6 +50,9 @@ enum OmniFieldParser {
             } else if isQTH(token) {
                 result.qth = token.uppercased()
                 result.tokens.append(.init(text: token, kind: .qth))
+            } else if let grid = parseGridSquare(token) {
+                result.gridSquare = grid
+                result.tokens.append(.init(text: token, kind: .gridSquare))
             } else if isPOTACandidate(token) {
                 result.potaRef = token.uppercased()
                 result.tokens.append(.init(text: token, kind: .potaRef))
@@ -95,6 +99,32 @@ enum OmniFieldParser {
     /// Matches US state, DC, territory, or Canadian province/territory abbreviation
     private static func isQTH(_ token: String) -> Bool {
         qthCodes.contains(token.uppercased())
+    }
+
+    /// Maidenhead grid: 4, 6, or 8 chars with strict alternation.
+    /// Pair 1 (field): A-R letters. Pair 2 (square): digits. Pair 3 (subsquare): a-x letters. Pair 4: digits.
+    /// Returns canonical mixed-case form (field upper, subsquare lower) or nil.
+    static func parseGridSquare(_ token: String) -> String? {
+        guard token.count == 4 || token.count == 6 || token.count == 8 else { return nil }
+        let upper = Array(token.uppercased())
+        let lower = Array(token.lowercased())
+
+        guard ("A"..."R").contains(upper[0]), ("A"..."R").contains(upper[1]),
+              upper[2].isNumber, upper[3].isNumber else { return nil }
+
+        var canon = "\(upper[0])\(upper[1])\(upper[2])\(upper[3])"
+
+        if upper.count >= 6 {
+            guard ("a"..."x").contains(lower[4]), ("a"..."x").contains(lower[5]) else { return nil }
+            canon += "\(lower[4])\(lower[5])"
+        }
+
+        if upper.count == 8 {
+            guard upper[6].isNumber, upper[7].isNumber else { return nil }
+            canon += "\(upper[6])\(upper[7])"
+        }
+
+        return canon
     }
 
     /// POTA candidate: starts with letter(s) followed by digits, e.g. US1234, K4567, VE0001

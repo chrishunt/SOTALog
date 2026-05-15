@@ -865,4 +865,174 @@ final class QSOEntryViewModelTests: XCTestCase {
         let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} K")
         XCTAssertEqual(result, "CQ POTA DE W1AW K")
     }
+
+    // MARK: - Maidenhead Grid (omnifield + preview-clear leak)
+
+    func testParseEntryAppliesGrid() {
+        let vm = makeVM()
+        vm.entryText = "W1AW CM87"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "CM87")
+        XCTAssertEqual(vm.potaRefInput, "", "CM87 must not also populate POTA")
+    }
+
+    func testParseEntryCanonicalizesGrid() {
+        let vm = makeVM()
+        vm.entryText = "W1AW fn31PR"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "FN31pr")
+    }
+
+    func testGridPreviewClearsWhenTypingBeyondValidLength() {
+        let vm = makeVM()
+        // Type "FN31" → grid set
+        vm.entryText = "W1AW FN31"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "FN31")
+        // Keep typing "FN31m" → 5 chars, not a valid grid, not POTA either
+        vm.entryText = "W1AW FN31m"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "", "5-char intermediate should clear stale grid preview")
+        // Keep typing "FN31ma" → 6-char grid, set again
+        vm.entryText = "W1AW FN31ma"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "FN31ma")
+    }
+
+    func testGridPreviewClearsWhenTransitioningFromPOTAToGrid() {
+        // Pre-existing bug: type "FN31" once → potaRefInput got "FN31" stale.
+        // After fix: "FN31" now classifies as grid (precedence). But what if user types something
+        // that's POTA then transitions to grid? e.g. "K1234" (POTA) then deletes/retypes.
+        // More direct: type a POTA candidate that's also not a grid, then transition to grid.
+        let vm = makeVM()
+        vm.entryText = "W1AW K1234"
+        vm.parseEntry()
+        XCTAssertEqual(vm.potaRefInput, "K1234")
+        // Now blow it away and type a grid
+        vm.entryText = "W1AW CM87"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "CM87")
+        XCTAssertEqual(vm.potaRefInput, "", "Stale POTA preview should clear when last token becomes grid")
+    }
+
+    func testConfirmedPOTAStaysStickyWhenGridPreviewAppears() {
+        // Confirmed (consumed) tokens must NOT be cleared by preview-flip.
+        let vm = makeVM()
+        // Confirm POTA by adding trailing space — token is consumed (stripped from entryText)
+        vm.entryText = "W1AW US4431 "
+        vm.parseEntry()
+        XCTAssertEqual(vm.potaRefInput, "US4431")
+        XCTAssertFalse(vm.entryText.contains("US4431"), "POTA token should be consumed")
+
+        // Operator types a grid onto the already-consumed state
+        vm.entryText += "CM87"
+        vm.parseEntry()
+
+        XCTAssertEqual(vm.potaRefInput, "US4431", "Confirmed POTA must remain")
+        XCTAssertEqual(vm.gridInput, "CM87")
+    }
+
+    func testGridPreviewClearsWhenLastTokenBecomesUnrecognized() {
+        let vm = makeVM()
+        vm.entryText = "W1AW CM87"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "CM87")
+        // Keep typing into something unrecognized — y/z are outside the a-x sub-square range
+        vm.entryText = "W1AW CM87yz"
+        vm.parseEntry()
+        XCTAssertEqual(vm.gridInput, "", "Invalid 6-char grid should clear stale preview")
+    }
+
+    func testGridConsumedAfterTrailingSpace() {
+        let vm = makeVM()
+        vm.entryText = "W1AW CM87 "
+        vm.parseEntry()
+        // Token should be consumed (stripped from entryText), grid value retained
+        XCTAssertEqual(vm.gridInput, "CM87")
+        XCTAssertFalse(vm.entryText.contains("CM87"), "Grid token should be consumed from entry text")
+    }
+
+    func testSavePersistsCanonicalizedGrid() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        vm.frequencyText = "14.060"
+        vm.gridInput = "fn31PR"
+
+        await vm.saveQSO()
+
+        XCTAssertEqual(vm.lastSavedQSO?.grid, "FN31pr", "Typed grid should be canonicalized before persisting")
+    }
+
+    func testSaveDropsInvalidTypedGrid() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        vm.frequencyText = "14.060"
+        vm.gridInput = "FOO123"
+
+        await vm.saveQSO()
+
+        XCTAssertNotNil(vm.lastSavedQSO)
+        XCTAssertNil(vm.lastSavedQSO?.grid, "Invalid typed grid must not leak into the saved QSO / ADIF")
+    }
+
+    func testConfirmedGridStaysStickyWhenTypingMore() {
+        let vm = makeVM()
+        vm.entryText = "W1AW CM87 "
+        vm.parseEntry()  // consumes CM87
+        XCTAssertEqual(vm.gridInput, "CM87")
+        XCTAssertFalse(vm.entryText.contains("CM87"), "Grid token should be consumed")
+
+        // Operator types more onto the consumed state (e.g., adds an RST)
+        vm.entryText += "59"
+        vm.parseEntry()
+
+        XCTAssertEqual(vm.gridInput, "CM87", "Confirmed grid must remain")
+        XCTAssertEqual(vm.rstSent, "599", "RST 59 expands to 599 for CW")
+    }
+
+    func testEditingClearedGridSavesNil() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        vm.frequencyText = "14.060"
+        vm.gridInput = "CM87"
+        await vm.saveQSO()
+        guard let saved = vm.lastSavedQSO else { XCTFail("expected saved QSO"); return }
+        XCTAssertEqual(saved.grid, "CM87")
+
+        vm.loadForEditing(saved)
+        XCTAssertEqual(vm.gridInput, "CM87")
+        vm.gridInput = ""
+        await vm.saveQSO()
+
+        XCTAssertNil(vm.lastSavedQSO?.grid, "Clearing pill during edit must drop the saved grid")
+    }
+
+    func testQTHPreviewClearAlsoDropsManualOverride() {
+        let vm = makeVM()
+        vm.entryText = "W1AW CA"
+        vm.parseEntry()
+        XCTAssertEqual(vm.qth, "CA")
+        XCTAssertTrue(vm.hasManualOverride("qth"))
+
+        // Type past it — "CAR" is unrecognized (not a QTH, not POTA, not grid)
+        vm.entryText = "W1AW CAR"
+        vm.parseEntry()
+        XCTAssertEqual(vm.qth, "")
+        XCTAssertFalse(vm.hasManualOverride("qth"),
+                       "Preview-clear must drop the override so QRZ/history can fill the empty field")
+    }
+
+    func testPOTAPreviewClearAlsoDropsManualOverride() {
+        let vm = makeVM()
+        vm.entryText = "W1AW K1234"
+        vm.parseEntry()
+        XCTAssertEqual(vm.potaRefInput, "K1234")
+        XCTAssertTrue(vm.hasManualOverride("potaRef"))
+
+        // Transition to a grid — preview-clear should empty POTA and drop its override
+        vm.entryText = "W1AW CM87"
+        vm.parseEntry()
+        XCTAssertEqual(vm.potaRefInput, "")
+        XCTAssertFalse(vm.hasManualOverride("potaRef"))
+    }
 }

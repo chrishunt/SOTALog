@@ -26,9 +26,14 @@ final class QSOEntryViewModel {
     var sotaRefInput: String = ""
     var sotaRefFormatted: String?
     var sotaRefValid: Bool = false
+    var gridInput: String = ""
 
     // Tracks which fields were manually edited (not set by omnifield)
     private var manualOverrides: Set<String> = []
+
+    // Kind of the last unconfirmed (no trailing space) omnifield token from the prior parse.
+    // Used to clear a previously previewed field when the operator types past it into a new kind.
+    private var previewKind: ParsedEntry.TokenKind?
 
     // Editing state
     var editingQSO: QSO?
@@ -60,6 +65,8 @@ final class QSOEntryViewModel {
     var sotaCatService: SOTACatService?
 
     private var lookupTask: Task<Void, Never>?
+    // Hidden auto-populated grid from QRZ/callsign history. Saved on the QSO and exported to ADIF,
+    // but never shown as a pill — the pill only appears when the operator types a grid.
     private var grid: String?
     private var frequencyPushTime: Date?
     private var modePushTime: Date?
@@ -136,6 +143,14 @@ final class QSOEntryViewModel {
     func parseEntry() {
         let parsed = OmniFieldParser.parse(entryText)
 
+        // Clear stale previews when the last unconfirmed token flips kind.
+        let endsWithSpace = entryText.hasSuffix(" ")
+        let currentLastKind: ParsedEntry.TokenKind? = endsWithSpace ? nil : parsed.tokens.last?.kind
+        if let prev = previewKind, prev != currentLastKind {
+            clearPreview(kind: prev)
+        }
+        previewKind = currentLastKind
+
         if let parsedMode = parsed.mode {
             mode = parsedMode
             markManualOverride("mode")
@@ -159,6 +174,9 @@ final class QSOEntryViewModel {
             qth = q
             markManualOverride("qth")
         }
+        if let g = parsed.gridSquare {
+            gridInput = g
+        }
         if let ref = parsed.potaRef {
             potaRefInput = ref
             markManualOverride("potaRef")
@@ -171,6 +189,32 @@ final class QSOEntryViewModel {
         }
 
         consumeTokens(parsed)
+    }
+
+    /// Clears a previously-previewed field when the operator types past it into a different kind.
+    /// Only applies to fields that show a live preview in the metadata strip. Also drops the
+    /// corresponding manualOverride so a subsequent auto-populate isn't suppressed.
+    private func clearPreview(kind: ParsedEntry.TokenKind) {
+        switch kind {
+        case .qth:
+            qth = ""
+            manualOverrides.remove("qth")
+        case .gridSquare:
+            gridInput = ""
+        case .potaRef:
+            potaRefInput = ""
+            potaRefFormatted = nil
+            potaRefName = nil
+            potaRefValid = false
+            manualOverrides.remove("potaRef")
+        case .sotaRef:
+            sotaRefInput = ""
+            sotaRefFormatted = nil
+            sotaRefValid = false
+            manualOverrides.remove("sotaRef")
+        default:
+            break
+        }
     }
 
     /// Strip consumed tokens (frequency, mode, QTH, park ref, summit ref) from entryText
@@ -196,7 +240,7 @@ final class QSOEntryViewModel {
                 if isConfirmed { consumedFrequency = true } else { kept.append(classified.text) }
             case .mode:
                 if isConfirmed { consumedMode = true } else { kept.append(classified.text) }
-            case .qth, .potaRef, .sotaRef:
+            case .qth, .gridSquare, .potaRef, .sotaRef:
                 if !isConfirmed {
                     kept.append(classified.text)
                 }
@@ -217,6 +261,10 @@ final class QSOEntryViewModel {
 
     func markManualOverride(_ field: String) {
         manualOverrides.insert(field)
+    }
+
+    func hasManualOverride(_ field: String) -> Bool {
+        manualOverrides.contains(field)
     }
 
     // MARK: - Callsign Changed (Auto-populate cascade)
@@ -464,6 +512,10 @@ final class QSOEntryViewModel {
             sotaRefInput = SOTASummit.normalize(ref)
             validateSOTARef()
         }
+        // Restore saved grid into the pill so it's visible and editable during edit.
+        // The pill is the source of truth in edit mode — the hidden `grid` only carries
+        // auto-populated lookups (resolveLocal/resolveQRZ).
+        gridInput = qso.grid ?? ""
     }
 
     func cancelEditing() {
@@ -480,7 +532,17 @@ final class QSOEntryViewModel {
         let frequency = Double(frequencyText)
         let band = frequency.flatMap { BandPlan.band(for: $0) } ?? "20m"
 
-        let resolvedGrid = grid
+        // Operator-typed grid wins. New QSO with empty input falls back to the hidden
+        // auto-populated value; an empty pill during edit means the operator cleared it.
+        // Invalid typed input persists as nil — ADIF GRIDSQUARE has a defined format and shouldn't carry junk.
+        let resolvedGrid: String?
+        if !gridInput.isEmpty {
+            resolvedGrid = OmniFieldParser.parseGridSquare(gridInput)
+        } else if isEditing {
+            resolvedGrid = nil
+        } else {
+            resolvedGrid = grid
+        }
 
         var qso: QSO
         if let editing = editingQSO {
@@ -589,10 +651,12 @@ final class QSOEntryViewModel {
         sotaRefInput = ""
         sotaRefFormatted = nil
         sotaRefValid = false
+        gridInput = ""
         timesWorked = 0
         workedToday = 0
         isDupe = false
         grid = nil
+        previewKind = nil
         manualOverrides = []
         // frequency and mode persist between QSOs
     }
@@ -699,10 +763,12 @@ final class QSOEntryViewModel {
         sotaRefInput = ""
         sotaRefFormatted = nil
         sotaRefValid = false
+        gridInput = ""
         timesWorked = 0
         workedToday = 0
         isDupe = false
         grid = nil
+        previewKind = nil
         manualOverrides = []
         // frequency and mode persist between QSOs
     }

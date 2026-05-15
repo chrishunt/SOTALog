@@ -73,6 +73,7 @@ fun QSOEntryPanel(
     val sotaRefInput by viewModel.sotaRefInput.collectAsStateWithLifecycle()
     val sotaRefFormatted by viewModel.sotaRefFormatted.collectAsStateWithLifecycle()
     val sotaRefValid by viewModel.sotaRefValid.collectAsStateWithLifecycle()
+    val gridInput by viewModel.gridInput.collectAsStateWithLifecycle()
     val timesWorked by viewModel.timesWorked.collectAsStateWithLifecycle()
     val workedToday by viewModel.workedToday.collectAsStateWithLifecycle()
     val isDupe by viewModel.isDupe.collectAsStateWithLifecycle()
@@ -156,6 +157,8 @@ fun QSOEntryPanel(
                 onSotaRefChanged = { viewModel.onSotaRefChanged(it) },
                 sotaRefFormatted = sotaRefFormatted,
                 sotaRefValid = sotaRefValid,
+                gridInput = gridInput,
+                onGridChanged = { viewModel.onGridChanged(it) },
                 onSubmit = { focusRequester.requestFocus() },
             )
 

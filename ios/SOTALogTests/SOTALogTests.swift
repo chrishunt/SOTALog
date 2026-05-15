@@ -720,6 +720,77 @@ final class OmniFieldParserTests: XCTestCase {
         XCTAssertEqual(result.rstSent, "57")
         XCTAssertEqual(result.frequency, "14.060")
     }
+
+    // MARK: - Maidenhead Grid
+
+    func testGrid4Char() {
+        let result = OmniFieldParser.parse("W1AW CM87")
+        XCTAssertEqual(result.gridSquare, "CM87")
+        XCTAssertNil(result.potaRef, "CM87 must classify as grid, not POTA")
+    }
+
+    func testGrid6CharLowercase() {
+        let result = OmniFieldParser.parse("W1AW FN31pr")
+        XCTAssertEqual(result.gridSquare, "FN31pr")
+    }
+
+    func testGrid8Char() {
+        let result = OmniFieldParser.parse("W1AW FN31pr12")
+        XCTAssertEqual(result.gridSquare, "FN31pr12")
+    }
+
+    func testGridCanonicalizesMixedCase() {
+        let result = OmniFieldParser.parse("W1AW fn31PR")
+        XCTAssertEqual(result.gridSquare, "FN31pr")
+    }
+
+    func testGridLastPairOutOfRange() {
+        // 'y' is outside the a-x sub-square range
+        let result = OmniFieldParser.parse("W1AW FN31py")
+        XCTAssertNil(result.gridSquare)
+    }
+
+    func testGridFirstPairOutOfRange() {
+        // 'S' is outside the A-R field range — should NOT classify as grid
+        let result = OmniFieldParser.parse("W1AW SS00")
+        XCTAssertNil(result.gridSquare)
+    }
+
+    func testPOTAStillWinsForOutOfRangePrefixes() {
+        // 'U' is outside A-R, so US4431 stays POTA
+        let result = OmniFieldParser.parse("W1AW US4431")
+        XCTAssertEqual(result.potaRef, "US4431")
+        XCTAssertNil(result.gridSquare)
+    }
+
+    func testPOTAStillWinsForVK() {
+        let result = OmniFieldParser.parse("W1AW VK0001")
+        XCTAssertEqual(result.potaRef, "VK0001")
+        XCTAssertNil(result.gridSquare)
+    }
+
+    func testSinglePrefixPOTAStillWorks() {
+        // K1234 — single leading letter, not 4-char grid
+        let result = OmniFieldParser.parse("W1AW K1234")
+        XCTAssertEqual(result.potaRef, "K1234")
+        XCTAssertNil(result.gridSquare)
+    }
+
+    func testSOTAStillWins() {
+        let result = OmniFieldParser.parse("W1AW W4CCM001")
+        XCTAssertEqual(result.sotaRef, "W4CCM001")
+        XCTAssertNil(result.gridSquare)
+    }
+
+    func testGridWith5CharsNotRecognized() {
+        let result = OmniFieldParser.parse("W1AW FN31p")
+        XCTAssertNil(result.gridSquare)
+    }
+
+    func testGridWith7CharsNotRecognized() {
+        let result = OmniFieldParser.parse("W1AW FN31pr1")
+        XCTAssertNil(result.gridSquare)
+    }
 }
 
 // MARK: - Log Model Tests

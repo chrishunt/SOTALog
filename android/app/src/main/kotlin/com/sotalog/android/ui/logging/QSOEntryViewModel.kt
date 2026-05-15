@@ -98,6 +98,13 @@ class QSOEntryViewModel @Inject constructor(
     private val _notes = MutableStateFlow("")
     val notes: StateFlow<String> = _notes.asStateFlow()
 
+    private val _gridInput = MutableStateFlow("")
+    val gridInput: StateFlow<String> = _gridInput.asStateFlow()
+
+    // Kind of the last unconfirmed (no trailing space) omnifield token from the prior parse.
+    // Used to clear a previously previewed field when the operator types past it into a new kind.
+    @Volatile private var previewKind: TokenKind? = null
+
     // Tracks which fields were manually edited (accessed from multiple coroutines)
     private val manualOverrides: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
 
@@ -131,6 +138,9 @@ class QSOEntryViewModel @Inject constructor(
     var spotLookup: ((String) -> Spot?)? = null
 
     private var lookupJob: Job? = null
+
+    // Hidden auto-populated grid from QRZ/callsign history. Saved on the QSO and exported to ADIF,
+    // but never shown as a chip — the chip only appears when the operator types a grid.
     @Volatile private var grid: String? = null
 
     val parsedCallsign: String
@@ -194,6 +204,10 @@ class QSOEntryViewModel @Inject constructor(
         validateSOTARef()
     }
 
+    fun onGridChanged(value: String) {
+        _gridInput.value = value
+    }
+
     fun onNotesChanged(value: String) {
         _notes.value = value
     }
@@ -240,6 +254,15 @@ class QSOEntryViewModel @Inject constructor(
     private fun parseEntry() {
         val parsed = OmniFieldParser.parse(_entryText.value)
 
+        // Clear stale previews when the last unconfirmed token flips kind.
+        val endsWithSpace = _entryText.value.endsWith(" ")
+        val currentLastKind = if (endsWithSpace) null else parsed.tokens.lastOrNull()?.kind
+        val prev = previewKind
+        if (prev != null && prev != currentLastKind) {
+            clearPreview(prev)
+        }
+        previewKind = currentLastKind
+
         parsed.mode?.let { parsedMode ->
             _mode.value = parsedMode
             markManualOverride("mode")
@@ -263,6 +286,9 @@ class QSOEntryViewModel @Inject constructor(
             _qth.value = q
             markManualOverride("qth")
         }
+        parsed.gridSquare?.let { g ->
+            _gridInput.value = g
+        }
         parsed.potaRef?.let { ref ->
             _potaRefInput.value = ref
             markManualOverride("potaRef")
@@ -276,6 +302,37 @@ class QSOEntryViewModel @Inject constructor(
 
         consumeTokens(parsed)
     }
+
+    /**
+     * Clears a previously-previewed field when the operator types past it into a different kind.
+     * Only applies to fields that show a live preview in the metadata strip. Also drops the
+     * corresponding manualOverride so a subsequent auto-populate isn't suppressed.
+     */
+    private fun clearPreview(kind: TokenKind) {
+        when (kind) {
+            TokenKind.QTH -> {
+                _qth.value = ""
+                manualOverrides.remove("qth")
+            }
+            TokenKind.GRID_SQUARE -> _gridInput.value = ""
+            TokenKind.POTA_REF -> {
+                _potaRefInput.value = ""
+                _potaRefFormatted.value = null
+                _potaRefName.value = null
+                _potaRefValid.value = false
+                manualOverrides.remove("potaRef")
+            }
+            TokenKind.SOTA_REF -> {
+                _sotaRefInput.value = ""
+                _sotaRefFormatted.value = null
+                _sotaRefValid.value = false
+                manualOverrides.remove("sotaRef")
+            }
+            else -> {}
+        }
+    }
+
+    fun hasManualOverride(field: String): Boolean = field in manualOverrides
 
     private fun consumeTokens(parsed: com.sotalog.android.domain.services.ParsedEntry) {
         val tokens = parsed.tokens
@@ -294,7 +351,7 @@ class QSOEntryViewModel @Inject constructor(
                     kept.add(classified.text)
                 }
                 TokenKind.FREQUENCY, TokenKind.MODE, TokenKind.QTH,
-                TokenKind.POTA_REF, TokenKind.SOTA_REF -> {
+                TokenKind.GRID_SQUARE, TokenKind.POTA_REF, TokenKind.SOTA_REF -> {
                     if (!isConfirmed) kept.add(classified.text)
                 }
             }
@@ -502,6 +559,10 @@ class QSOEntryViewModel @Inject constructor(
             _sotaRefInput.value = SOTASummit.normalize(ref)
             validateSOTARef()
         }
+        // Restore saved grid into the chip so it's visible and editable during edit.
+        // The chip is the source of truth in edit mode — the hidden `grid` only carries
+        // auto-populated lookups (resolveLocal/resolveQRZ).
+        _gridInput.value = qso.grid ?: ""
     }
 
     fun cancelEditing() {
@@ -517,7 +578,15 @@ class QSOEntryViewModel @Inject constructor(
 
         val frequency = _frequencyText.value.toDoubleOrNull()
         val band = frequency?.let { BandPlan.band(it) } ?: "20m"
-        val resolvedGrid = grid
+        // Operator-typed grid wins. New QSO with empty input falls back to the hidden
+        // auto-populated value; an empty chip during edit means the operator cleared it.
+        // Invalid typed input persists as null — ADIF GRIDSQUARE has a defined format and shouldn't carry junk.
+        val gridValue = _gridInput.value
+        val resolvedGrid: String? = when {
+            gridValue.isNotEmpty() -> OmniFieldParser.parseGridSquare(gridValue)
+            _editingQSO.value != null -> null
+            else -> grid
+        }
 
         viewModelScope.launch {
             val qso: QSO
@@ -543,6 +612,7 @@ class QSOEntryViewModel @Inject constructor(
                     syncedToQRZ = editing.syncedToQRZ,
                 )
                 qsoDao.update(qso)
+                _lastSavedQSO.value = qso
             } else {
                 val now = Date()
                 qso = QSO(
@@ -677,11 +747,13 @@ class QSOEntryViewModel @Inject constructor(
         _sotaRefInput.value = ""
         _sotaRefFormatted.value = null
         _sotaRefValid.value = false
+        _gridInput.value = ""
         _notes.value = ""
         _timesWorked.value = 0
         _workedToday.value = 0
         _isDupe.value = false
         grid = null
+        previewKind = null
         manualOverrides.clear()
     }
 
@@ -707,11 +779,13 @@ class QSOEntryViewModel @Inject constructor(
         _sotaRefInput.value = ""
         _sotaRefFormatted.value = null
         _sotaRefValid.value = false
+        _gridInput.value = ""
         _notes.value = ""
         _timesWorked.value = 0
         _workedToday.value = 0
         _isDupe.value = false
         grid = null
+        previewKind = null
         manualOverrides.clear()
         // frequency and mode persist between QSOs
     }

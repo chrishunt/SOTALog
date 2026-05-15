@@ -832,4 +832,241 @@ class QSOEntryViewModelTest {
             assertEquals("W6SD UR 55N BK", result)
         }
     }
+
+    // MARK: - Maidenhead Grid (omnifield + preview-clear leak)
+
+    @Nested
+    inner class `Maidenhead Grid` {
+
+        @Test
+        fun `parse entry applies grid`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("W1AW CM87")
+            advanceUntilIdle()
+
+            assertEquals("CM87", vm.gridInput.value)
+            assertEquals("", vm.potaRefInput.value)
+        }
+
+        @Test
+        fun `parse entry canonicalizes mixed case grid`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("W1AW fn31PR")
+            advanceUntilIdle()
+
+            assertEquals("FN31pr", vm.gridInput.value)
+        }
+
+        @Test
+        fun `grid preview clears when typing beyond valid length`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("W1AW FN31")
+            advanceUntilIdle()
+            assertEquals("FN31", vm.gridInput.value)
+
+            vm.onEntryTextChanged("W1AW FN31m")
+            advanceUntilIdle()
+            assertEquals("", vm.gridInput.value)
+
+            vm.onEntryTextChanged("W1AW FN31ma")
+            advanceUntilIdle()
+            assertEquals("FN31ma", vm.gridInput.value)
+        }
+
+        @Test
+        fun `grid preview clears when transitioning from POTA to grid`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { referenceDao.searchParksByNormalizedPrefix(any(), any()) } returns emptyList()
+
+            vm.onEntryTextChanged("W1AW K1234")
+            advanceUntilIdle()
+            assertEquals("K1234", vm.potaRefInput.value)
+
+            vm.onEntryTextChanged("W1AW CM87")
+            advanceUntilIdle()
+            assertEquals("CM87", vm.gridInput.value)
+            assertEquals("", vm.potaRefInput.value)
+        }
+
+        @Test
+        fun `confirmed POTA stays sticky when grid preview appears`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { referenceDao.searchParksByNormalizedPrefix(any(), any()) } returns emptyList()
+
+            vm.onEntryTextChanged("W1AW US4431 ")
+            advanceUntilIdle()
+            assertEquals("US4431", vm.potaRefInput.value)
+
+            vm.onEntryTextChanged("W1AW US4431 CM87")
+            advanceUntilIdle()
+            assertEquals("US4431", vm.potaRefInput.value)
+            assertEquals("CM87", vm.gridInput.value)
+        }
+
+        @Test
+        fun `grid preview clears when last token becomes unrecognized`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("W1AW CM87")
+            advanceUntilIdle()
+            assertEquals("CM87", vm.gridInput.value)
+
+            // y and z are outside the a-x sub-square range
+            vm.onEntryTextChanged("W1AW CM87yz")
+            advanceUntilIdle()
+            assertEquals("", vm.gridInput.value)
+        }
+
+        @Test
+        fun `grid consumed after trailing space`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("W1AW CM87 ")
+            advanceUntilIdle()
+
+            assertEquals("CM87", vm.gridInput.value)
+            // CM87 should be stripped from entry text after the trailing space confirms it
+            assert(!vm.entryText.value.contains("CM87")) {
+                "Grid token should be consumed from entry text, got '${vm.entryText.value}'"
+            }
+        }
+
+        @Test
+        fun `save persists canonicalized grid`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { qsoDao.insert(any()) } returns 1L
+
+            vm.onEntryTextChanged("W1AW")
+            vm.onFrequencyChanged("14.060")
+            vm.onGridChanged("fn31PR")
+            advanceUntilIdle()
+
+            vm.saveQSO()
+            advanceUntilIdle()
+
+            assertEquals("FN31pr", vm.lastSavedQSO.value?.grid)
+        }
+
+        @Test
+        fun `save drops invalid typed grid`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { qsoDao.insert(any()) } returns 1L
+
+            vm.onEntryTextChanged("W1AW")
+            vm.onFrequencyChanged("14.060")
+            vm.onGridChanged("FOO123")
+            advanceUntilIdle()
+
+            vm.saveQSO()
+            advanceUntilIdle()
+
+            assertNotNull(vm.lastSavedQSO.value)
+            assertNull(vm.lastSavedQSO.value?.grid)
+        }
+
+        @Test
+        fun `confirmed grid stays sticky when typing more`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("W1AW CM87 ")
+            advanceUntilIdle()
+            assertEquals("CM87", vm.gridInput.value)
+            assert(!vm.entryText.value.contains("CM87")) {
+                "Grid token should be consumed"
+            }
+
+            // Operator types more onto the consumed state (e.g., an RST)
+            vm.onEntryTextChanged(vm.entryText.value + "59")
+            advanceUntilIdle()
+
+            assertEquals("CM87", vm.gridInput.value)
+            assertEquals("599", vm.rstSent.value)
+        }
+
+        @Test
+        fun `editing cleared grid saves nil`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { qsoDao.insert(any()) } returns 1L
+
+            vm.onEntryTextChanged("W1AW")
+            vm.onFrequencyChanged("14.060")
+            vm.onGridChanged("CM87")
+            advanceUntilIdle()
+            vm.saveQSO()
+            advanceUntilIdle()
+
+            val saved = vm.lastSavedQSO.value
+            assertNotNull(saved)
+            assertEquals("CM87", saved?.grid)
+
+            vm.loadForEditing(saved!!)
+            advanceUntilIdle()
+            assertEquals("CM87", vm.gridInput.value)
+
+            vm.onGridChanged("")
+            advanceUntilIdle()
+            vm.saveQSO()
+            advanceUntilIdle()
+
+            assertNull(vm.lastSavedQSO.value?.grid)
+        }
+
+        @Test
+        fun `QTH preview clear also drops manual override`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("W1AW CA")
+            advanceUntilIdle()
+            assertEquals("CA", vm.qth.value)
+            assertTrue(vm.hasManualOverride("qth"))
+
+            // Type past it — "CAR" is unrecognized (not a QTH, not POTA, not grid)
+            vm.onEntryTextChanged("W1AW CAR")
+            advanceUntilIdle()
+            assertEquals("", vm.qth.value)
+            assertFalse(
+                vm.hasManualOverride("qth"),
+                "Preview-clear must drop the override so QRZ/history can fill the empty field",
+            )
+        }
+
+        @Test
+        fun `POTA preview clear also drops manual override`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { referenceDao.searchParksByNormalizedPrefix(any(), any()) } returns emptyList()
+
+            vm.onEntryTextChanged("W1AW K1234")
+            advanceUntilIdle()
+            assertEquals("K1234", vm.potaRefInput.value)
+            assertTrue(vm.hasManualOverride("potaRef"))
+
+            // Transition to a grid — preview-clear should empty POTA and drop its override
+            vm.onEntryTextChanged("W1AW CM87")
+            advanceUntilIdle()
+            assertEquals("", vm.potaRefInput.value)
+            assertFalse(vm.hasManualOverride("potaRef"))
+        }
+    }
 }

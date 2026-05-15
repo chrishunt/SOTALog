@@ -7,6 +7,7 @@ data class ParsedEntry(
     val frequency: String? = null,
     val mode: String? = null,
     val qth: String? = null,
+    val gridSquare: String? = null,
     val potaRef: String? = null,
     val sotaRef: String? = null,
     val tokens: List<ClassifiedToken> = emptyList(),
@@ -18,7 +19,7 @@ data class ClassifiedToken(
 )
 
 enum class TokenKind {
-    CALLSIGN, RST, FREQUENCY, MODE, QTH, POTA_REF, SOTA_REF, UNRECOGNIZED,
+    CALLSIGN, RST, FREQUENCY, MODE, QTH, GRID_SQUARE, POTA_REF, SOTA_REF, UNRECOGNIZED,
 }
 
 object OmniFieldParser {
@@ -33,6 +34,7 @@ object OmniFieldParser {
         var frequency: String? = null
         var mode: String? = null
         var qth: String? = null
+        var gridSquare: String? = null
         var potaRef: String? = null
         var sotaRef: String? = null
         val classified = mutableListOf(ClassifiedToken(first, TokenKind.CALLSIGN))
@@ -61,6 +63,10 @@ object OmniFieldParser {
                     qth = token.uppercase()
                     classified.add(ClassifiedToken(token, TokenKind.QTH))
                 }
+                parseGridSquare(token) != null -> {
+                    gridSquare = parseGridSquare(token)
+                    classified.add(ClassifiedToken(token, TokenKind.GRID_SQUARE))
+                }
                 isPOTACandidate(token) -> {
                     potaRef = token.uppercase()
                     classified.add(ClassifiedToken(token, TokenKind.POTA_REF))
@@ -82,10 +88,39 @@ object OmniFieldParser {
             frequency = frequency,
             mode = mode,
             qth = qth,
+            gridSquare = gridSquare,
             potaRef = potaRef,
             sotaRef = sotaRef,
             tokens = classified,
         )
+    }
+
+    /**
+     * Maidenhead grid: 4, 6, or 8 chars with strict alternation.
+     * Pair 1 (field): A-R letters. Pair 2 (square): digits. Pair 3 (subsquare): a-x letters. Pair 4: digits.
+     * Returns canonical mixed-case form (field upper, subsquare lower) or null.
+     */
+    fun parseGridSquare(token: String): String? {
+        if (token.length !in setOf(4, 6, 8)) return null
+
+        val f0 = token[0].uppercaseChar()
+        val f1 = token[1].uppercaseChar()
+        if (f0 !in 'A'..'R' || f1 !in 'A'..'R') return null
+        if (!token[2].isDigit() || !token[3].isDigit()) return null
+
+        val sb = StringBuilder().append(f0).append(f1).append(token[2]).append(token[3])
+
+        if (token.length >= 6) {
+            val s0 = token[4].lowercaseChar()
+            val s1 = token[5].lowercaseChar()
+            if (s0 !in 'a'..'x' || s1 !in 'a'..'x') return null
+            sb.append(s0).append(s1)
+        }
+        if (token.length == 8) {
+            if (!token[6].isDigit() || !token[7].isDigit()) return null
+            sb.append(token[6]).append(token[7])
+        }
+        return sb.toString()
     }
 
     private fun parseRST(token: String): String? {
