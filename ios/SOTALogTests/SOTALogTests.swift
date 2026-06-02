@@ -638,6 +638,23 @@ final class OmniFieldParserTests: XCTestCase {
         XCTAssertEqual(result.sotaRef, "W4CCM001")
     }
 
+    func testSOTARefWithSeparators() {
+        for ref in ["W4C/CM-001", "W4C/CM001", "W4CCM-001"] {
+            let result = OmniFieldParser.parse("W1AW \(ref)")
+            XCTAssertNotNil(result.sotaRef, "expected \(ref) to be recognized as a SOTA ref")
+            XCTAssertEqual(SOTASummit.normalize(result.sotaRef ?? ""), "W4CCM001")
+            XCTAssertNil(result.potaRef, "\(ref) should not be classified as POTA")
+        }
+    }
+
+    func testPOTARefWithSeparators() {
+        for ref in ["US-1234", "K-4567"] {
+            let result = OmniFieldParser.parse("W1AW \(ref)")
+            XCTAssertNotNil(result.potaRef, "expected \(ref) to be recognized as a POTA ref")
+            XCTAssertEqual(POTAPark.normalize(result.potaRef ?? ""), POTAPark.normalize(ref))
+        }
+    }
+
     func testFrequencyDetection() {
         let result = OmniFieldParser.parse("W1AW 7.030")
         XCTAssertEqual(result.frequency, "7.030")
@@ -862,20 +879,19 @@ final class DatabaseTests: XCTestCase {
         XCTAssertEqual(qsos[0].callsign, "K3ABC")
     }
 
-    func testCallsignHistory() async throws {
+    func testCallsignHistoryEnrichment() async throws {
         let db = try AppDatabase.empty()
         let historyRepo = CallsignHistoryRepository(database: db)
 
-        // First QSO
+        // First QSO stores enrichment and stamps lastWorked.
         try await historyRepo.recordQSO(callsign: "W1AW", name: "Hiram", qth: "CT", grid: nil)
         var history = try await historyRepo.fetch(callsign: "W1AW")
-        XCTAssertEqual(history?.timesWorked, 1)
         XCTAssertEqual(history?.name, "Hiram")
+        XCTAssertNotNil(history?.lastWorked)
 
-        // Second QSO
+        // A later QSO with nil fields must not clobber existing enrichment.
         try await historyRepo.recordQSO(callsign: "W1AW", name: nil, qth: nil, grid: nil)
         history = try await historyRepo.fetch(callsign: "W1AW")
-        XCTAssertEqual(history?.timesWorked, 2)
         XCTAssertEqual(history?.name, "Hiram") // Not overwritten by nil
     }
 

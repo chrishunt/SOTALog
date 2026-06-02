@@ -448,11 +448,12 @@ final class CallsignHistoryExtendedTests: XCTestCase {
 
         let history = try await repo.fetch(callsign: "W1AW")
         XCTAssertNotNil(history)
-        XCTAssertEqual(history?.timesWorked, 0)
         XCTAssertEqual(history?.name, "Hiram")
+        // A lookup is not a contact, so it must not stamp lastWorked.
+        XCTAssertNil(history?.lastWorked)
     }
 
-    func testUpdateFromLookupDoesNotIncrementExisting() async throws {
+    func testUpdateFromLookupRefreshesEnrichment() async throws {
         let db = try AppDatabase.empty()
         let repo = CallsignHistoryRepository(database: db)
 
@@ -460,7 +461,6 @@ final class CallsignHistoryExtendedTests: XCTestCase {
         try await repo.updateFromLookup(callsign: "W1AW", name: "Hiram P Maxim", qth: "CT", grid: "FN31")
 
         let history = try await repo.fetch(callsign: "W1AW")
-        XCTAssertEqual(history?.timesWorked, 1)
         XCTAssertEqual(history?.name, "Hiram P Maxim")
         XCTAssertEqual(history?.grid, "FN31")
     }

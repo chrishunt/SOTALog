@@ -88,6 +88,17 @@ struct QSORepository {
         }
     }
 
+    /// Total number of QSOs logged with a callsign across all logs — the source of
+    /// truth for the "times worked" badge.
+    func countForCallsign(_ callsign: String) async throws -> Int {
+        try await database.dbWriter.read { db in
+            try Int.fetchOne(db, sql: """
+                SELECT COUNT(*) FROM qso
+                WHERE UPPER(callsign) = ?
+                """, arguments: [callsign.uppercased()]) ?? 0
+        }
+    }
+
     // MARK: - Full Refresh Import
 
     struct FullRefreshResult {

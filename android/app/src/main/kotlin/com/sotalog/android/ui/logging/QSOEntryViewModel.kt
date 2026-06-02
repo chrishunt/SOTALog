@@ -390,12 +390,14 @@ class QSOEntryViewModel @Inject constructor(
 
             // All sources fire in parallel
             val localJob = launch { resolveLocal(call) }
+            val workedJob = launch { resolveTimesWorked(call) }
             val qrzJob = launch { resolveQRZ(call) }
             val spotJob = launch { resolveSpotData(call) }
             val todayJob = launch { resolveWorkedToday(call) }
             val dupeJob = launch { resolveDupe(call) }
 
             localJob.join()
+            workedJob.join()
             qrzJob.join()
             spotJob.join()
             todayJob.join()
@@ -408,12 +410,9 @@ class QSOEntryViewModel @Inject constructor(
     private suspend fun resolveLocal(call: String) {
         val history = callsignHistoryDao.getByCallsign(call.uppercase())
         if (history != null) {
-            _timesWorked.value = history.timesWorked
             if (!history.name.isNullOrEmpty() && _name.value.isEmpty()) _name.value = history.name
             if (!history.qth.isNullOrEmpty() && _qth.value.isEmpty()) _qth.value = history.qth
             if (!history.grid.isNullOrEmpty() && grid == null) grid = history.grid
-        } else {
-            _timesWorked.value = 0
         }
 
         // Lowest authority: prefix resolver
@@ -421,6 +420,11 @@ class QSOEntryViewModel @Inject constructor(
         if (resolved != null && _qth.value.isEmpty()) {
             _qth.value = resolved
         }
+    }
+
+    /** Total times this callsign has been worked, derived from the QSO table. */
+    private suspend fun resolveTimesWorked(call: String) {
+        _timesWorked.value = qsoDao.countByCallsign(call.uppercase())
     }
 
     private suspend fun resolveQRZ(call: String) {
@@ -635,17 +639,19 @@ class QSOEntryViewModel @Inject constructor(
                 _lastSavedQSO.value = qso.copy(id = newId)
             }
 
-            // Update callsign history
+            // Refresh cached enrichment for the callsign. The worked count is
+            // derived from the qso table, so nothing to increment here. A fresh
+            // contact stamps lastWorked; an edit leaves it untouched.
             try {
                 val existing = callsignHistoryDao.getByCallsign(qso.callsign)
+                val isEdit = editing != null
                 callsignHistoryDao.upsert(
                     CallsignHistory(
                         callsign = qso.callsign,
                         name = qso.name ?: existing?.name,
                         qth = qso.qth ?: existing?.qth,
                         grid = resolvedGrid ?: existing?.grid,
-                        lastWorked = now(),
-                        timesWorked = (existing?.timesWorked ?: 0) + 1,
+                        lastWorked = if (isEdit) existing?.lastWorked else now(),
                     ),
                 )
             } catch (_: Exception) {

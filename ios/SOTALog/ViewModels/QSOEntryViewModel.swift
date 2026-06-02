@@ -290,11 +290,12 @@ final class QSOEntryViewModel {
 
             // All sources fire in parallel
             async let local: Void = resolveLocal(call)
+            async let worked: Void = resolveTimesWorked(call)
             async let qrz: Void = resolveQRZ(call)
             async let spot: Void = resolveSpotData(call)
             async let today: Void = resolveWorkedToday(call)
             async let dupe: Void = resolveDupe(call)
-            _ = await (local, qrz, spot, today, dupe)
+            _ = await (local, worked, qrz, spot, today, dupe)
         }
     }
 
@@ -304,14 +305,9 @@ final class QSOEntryViewModel {
     private func resolveLocal(_ call: String) async {
         if let history = try? await historyRepo.fetch(callsign: call) {
             await MainActor.run {
-                timesWorked = history.timesWorked
                 if let n = history.name, !n.isEmpty, name.isEmpty { name = n }
                 if let q = history.qth, !q.isEmpty, qth.isEmpty { qth = q }
                 if let g = history.grid, !g.isEmpty, grid == nil { grid = g }
-            }
-        } else {
-            await MainActor.run {
-                timesWorked = 0
             }
         }
 
@@ -436,6 +432,15 @@ final class QSOEntryViewModel {
         guard !Task.isCancelled else { return }
         await MainActor.run {
             workedToday = count
+        }
+    }
+
+    /// Total times this callsign has been worked, derived from the QSO table.
+    private func resolveTimesWorked(_ call: String) async {
+        let count = (try? await qsoRepo.countForCallsign(call)) ?? 0
+        guard !Task.isCancelled else { return }
+        await MainActor.run {
+            timesWorked = count
         }
     }
 
@@ -591,14 +596,24 @@ final class QSOEntryViewModel {
             try await qsoRepo.save(&qso)
             lastSavedQSO = qso
 
-            // Update callsign history
+            // Update callsign history. Editing an existing QSO must not bump the
+            // worked count — only refresh the contact's details.
             do {
-                try await historyRepo.recordQSO(
-                    callsign: qso.callsign,
-                    name: qso.name,
-                    qth: qso.qth,
-                    grid: resolvedGrid
-                )
+                if isEditing {
+                    try await historyRepo.updateFromLookup(
+                        callsign: qso.callsign,
+                        name: qso.name,
+                        qth: qso.qth,
+                        grid: resolvedGrid
+                    )
+                } else {
+                    try await historyRepo.recordQSO(
+                        callsign: qso.callsign,
+                        name: qso.name,
+                        qth: qso.qth,
+                        grid: resolvedGrid
+                    )
+                }
             } catch {
                 AppLog.database.error("Failed to record callsign history: \(error)")
             }

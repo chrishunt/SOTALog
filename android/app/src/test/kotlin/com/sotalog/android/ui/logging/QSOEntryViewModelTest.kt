@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.util.Date
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class QSOEntryViewModelTest {
@@ -306,7 +307,6 @@ class QSOEntryViewModelTest {
 
             val capturedSlot = slot<CallsignHistory>()
             coVerify { callsignHistoryDao.upsert(capture(capturedSlot)) }
-            assertEquals(1, capturedSlot.captured.timesWorked)
             assertEquals("John", capturedSlot.captured.name)
         }
     }
@@ -360,6 +360,66 @@ class QSOEntryViewModelTest {
             vm.cancelEditing()
             assertFalse(vm.isEditing)
             assertEquals("", vm.entryText.value)
+        }
+
+        @Test
+        fun `editing refreshes enrichment without restamping lastWorked`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            // The contact already exists with a prior lastWorked timestamp.
+            val priorWorked = Date(1_000_000L)
+            coEvery { callsignHistoryDao.getByCallsign("W1AW") } returns CallsignHistory(
+                callsign = "W1AW",
+                name = "Hiram",
+                qth = "CT",
+                grid = null,
+                lastWorked = priorWorked,
+            )
+
+            val qso = QSO(
+                id = 42,
+                logId = 1,
+                callsign = "W1AW",
+                date = "20240101",
+                timeOn = "1234",
+                frequency = 14.060,
+                band = "20m",
+                mode = "CW",
+                rstSent = "579",
+                rstReceived = "559",
+                name = "Hiram",
+                qth = "CT",
+            )
+
+            vm.loadForEditing(qso)
+            advanceUntilIdle()
+            vm.onNameChanged("Johnny")
+            advanceUntilIdle()
+            vm.saveQSO()
+            advanceUntilIdle()
+
+            // Editing updates the QSO row in place (no new contact)...
+            coVerify { qsoDao.update(any()) }
+            coVerify(exactly = 0) { qsoDao.insert(any()) }
+
+            val capturedSlot = slot<CallsignHistory>()
+            coVerify { callsignHistoryDao.upsert(capture(capturedSlot)) }
+            assertEquals("Johnny", capturedSlot.captured.name, "Edited details should still refresh history")
+            assertEquals(priorWorked, capturedSlot.captured.lastWorked, "Editing must not restamp lastWorked")
+        }
+
+        @Test
+        fun `worked count is derived from the qso table`() = runTest {
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            coEvery { qsoDao.countByCallsign("W1AW") } returns 4
+
+            vm.onEntryTextChanged("W1AW")
+            advanceUntilIdle()
+
+            assertEquals(4, vm.timesWorked.value, "Badge count comes from COUNT(*) of QSO rows")
         }
     }
 
@@ -648,8 +708,9 @@ class QSOEntryViewModelTest {
             val vm = makeVM()
             advanceUntilIdle()
 
-            val history = CallsignHistory("W1AW", "Hiram", "CT", null, null, 3)
+            val history = CallsignHistory("W1AW", "Hiram", "CT", null, null)
             coEvery { callsignHistoryDao.getByCallsign("W1AW") } returns history
+            coEvery { qsoDao.countByCallsign("W1AW") } returns 3
 
             vm.onEntryTextChanged("W1AW")
             advanceUntilIdle()
@@ -694,7 +755,7 @@ class QSOEntryViewModelTest {
             val vm = makeVM()
             advanceUntilIdle()
 
-            val history = CallsignHistory("W1AW", "Hiram", "CT", null, null, 1)
+            val history = CallsignHistory("W1AW", "Hiram", "CT", null, null)
             coEvery { callsignHistoryDao.getByCallsign("W1AW") } returns history
 
             vm.onNameChanged("Manual Name")
@@ -703,7 +764,6 @@ class QSOEntryViewModelTest {
 
             // History is LOW authority — should not overwrite non-empty name
             assertEquals("Manual Name", vm.name.value)
-            assertEquals(1, vm.timesWorked.value)
         }
 
         @Test
@@ -711,7 +771,7 @@ class QSOEntryViewModelTest {
             val vm = makeVM()
             advanceUntilIdle()
 
-            val history = CallsignHistory("W1AW", "Hiram", "CT", null, null, 1)
+            val history = CallsignHistory("W1AW", "Hiram", "CT", null, null)
             coEvery { callsignHistoryDao.getByCallsign("W1AW") } returns history
 
             vm.onEntryTextChanged("W1AW")

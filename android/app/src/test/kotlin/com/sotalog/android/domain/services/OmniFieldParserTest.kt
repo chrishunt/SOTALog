@@ -1,6 +1,9 @@
 package com.sotalog.android.domain.services
 
+import com.sotalog.android.domain.models.POTAPark
+import com.sotalog.android.domain.models.SOTASummit
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -165,6 +168,25 @@ class OmniFieldParserTest {
             val result = OmniFieldParser.parse("W1AW W4CCM001")
             assertEquals("W1AW", result.callsign)
             assertEquals("W4CCM001", result.sotaRef)
+        }
+
+        @Test
+        fun `SOTA reference with separators`() {
+            for (ref in listOf("W4C/CM-001", "W4C/CM001", "W4CCM-001")) {
+                val result = OmniFieldParser.parse("W1AW $ref")
+                assertNotNull(result.sotaRef, "expected $ref to be recognized as a SOTA ref")
+                assertEquals("W4CCM001", SOTASummit.normalize(result.sotaRef!!))
+                assertNull(result.potaRef, "$ref should not be classified as POTA")
+            }
+        }
+
+        @Test
+        fun `POTA reference with separators`() {
+            for (ref in listOf("US-1234", "K-4567")) {
+                val result = OmniFieldParser.parse("W1AW $ref")
+                assertNotNull(result.potaRef, "expected $ref to be recognized as a POTA ref")
+                assertEquals(POTAPark.normalize(ref), POTAPark.normalize(result.potaRef!!))
+            }
         }
     }
 

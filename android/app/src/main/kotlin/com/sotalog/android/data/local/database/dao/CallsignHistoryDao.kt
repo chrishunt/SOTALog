@@ -15,9 +15,6 @@ interface CallsignHistoryDao {
     @Query("SELECT * FROM callsignHistory ORDER BY lastWorked DESC LIMIT :limit")
     suspend fun getRecent(limit: Int = 50): List<CallsignHistory>
 
-    @Query("SELECT * FROM callsignHistory WHERE callsign LIKE :prefix || '%' ORDER BY timesWorked DESC LIMIT :limit")
-    suspend fun searchByPrefix(prefix: String, limit: Int = 20): List<CallsignHistory>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(history: CallsignHistory)
 }

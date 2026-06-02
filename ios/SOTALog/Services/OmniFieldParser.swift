@@ -127,18 +127,20 @@ enum OmniFieldParser {
         return canon
     }
 
-    /// POTA candidate: starts with letter(s) followed by digits, e.g. US1234, K4567, VE0001
+    /// POTA candidate: starts with letter(s) followed by digits, e.g. US1234, K4567, VE0001.
+    /// Separators are ignored, so the standard "US-1234" form is accepted too.
     private static func isPOTACandidate(_ token: String) -> Bool {
-        let upper = token.uppercased()
+        let upper = POTAPark.normalize(token)
         guard upper.count >= 3 else { return false }
         let letters = upper.prefix(while: \.isLetter)
         let digits = upper.dropFirst(letters.count)
         return !letters.isEmpty && !digits.isEmpty && digits.allSatisfy(\.isNumber)
     }
 
-    /// SOTA candidate: letter(s) + digit(s) + letter(s) + digit(s), e.g. W4CCM001
+    /// SOTA candidate: letter(s) + digit(s) + letter(s) + digit(s), e.g. W4CCM001.
+    /// Separators are ignored, so the standard "W4C/CM-001" form is accepted too.
     private static func isSOTACandidate(_ token: String) -> Bool {
-        let upper = token.uppercased()
+        let upper = SOTASummit.normalize(token)
         guard upper.count >= 4 else { return false }
         // Pattern: letters, digits, letters, digits
         var i = upper.startIndex

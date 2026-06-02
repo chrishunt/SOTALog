@@ -36,6 +36,10 @@ interface QSODao {
     @Query("SELECT COUNT(*) FROM qso WHERE logId = :logId")
     suspend fun getCountByLogId(logId: Long): Int
 
+    /** Total QSOs with a callsign across all logs — source of truth for the badge. */
+    @Query("SELECT COUNT(*) FROM qso WHERE UPPER(callsign) = :callsign")
+    suspend fun countByCallsign(callsign: String): Int
+
     @Query("SELECT COUNT(*) FROM qso WHERE logId = :logId")
     fun observeCountByLogId(logId: Long): Flow<Int>
 

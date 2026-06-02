@@ -37,7 +37,7 @@ import javax.inject.Singleton
         ReferenceMetadata::class,
         CWMacro::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -103,6 +103,34 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
     }
 }
 
+// The worked count is now derived from the qso table on demand, so the cached
+// (and historically drift-prone) counter column is removed. SQLite on minSdk 28
+// predates ALTER TABLE DROP COLUMN, so rebuild the table the portable way.
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `callsignHistory_new` (
+                `callsign` TEXT NOT NULL,
+                `name` TEXT,
+                `qth` TEXT,
+                `grid` TEXT,
+                `lastWorked` INTEGER,
+                PRIMARY KEY(`callsign`)
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            INSERT INTO `callsignHistory_new` (`callsign`, `name`, `qth`, `grid`, `lastWorked`)
+            SELECT `callsign`, `name`, `qth`, `grid`, `lastWorked` FROM `callsignHistory`
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE `callsignHistory`")
+        db.execSQL("ALTER TABLE `callsignHistory_new` RENAME TO `callsignHistory`")
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
@@ -111,7 +139,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): SOTALogDatabase =
         Room.databaseBuilder(context, SOTALogDatabase::class.java, "sotalog.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
             .build()
 
     @Provides

@@ -6,7 +6,6 @@ final class QRZSyncViewModel {
     private let database: AppDatabase
     private let qsoRepo: QSORepository
     private let logRepo: LogRepository
-    private let historyRepo: CallsignHistoryRepository
     private let refRepo: ReferenceRepository
 
     var hasAPIKey = false
@@ -54,7 +53,6 @@ final class QRZSyncViewModel {
         self.database = database
         self.qsoRepo = QSORepository(database: database)
         self.logRepo = LogRepository(database: database)
-        self.historyRepo = CallsignHistoryRepository(database: database)
         self.refRepo = ReferenceRepository(database: database)
     }
 
@@ -286,8 +284,8 @@ final class QRZSyncViewModel {
             )
             AppLog.sync.info("Refresh complete: \(result.importedCount) QSOs, \(result.activationsCreated) new activations, \(result.activationsReused) reused")
 
-            // 4. Post-import
-            try await historyRepo.rebuildFromQSOTable()
+            // 4. Post-import — the worked count is derived from the QSO table, so a
+            // full refresh needs no count rebuild; only enrichment persists.
             try await qsoRepo.saveLastSyncedQRZLogId(0)
             lastSyncDate = Date()
 

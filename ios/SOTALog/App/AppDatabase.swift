@@ -190,6 +190,14 @@ struct AppDatabase {
             )
         }
 
+        // The worked count is now derived from the qso table on demand, so the
+        // cached (and historically drift-prone) counter column is removed.
+        migrator.registerMigration("v6_dropTimesWorked") { db in
+            try db.alter(table: "callsignHistory") { t in
+                t.drop(column: "timesWorked")
+            }
+        }
+
         return migrator
     }
 

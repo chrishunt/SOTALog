@@ -1,5 +1,8 @@
 package com.sotalog.android.domain.services
 
+import com.sotalog.android.domain.models.POTAPark
+import com.sotalog.android.domain.models.SOTASummit
+
 data class ParsedEntry(
     val callsign: String = "",
     val rstSent: String? = null,
@@ -151,7 +154,8 @@ object OmniFieldParser {
         token.uppercase() in qthCodes
 
     private fun isPOTACandidate(token: String): Boolean {
-        val upper = token.uppercase()
+        // Ignore separators so the standard "US-1234" form is accepted too.
+        val upper = POTAPark.normalize(token)
         if (upper.length < 3) return false
         val letterCount = upper.takeWhile { it.isLetter() }.length
         val rest = upper.drop(letterCount)
@@ -159,7 +163,8 @@ object OmniFieldParser {
     }
 
     private fun isSOTACandidate(token: String): Boolean {
-        val upper = token.uppercase()
+        // Ignore separators so the standard "W4C/CM-001" form is accepted too.
+        val upper = SOTASummit.normalize(token)
         if (upper.length < 4) return false
 
         var i = 0

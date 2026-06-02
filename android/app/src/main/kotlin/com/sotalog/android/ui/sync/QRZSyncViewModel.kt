@@ -2,7 +2,6 @@ package com.sotalog.android.ui.sync
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sotalog.android.data.local.database.dao.CallsignHistoryDao
 import com.sotalog.android.data.local.database.dao.LogDao
 import com.sotalog.android.data.local.database.dao.QSODao
 import com.sotalog.android.data.local.database.dao.ReferenceDao
@@ -14,7 +13,6 @@ import com.sotalog.android.data.remote.api.QRZLookupApi
 import com.sotalog.android.data.remote.api.SOTASummitApi
 import com.sotalog.android.data.repositories.ReferenceRepository
 import com.sotalog.android.data.repositories.SummitParkNetworkRepository
-import com.sotalog.android.domain.models.CallsignHistory
 import com.sotalog.android.domain.models.Log
 import com.sotalog.android.domain.models.POTAPark
 import com.sotalog.android.domain.models.QSO
@@ -50,7 +48,6 @@ sealed class CredentialTestResult {
 class QRZSyncViewModel @Inject constructor(
     private val logDao: LogDao,
     private val qsoDao: QSODao,
-    private val callsignHistoryDao: CallsignHistoryDao,
     private val referenceDao: ReferenceDao,
     private val credentialStore: CredentialStore,
     private val qrzLogbookApi: QRZLogbookApi,
@@ -375,7 +372,8 @@ class QRZSyncViewModel @Inject constructor(
             _syncStatus.value = SyncStatus.Importing
             try {
                 fullRefreshImport(grouped)
-                rebuildCallsignHistory()
+                // The worked count is derived from the qso table, so a full refresh
+                // needs no count rebuild.
                 _lastSyncDate.value = Date()
 
                 var unsynced = 0
@@ -450,31 +448,6 @@ class QRZSyncViewModel @Inject constructor(
         }
     }
 
-    private suspend fun rebuildCallsignHistory() {
-        val logs = logDao.getAll()
-        val historyMap = mutableMapOf<String, CallsignHistory>()
-
-        for (log in logs) {
-            val logId = log.id ?: continue
-            val qsos = qsoDao.getByLogId(logId)
-            for (qso in qsos) {
-                val call = qso.callsign.uppercase()
-                val existing = historyMap[call]
-                historyMap[call] = CallsignHistory(
-                    callsign = call,
-                    name = qso.name ?: existing?.name,
-                    qth = qso.qth ?: existing?.qth,
-                    grid = qso.grid ?: existing?.grid,
-                    lastWorked = Date(),
-                    timesWorked = (existing?.timesWorked ?: 0) + 1,
-                )
-            }
-        }
-
-        for (history in historyMap.values) {
-            callsignHistoryDao.upsert(history)
-        }
-    }
 
     private suspend fun loadValidPotaRefs(): Map<String, String> {
         val parks = referenceDao.searchParksByNormalizedPrefix("", 100_000)

@@ -181,9 +181,10 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         await vm.saveQSO()
 
-        let historyRepo = CallsignHistoryRepository(database: db)
-        let history = try await historyRepo.fetch(callsign: "K3ABC")
-        XCTAssertEqual(history?.timesWorked, 1)
+        // Count is derived from the QSO table; enrichment is cached in history.
+        let count = try await QSORepository(database: db).countForCallsign("K3ABC")
+        XCTAssertEqual(count, 1)
+        let history = try await CallsignHistoryRepository(database: db).fetch(callsign: "K3ABC")
         XCTAssertEqual(history?.name, "John")
     }
 
@@ -307,6 +308,68 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.lastSavedQSO?.rstSent, "579")
     }
 
+    func testEditingDoesNotIncrementWorkedCount() async throws {
+        let vm = makeVM()
+        let qsoRepo = QSORepository(database: db)
+        let historyRepo = CallsignHistoryRepository(database: db)
+
+        // Log a brand-new QSO → derived worked count is 1
+        vm.entryText = "K3ABC"
+        vm.name = "John"
+        vm.qth = "PA"
+        await vm.saveQSO()
+        guard let saved = vm.lastSavedQSO else { XCTFail("expected saved QSO"); return }
+        var count = try await qsoRepo.countForCallsign("K3ABC")
+        XCTAssertEqual(count, 1)
+
+        // Edit that same QSO and save again — no new QSO row, so the count holds.
+        vm.loadForEditing(saved)
+        vm.name = "Johnny"
+        await vm.saveQSO()
+
+        count = try await qsoRepo.countForCallsign("K3ABC")
+        XCTAssertEqual(count, 1, "Editing a QSO must not change the worked count")
+        let history = try await historyRepo.fetch(callsign: "K3ABC")
+        XCTAssertEqual(history?.name, "Johnny", "Edited details should still refresh history")
+    }
+
+    func testChangingCallsignOnEditMovesTheCount() async throws {
+        let vm = makeVM()
+        let qsoRepo = QSORepository(database: db)
+
+        // Log a QSO with the wrong callsign.
+        vm.entryText = "K3ABC"
+        await vm.saveQSO()
+        guard let saved = vm.lastSavedQSO else { XCTFail("expected saved QSO"); return }
+        var oldCount = try await qsoRepo.countForCallsign("K3ABC")
+        XCTAssertEqual(oldCount, 1)
+
+        // Correct the callsign via edit.
+        vm.loadForEditing(saved)
+        vm.entryText = "K3XYZ"
+        await vm.saveQSO()
+
+        oldCount = try await qsoRepo.countForCallsign("K3ABC")
+        let newCount = try await qsoRepo.countForCallsign("K3XYZ")
+        XCTAssertEqual(oldCount, 0, "Old callsign should lose the QSO")
+        XCTAssertEqual(newCount, 1, "New callsign should gain the QSO")
+    }
+
+    func testDeletingQSODecrementsDerivedCount() async throws {
+        let vm = makeVM()
+        let qsoRepo = QSORepository(database: db)
+
+        vm.entryText = "K3ABC"
+        await vm.saveQSO()
+        guard let saved = vm.lastSavedQSO, let id = saved.id else { XCTFail("expected saved QSO"); return }
+        let before = try await qsoRepo.countForCallsign("K3ABC")
+        XCTAssertEqual(before, 1)
+
+        try await qsoRepo.delete(id: id)
+        let after = try await qsoRepo.countForCallsign("K3ABC")
+        XCTAssertEqual(after, 0, "Deleting the QSO drops the count")
+    }
+
     // MARK: - Spot Prefill
 
     func testPrefillFromSpot() {
@@ -363,8 +426,13 @@ final class QSOEntryViewModelTests: XCTestCase {
     // MARK: - Auto-populate Cascade
 
     func testCallsignChangedPopulatesFromHistory() async throws {
+        // Enrichment (name/qth) is cached in history; the worked count is derived
+        // from an actual prior QSO in the log.
         let historyRepo = CallsignHistoryRepository(database: db)
         try await historyRepo.recordQSO(callsign: "W1AW", name: "Hiram", qth: "CT", grid: nil)
+        let qsoRepo = QSORepository(database: db)
+        var prior = QSO(logId: log.id!, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        try await qsoRepo.save(&prior)
 
         let vm = makeVM()
         vm.entryText = "W1AW"
@@ -434,10 +502,9 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         // History is LOW authority — should not overwrite non-empty name
         XCTAssertEqual(vm.name, "Manual Name")
-        XCTAssertEqual(vm.timesWorked, 1)
     }
 
-    func testSavePassesGridToHistory() async throws {
+    func testSaveEnrichesHistory() async throws {
         let vm = makeVM()
         vm.entryText = "W1AW"
         vm.name = "Hiram"
@@ -445,9 +512,10 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         await vm.saveQSO()
 
-        let historyRepo = CallsignHistoryRepository(database: db)
-        let history = try await historyRepo.fetch(callsign: "W1AW")
-        XCTAssertEqual(history?.timesWorked, 1)
+        let history = try await CallsignHistoryRepository(database: db).fetch(callsign: "W1AW")
+        XCTAssertEqual(history?.name, "Hiram")
+        let count = try await QSORepository(database: db).countForCallsign("W1AW")
+        XCTAssertEqual(count, 1)
     }
 
     func testShortCallsignClearsLookup() async throws {

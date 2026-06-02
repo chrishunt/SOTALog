@@ -1,7 +1,6 @@
 package com.sotalog.android.data.repositories
 
 import com.sotalog.android.data.local.database.dao.CallsignHistoryDao
-import com.sotalog.android.di.SOTALogDatabase
 import com.sotalog.android.domain.models.CallsignHistory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,13 +11,16 @@ import javax.inject.Singleton
 @Singleton
 class CallsignHistoryRepository @Inject constructor(
     private val callsignHistoryDao: CallsignHistoryDao,
-    private val db: SOTALogDatabase,
 ) {
 
     suspend fun fetch(callsign: String): CallsignHistory? = withContext(Dispatchers.IO) {
         callsignHistoryDao.getByCallsign(callsign.uppercase())
     }
 
+    /**
+     * Records that a QSO was just logged: refreshes lastWorked and fills in
+     * name/qth/grid if provided. Call this when creating a new QSO.
+     */
     suspend fun recordQSO(
         callsign: String,
         name: String?,
@@ -30,7 +32,6 @@ class CallsignHistoryRepository @Inject constructor(
         if (existing != null) {
             callsignHistoryDao.upsert(
                 existing.copy(
-                    timesWorked = existing.timesWorked + 1,
                     lastWorked = Date(),
                     name = name?.takeIf { it.isNotEmpty() } ?: existing.name,
                     qth = qth?.takeIf { it.isNotEmpty() } ?: existing.qth,
@@ -45,48 +46,15 @@ class CallsignHistoryRepository @Inject constructor(
                     qth = qth,
                     grid = grid,
                     lastWorked = Date(),
-                    timesWorked = 1,
                 )
             )
         }
     }
 
-    suspend fun rebuildFromQSOTable() = withContext(Dispatchers.IO) {
-        val sqlDb = db.openHelper.readableDatabase
-        sqlDb.query(
-            """
-            SELECT callsign,
-                   COUNT(*) as cnt,
-                   MAX(date || timeOn) as lastWorked,
-                   COALESCE(MAX(name), '') as name,
-                   COALESCE(MAX(qth), '') as qth,
-                   COALESCE(MAX(grid), '') as grid
-            FROM qso
-            GROUP BY callsign
-            """.trimIndent()
-        ).use { cursor ->
-            while (cursor.moveToNext()) {
-                val cs = cursor.getString(0)
-                val count = cursor.getInt(1)
-                val nameVal = cursor.getString(3).takeIf { it.isNotEmpty() }
-                val qthVal = cursor.getString(4).takeIf { it.isNotEmpty() }
-                val gridVal = cursor.getString(5).takeIf { it.isNotEmpty() }
-
-                val existing = callsignHistoryDao.getByCallsign(cs)
-                callsignHistoryDao.upsert(
-                    CallsignHistory(
-                        callsign = cs,
-                        name = nameVal ?: existing?.name,
-                        qth = qthVal ?: existing?.qth,
-                        grid = gridVal ?: existing?.grid,
-                        lastWorked = existing?.lastWorked ?: Date(),
-                        timesWorked = count,
-                    )
-                )
-            }
-        }
-    }
-
+    /**
+     * Updates enrichment from a QRZ lookup or an edit, without touching lastWorked
+     * (no new contact was made).
+     */
     suspend fun updateFromLookup(
         callsign: String,
         name: String?,
@@ -111,7 +79,6 @@ class CallsignHistoryRepository @Inject constructor(
                     qth = qth,
                     grid = grid,
                     lastWorked = null,
-                    timesWorked = 0,
                 )
             )
         }

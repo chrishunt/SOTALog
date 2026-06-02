@@ -366,8 +366,7 @@ class CallsignHistoryRepositoryTest {
     @Test
     fun `update from lookup creates new entry`() = runTest {
         val dao = mockk<CallsignHistoryDao>()
-        val db = mockk<SOTALogDatabase>()
-        val repo = CallsignHistoryRepository(dao, db)
+        val repo = CallsignHistoryRepository(dao)
 
         coEvery { dao.getByCallsign("W1AW") } returns null
         coEvery { dao.upsert(any()) } returns Unit
@@ -376,17 +375,17 @@ class CallsignHistoryRepositoryTest {
 
         val capturedSlot = slot<CallsignHistory>()
         coVerify { dao.upsert(capture(capturedSlot)) }
-        assertEquals(0, capturedSlot.captured.timesWorked)
         assertEquals("Hiram", capturedSlot.captured.name)
+        // A lookup is not a contact, so it must not stamp lastWorked.
+        assertNull(capturedSlot.captured.lastWorked)
     }
 
     @Test
-    fun `update from lookup does not increment existing`() = runTest {
+    fun `update from lookup refreshes enrichment`() = runTest {
         val dao = mockk<CallsignHistoryDao>()
-        val db = mockk<SOTALogDatabase>()
-        val repo = CallsignHistoryRepository(dao, db)
+        val repo = CallsignHistoryRepository(dao)
 
-        val existing = CallsignHistory("W1AW", "Hiram", "CT", null, Date(), 1)
+        val existing = CallsignHistory("W1AW", "Hiram", "CT", null, Date())
         coEvery { dao.getByCallsign("W1AW") } returns existing
         coEvery { dao.upsert(any()) } returns Unit
 
@@ -394,7 +393,6 @@ class CallsignHistoryRepositoryTest {
 
         val capturedSlot = slot<CallsignHistory>()
         coVerify { dao.upsert(capture(capturedSlot)) }
-        assertEquals(1, capturedSlot.captured.timesWorked) // not incremented
         assertEquals("Hiram P Maxim", capturedSlot.captured.name)
         assertEquals("FN31", capturedSlot.captured.grid)
     }
@@ -402,10 +400,9 @@ class CallsignHistoryRepositoryTest {
     @Test
     fun `record QSO does not overwrite with nil`() = runTest {
         val dao = mockk<CallsignHistoryDao>()
-        val db = mockk<SOTALogDatabase>()
-        val repo = CallsignHistoryRepository(dao, db)
+        val repo = CallsignHistoryRepository(dao)
 
-        val existing = CallsignHistory("W1AW", "Hiram", "CT", "FN31", Date(), 1)
+        val existing = CallsignHistory("W1AW", "Hiram", "CT", "FN31", Date())
         coEvery { dao.getByCallsign("W1AW") } returns existing
         coEvery { dao.upsert(any()) } returns Unit
 
@@ -421,10 +418,9 @@ class CallsignHistoryRepositoryTest {
     @Test
     fun `update from lookup does not overwrite with nil`() = runTest {
         val dao = mockk<CallsignHistoryDao>()
-        val db = mockk<SOTALogDatabase>()
-        val repo = CallsignHistoryRepository(dao, db)
+        val repo = CallsignHistoryRepository(dao)
 
-        val existing = CallsignHistory("W1AW", "Hiram", "CT", null, Date(), 1)
+        val existing = CallsignHistory("W1AW", "Hiram", "CT", null, Date())
         coEvery { dao.getByCallsign("W1AW") } returns existing
         coEvery { dao.upsert(any()) } returns Unit
 
