@@ -6,6 +6,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.7] - 2026-06-02
+
+### Changed
+- Callsign "worked" counts are now derived from the QSO table on demand, so the badge stays accurate across edits, deletes, and imports
+- OmniField parser accepts standard reference separator forms (e.g. `US-1234`, `W4C/CM-001`) by normalizing POTA and SOTA tokens
+
 ## [1.6] - 2026-05-15
 
 ### Added
@@ -223,7 +229,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.6...HEAD
+[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.7...HEAD
+[1.7]: https://github.com/chrishunt/SOTALog/compare/v1.6...v1.7
 [1.6]: https://github.com/chrishunt/SOTALog/compare/v1.5...v1.6
 [1.5]: https://github.com/chrishunt/SOTALog/compare/v1.4...v1.5
 [1.4]: https://github.com/chrishunt/SOTALog/compare/v1.3...v1.4
