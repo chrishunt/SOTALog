@@ -4,7 +4,7 @@ All notable changes to SOTA Log will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.8] - 2026-07-31
 
 ### Added
 - QSO time editing: tap a logged QSO, then tap the time chip on the metadata strip to correct its UTC time inline
@@ -240,7 +240,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.7...HEAD
+[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.8...HEAD
+[1.8]: https://github.com/chrishunt/SOTALog/compare/v1.7...v1.8
 [1.7]: https://github.com/chrishunt/SOTALog/compare/v1.6...v1.7
 [1.6]: https://github.com/chrishunt/SOTALog/compare/v1.5...v1.6
 [1.5]: https://github.com/chrishunt/SOTALog/compare/v1.4...v1.5
