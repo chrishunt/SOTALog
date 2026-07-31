@@ -308,6 +308,130 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.lastSavedQSO?.rstSent, "579")
     }
 
+    // MARK: - Time Editing
+
+    func testParseEntryAppliesTimeToken() {
+        let vm = makeVM()
+        vm.entryText = "W1AW 1432Z"
+        vm.parseEntry()
+        XCTAssertEqual(vm.timeOnInput, "1432")
+    }
+
+    func testTimeTokenConsumedAfterTrailingSpace() {
+        let vm = makeVM()
+        vm.entryText = "W1AW 1432Z "
+        vm.parseEntry()
+        XCTAssertFalse(vm.entryText.contains("1432Z"), "Time token should be consumed from entry text")
+        XCTAssertEqual(vm.timeOnInput, "1432")
+    }
+
+    func testTimeTokenTypingDoesNotCorruptRST() {
+        // Typing "1432Z" passes through RST-shaped prefixes ("14", "143").
+        // The kind flip must reset the previewed RST.
+        let vm = makeVM()
+        for text in ["W1AW 1", "W1AW 14", "W1AW 143", "W1AW 1432", "W1AW 1432Z"] {
+            vm.entryText = text
+            vm.parseEntry()
+        }
+        XCTAssertEqual(vm.rstSent, "599")
+        XCTAssertEqual(vm.rstReceived, "599")
+        XCTAssertEqual(vm.timeOnInput, "1432")
+    }
+
+    func testFrequencyTypingDoesNotCorruptRST() {
+        let vm = makeVM()
+        for text in ["W1AW 1", "W1AW 14", "W1AW 14.", "W1AW 14.0", "W1AW 14.060"] {
+            vm.entryText = text
+            vm.parseEntry()
+        }
+        XCTAssertEqual(vm.rstSent, "599")
+        XCTAssertEqual(vm.frequencyText, "14.060")
+    }
+
+    func testRSTSurvivesConfirmationSpace() {
+        let vm = makeVM()
+        for text in ["W1AW 579", "W1AW 579 "] {
+            vm.entryText = text
+            vm.parseEntry()
+        }
+        XCTAssertEqual(vm.rstSent, "579")
+    }
+
+    func testSaveNewQSOWithTimeTokenBackTimes() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW 1432Z "
+        vm.parseEntry()
+
+        await vm.saveQSO()
+
+        XCTAssertEqual(vm.lastSavedQSO?.timeOn, "1432")
+        XCTAssertEqual(vm.lastSavedQSO?.date, Date().adifDate)
+        XCTAssertEqual(vm.timeOnInput, "", "Back-time must not persist to the next QSO")
+    }
+
+    func testLoadForEditingSetsTime() {
+        let vm = makeVM()
+        let qso = QSO(id: 42, logId: log.id!, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        vm.loadForEditing(qso)
+        XCTAssertEqual(vm.timeOnInput, "1234")
+    }
+
+    func testEditUpdatesTime() async throws {
+        let vm = makeVM()
+        let qsoRepo = QSORepository(database: db)
+        var original = QSO(logId: log.id!, callsign: "W1AW", date: "20240101", timeOn: "1234", frequency: 14.060, band: "20m")
+        try await qsoRepo.save(&original)
+
+        vm.loadForEditing(original)
+        vm.timeOnInput = "0915"
+        await vm.saveQSO()
+
+        XCTAssertEqual(vm.lastSavedQSO?.timeOn, "0915")
+        XCTAssertEqual(vm.lastSavedQSO?.date, "20240101", "Date must be preserved on edit")
+    }
+
+    func testEditWithInvalidTimeKeepsOriginal() async throws {
+        let vm = makeVM()
+        let qsoRepo = QSORepository(database: db)
+        var original = QSO(logId: log.id!, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        try await qsoRepo.save(&original)
+
+        vm.loadForEditing(original)
+        vm.timeOnInput = "9999"
+        await vm.saveQSO()
+
+        XCTAssertEqual(vm.lastSavedQSO?.timeOn, "1234")
+    }
+
+    func testTimeCommittedNormalizesAndReverts() {
+        let vm = makeVM()
+
+        // New QSO: valid 3-digit input zero-pads
+        vm.timeOnInput = "932"
+        vm.timeCommitted()
+        XCTAssertEqual(vm.timeOnInput, "0932")
+
+        // New QSO: invalid input reverts to empty (stamp at save)
+        vm.timeOnInput = "9999"
+        vm.timeCommitted()
+        XCTAssertEqual(vm.timeOnInput, "")
+
+        // Edit mode: invalid input reverts to the QSO's original time
+        let qso = QSO(id: 42, logId: log.id!, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        vm.loadForEditing(qso)
+        vm.timeOnInput = ""
+        vm.timeCommitted()
+        XCTAssertEqual(vm.timeOnInput, "1234")
+    }
+
+    func testCancelEditingClearsTime() {
+        let vm = makeVM()
+        let qso = QSO(id: 42, logId: log.id!, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
+        vm.loadForEditing(qso)
+        vm.cancelEditing()
+        XCTAssertEqual(vm.timeOnInput, "")
+    }
+
     func testEditingDoesNotIncrementWorkedCount() async throws {
         let vm = makeVM()
         let qsoRepo = QSORepository(database: db)

@@ -738,6 +738,63 @@ final class OmniFieldParserTests: XCTestCase {
         XCTAssertEqual(result.frequency, "14.060")
     }
 
+    // MARK: - Time Token
+
+    func testTimeToken() {
+        let result = OmniFieldParser.parse("W1AW 1432Z")
+        XCTAssertEqual(result.timeOn, "1432")
+    }
+
+    func testTimeTokenLowercase() {
+        let result = OmniFieldParser.parse("W1AW 1432z")
+        XCTAssertEqual(result.timeOn, "1432")
+    }
+
+    func testTimeTokenThreeDigitsPadded() {
+        let result = OmniFieldParser.parse("W1AW 932Z")
+        XCTAssertEqual(result.timeOn, "0932")
+    }
+
+    func testTimeTokenMidnight() {
+        let result = OmniFieldParser.parse("W1AW 0000Z")
+        XCTAssertEqual(result.timeOn, "0000")
+    }
+
+    func testTimeTokenWithOtherTokens() {
+        let result = OmniFieldParser.parse("K7ABC 599 559 1432Z")
+        XCTAssertEqual(result.rstSent, "599")
+        XCTAssertEqual(result.rstReceived, "559")
+        XCTAssertEqual(result.timeOn, "1432")
+    }
+
+    func testInvalidTimeTokenIgnored() {
+        for token in ["2400Z", "1260Z", "12Z", "14320Z", "1432", "14a2Z"] {
+            let result = OmniFieldParser.parse("W1AW \(token)")
+            XCTAssertNil(result.timeOn, "\(token) should not parse as a time")
+        }
+    }
+
+    func testBareDigitsWithoutZNotTime() {
+        // Without the Z marker, 4 digits stay unrecognized — never a time or RST
+        let result = OmniFieldParser.parse("W1AW 1432")
+        XCTAssertNil(result.timeOn)
+        XCTAssertNil(result.rstSent)
+        XCTAssertEqual(result.tokens[1].kind, .unrecognized)
+    }
+
+    func testParseTimeValidation() {
+        XCTAssertEqual(OmniFieldParser.parseTime("1432"), "1432")
+        XCTAssertEqual(OmniFieldParser.parseTime("932"), "0932")
+        XCTAssertEqual(OmniFieldParser.parseTime("2359"), "2359")
+        XCTAssertEqual(OmniFieldParser.parseTime("0000"), "0000")
+        XCTAssertNil(OmniFieldParser.parseTime("2400"))
+        XCTAssertNil(OmniFieldParser.parseTime("1260"))
+        XCTAssertNil(OmniFieldParser.parseTime("12"))
+        XCTAssertNil(OmniFieldParser.parseTime("14322"))
+        XCTAssertNil(OmniFieldParser.parseTime("14a2"))
+        XCTAssertNil(OmniFieldParser.parseTime(""))
+    }
+
     // MARK: - Maidenhead Grid
 
     func testGrid4Char() {

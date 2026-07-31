@@ -16,7 +16,7 @@ struct QSORepository {
         try await database.dbWriter.read { db in
             try QSO
                 .filter(Column("logId") == logId)
-                .order(Column("id").desc)
+                .order(Column("date").desc, Column("timeOn").desc, Column("id").desc)
                 .fetchAll(db)
         }
     }
@@ -316,11 +316,13 @@ struct QSORepository {
     }
 
     /// Starts observing QSOs for a log, calling the handler on each change.
+    /// Ordered newest-first by QSO time (not insertion) so back-timed and
+    /// time-corrected QSOs land in chronological position.
     func observeAll(forLogId logId: Int64, in writer: any DatabaseWriter, onChange: @escaping ([QSO]) -> Void) -> AnyDatabaseCancellable {
         let observation = ValueObservation.tracking { db in
             try QSO
                 .filter(Column("logId") == logId)
-                .order(Column("id").desc)
+                .order(Column("date").desc, Column("timeOn").desc, Column("id").desc)
                 .fetchAll(db)
         }
         return observation.start(

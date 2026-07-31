@@ -27,6 +27,9 @@ final class QSOEntryViewModel {
     var sotaRefFormatted: String?
     var sotaRefValid: Bool = false
     var gridInput: String = ""
+    // Time pill value ("HHMM" UTC digits). Empty means "stamp at save" for new QSOs;
+    // during edit it holds the QSO's time and an invalid value falls back to the original.
+    var timeOnInput: String = ""
 
     // Tracks which fields were manually edited (not set by omnifield)
     private var manualOverrides: Set<String> = []
@@ -187,6 +190,9 @@ final class QSOEntryViewModel {
             markManualOverride("sotaRef")
             validateSOTARef()
         }
+        if let time = parsed.timeOn {
+            timeOnInput = time
+        }
 
         consumeTokens(parsed)
     }
@@ -196,6 +202,16 @@ final class QSOEntryViewModel {
     /// corresponding manualOverride so a subsequent auto-populate isn't suppressed.
     private func clearPreview(kind: ParsedEntry.TokenKind) {
         switch kind {
+        case .rst:
+            // A partially-typed time or frequency ("14…") previews as RST until the
+            // trailing Z or decimal point flips its kind. Reset both RST fields; any
+            // real RST tokens stay in entryText and re-apply in the same parse.
+            rstSent = defaultRST
+            rstReceived = defaultRST
+            manualOverrides.remove("rstSent")
+            manualOverrides.remove("rstReceived")
+        case .time:
+            timeOnInput = editingQSO?.timeOn ?? ""
         case .qth:
             qth = ""
             manualOverrides.remove("qth")
@@ -217,8 +233,8 @@ final class QSOEntryViewModel {
         }
     }
 
-    /// Strip consumed tokens (frequency, mode, QTH, grid, park ref, summit ref) from entryText
-    /// once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
+    /// Strip consumed tokens (frequency, mode, QTH, grid, park ref, summit ref, time) from
+    /// entryText once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
     /// Pushes frequency/mode to radio when consumed.
     private func consumeTokens(_ parsed: ParsedEntry) {
         let tokens = parsed.tokens
@@ -240,7 +256,7 @@ final class QSOEntryViewModel {
                 if isConfirmed { consumedFrequency = true } else { kept.append(classified.text) }
             case .mode:
                 if isConfirmed { consumedMode = true } else { kept.append(classified.text) }
-            case .qth, .gridSquare, .potaRef, .sotaRef:
+            case .qth, .gridSquare, .potaRef, .sotaRef, .time:
                 if !isConfirmed {
                     kept.append(classified.text)
                 }
@@ -521,6 +537,17 @@ final class QSOEntryViewModel {
         // The pill is the source of truth in edit mode — the hidden `grid` only carries
         // auto-populated lookups (resolveLocal/resolveQRZ).
         gridInput = qso.grid ?? ""
+        timeOnInput = qso.timeOn
+    }
+
+    /// Normalizes the time pill on commit. Invalid input quietly reverts — to the
+    /// original time when editing, or to empty (stamp at save) for a new QSO.
+    func timeCommitted() {
+        if let time = OmniFieldParser.parseTime(timeOnInput) {
+            timeOnInput = time
+        } else {
+            timeOnInput = editingQSO?.timeOn ?? ""
+        }
     }
 
     func cancelEditing() {
@@ -551,13 +578,14 @@ final class QSOEntryViewModel {
 
         var qso: QSO
         if let editing = editingQSO {
-            // Update existing QSO — preserve id, date, and timeOn
+            // Update existing QSO — preserve id and date; time comes from the pill,
+            // falling back to the original when cleared or invalid
             qso = QSO(
                 id: editing.id,
                 logId: logId,
                 callsign: callsign.uppercased(),
                 date: editing.date,
-                timeOn: editing.timeOn,
+                timeOn: OmniFieldParser.parseTime(timeOnInput) ?? editing.timeOn,
                 frequency: frequency,
                 band: band,
                 mode: mode,
@@ -572,13 +600,13 @@ final class QSOEntryViewModel {
                 syncedToQRZ: editing.syncedToQRZ
             )
         } else {
-            // Create new QSO
+            // Create new QSO — a typed time token back-dates it within today's UTC date
             let now = Date()
             qso = QSO(
                 logId: logId,
                 callsign: callsign.uppercased(),
                 date: now.adifDate,
-                timeOn: now.adifTime,
+                timeOn: OmniFieldParser.parseTime(timeOnInput) ?? now.adifTime,
                 frequency: frequency,
                 band: band,
                 mode: mode,
@@ -667,6 +695,7 @@ final class QSOEntryViewModel {
         sotaRefFormatted = nil
         sotaRefValid = false
         gridInput = ""
+        timeOnInput = editingQSO?.timeOn ?? ""
         timesWorked = 0
         workedToday = 0
         isDupe = false
@@ -779,6 +808,7 @@ final class QSOEntryViewModel {
         sotaRefFormatted = nil
         sotaRefValid = false
         gridInput = ""
+        timeOnInput = ""
         timesWorked = 0
         workedToday = 0
         isDupe = false

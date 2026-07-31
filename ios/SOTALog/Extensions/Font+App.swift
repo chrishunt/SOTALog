@@ -12,8 +12,7 @@ extension Font {
     static let appReferenceCode = Font.footnote.monospaced()
     static let appLabel = Font.footnote
     static let appBadgeSmall = Font.caption2.bold()
-    static let appMetadataLine1 = Font.callout.monospacedDigit()
-    static let appMetadataLine2 = Font.callout
+    static let appMetadata = Font.callout.monospacedDigit()
     static let appMacroButton = Font.callout.bold()
     static let appTemplateCode = Font.body.monospaced()
     static let appVariableChip = Font.caption.monospaced()

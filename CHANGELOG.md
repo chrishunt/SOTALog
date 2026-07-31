@@ -6,6 +6,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- QSO time editing: tap a logged QSO, then tap the time chip on the metadata strip to correct its UTC time inline
+- Time omnifield token: append a UTC time with a trailing Z (e.g. `K7ABC 599 1432Z`) to back-time a forgotten contact at entry
+
+### Changed
+- The QSO list is ordered by QSO time instead of entry order, so corrected and back-timed contacts appear in chronological position
+- Metadata strip is now a single cloud of chips that wrap instead of truncating; dot separators are gone and long names are width-capped so they can't crowd out other chips
+
+### Fixed
+- Typing a frequency or time whose leading digits look like an RST (e.g. `14.060`, `1432Z`) no longer leaves a stale RST preview behind
+
 ## [1.7] - 2026-06-02
 
 ### Changed

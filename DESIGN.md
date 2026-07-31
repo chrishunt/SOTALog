@@ -47,7 +47,7 @@ The operator is sitting on a cold summit or crouched at a picnic table in a park
 
 3. **Sensible defaults** — Frequency persists from the previous QSO (you're on the same frequency). Mode is derived from frequency (CW, SSB, or FM sub-band). RST defaults to 599 for CW, 59 for voice modes. Band is derived from frequency. Date and time are stamped at save.
 
-4. **Metadata strip** — All QSO metadata lives in a compact strip above the callsign. Line 1 (always visible): RST sent · RST received · frequency, plus park/summit references with validation checkmarks when present. Line 2 (auto-populated): name · QTH. Tap any segment to edit it inline. This replaces separate field rows — one component, uniform interaction.
+4. **Metadata strip** — All QSO metadata lives in a compact chip cloud above the callsign, in stable semantic order: time (when set), frequency, mode, RST sent, RST received, park/summit references with validation checkmarks, then name, QTH, and grid as they populate. Chips keep their natural size and wrap to more rows when they don't fit — data chips never truncate, never reorder; prose (the name) is width-capped instead. Tap any chip to edit it inline. This replaces separate field rows — one component, uniform interaction.
 
 5. **Save** — Keyboard Send from any field (callsign or metadata strip). Haptic fires. Fields clear. Focus returns to callsign. Frequency is preserved. The operator is immediately ready for the next contact.
 
@@ -97,13 +97,17 @@ A success haptic on save is the only confirmation. No toasts, no banners, no mod
 
 ### The OmniField
 
-The callsign field is also a command line. Space-separated tokens after the callsign are parsed as RST, frequency, mode (CW/SSB/FM), QTH, Maidenhead grid, or P2P/S2S references. This lets a skilled operator log an entire QSO without leaving a single text field. Unrecognized tokens are silently ignored — never show parse errors in the logging flow.
+The callsign field is also a command line. Space-separated tokens after the callsign are parsed as RST, frequency, mode (CW/SSB/FM), QTH, Maidenhead grid, UTC time (trailing Z, e.g. `1432Z`), or P2P/S2S references. This lets a skilled operator log an entire QSO without leaving a single text field. Unrecognized tokens are silently ignored — never show parse errors in the logging flow.
 
-**Token consumption:** When the parser recognizes a token (frequency, QTH, grid, park ref, summit ref) and the operator types a space after it, the token is consumed — stripped from the callsign field and "moved" to the metadata strip. The callsign and RST tokens always remain in the field. This keeps the omnibox clean: type `W1AW 59 55 14.060 NC ` and the field shows `W1AW 59 55` while the metadata strip displays the consumed values.
+**Token consumption:** When the parser recognizes a token (frequency, QTH, grid, time, park ref, summit ref) and the operator types a space after it, the token is consumed — stripped from the callsign field and "moved" to the metadata strip. The callsign and RST tokens always remain in the field. This keeps the omnibox clean: type `W1AW 59 55 14.060 NC ` and the field shows `W1AW 59 55` while the metadata strip displays the consumed values.
 
 ### Manual overrides are respected
 
 If the operator explicitly provides a value — whether by editing a field directly or via the OmniField — auto-populate won't overwrite it. This resets after each save. The principle: never fight the operator. The most recent explicit input always wins.
+
+### Time is stamped, not asked — but always correctable
+
+New QSOs stamp date and time at save; time is never a decision point in the logging flow. For contacts logged after the fact, the operator can back-time at entry with a time token (`1432Z`) or fix it later: tap the QSO row to edit, then tap the time chip that appears first on the metadata strip. The chip only exists when it has a value (editing, or a typed token), so the entry panel stays clean during live logging. Invalid time input quietly reverts — same rule as reference validation. The QSO list orders by QSO time, not entry order, so a corrected time visibly moves the row to its chronological place. Dates are not editable in-app; that edge case (crossing UTC midnight) is left to the program websites.
 
 ### Spots feed directly into logging
 

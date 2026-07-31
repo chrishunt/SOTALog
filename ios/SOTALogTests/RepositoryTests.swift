@@ -181,6 +181,26 @@ final class QSORepositoryExtendedTests: XCTestCase {
         XCTAssertTrue(unsynced[0].id! < unsynced[1].id!)
     }
 
+    func testFetchAllForLogOrderedByDateAndTime() async throws {
+        let db = try AppDatabase.empty()
+        let logRepo = LogRepository(database: db)
+        let qsoRepo = QSORepository(database: db)
+
+        var log = Log(date: "20240101", myCallsign: "W1AW")
+        try await logRepo.save(&log)
+
+        // Inserted out of chronological order — a back-timed QSO added last
+        var qso1 = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m")
+        var qso2 = QSO(logId: log.id!, callsign: "N4XYZ", date: "20240101", timeOn: "1400", band: "20m")
+        var qso3 = QSO(logId: log.id!, callsign: "W5DEF", date: "20240101", timeOn: "1300", band: "20m")
+        try await qsoRepo.save(&qso1)
+        try await qsoRepo.save(&qso2)
+        try await qsoRepo.save(&qso3)
+
+        let qsos = try await qsoRepo.fetchAll(forLogId: log.id!)
+        XCTAssertEqual(qsos.map(\.callsign), ["N4XYZ", "W5DEF", "K3ABC"], "Newest QSO time first")
+    }
+
     func testMarkSynced() async throws {
         let db = try AppDatabase.empty()
         let logRepo = LogRepository(database: db)

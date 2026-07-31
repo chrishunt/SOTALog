@@ -1,9 +1,13 @@
 import SwiftUI
 
-/// Compact metadata display for QSO entry. Two lines:
-/// Line 1 (always): frequency · RST sent · RST received [· park ref ✓] [· summit ref ✓]
-/// Line 2 (when populated): name · QTH · grid
-/// Tap any segment to edit inline. Send saves the QSO.
+/// Compact metadata display for QSO entry: a single cloud of chips in stable
+/// semantic order — [time] frequency, mode, RST sent, RST received,
+/// [park ref ✓], [summit ref ✓], then name, QTH, and grid when populated.
+/// Tap any chip to edit inline. Send saves the QSO.
+/// The time chip appears when editing a QSO or after a time token ("1432Z") is typed.
+/// Chips keep their natural size and wrap to a new row when they don't fit.
+/// Data is never truncated; prose (the name) is width-capped so one long value
+/// can't hog a whole row.
 struct MetadataStrip: View {
     @Binding var rstSent: String
     @Binding var rstReceived: String
@@ -18,6 +22,8 @@ struct MetadataStrip: View {
     var sotaRefFormatted: String?
     var sotaRefValid: Bool
     @Binding var gridInput: String
+    @Binding var timeOnInput: String
+    var onTimeCommitted: () -> Void
     var onManualOverride: (String) -> Void
     var onModeToggle: () -> Void
     var onPOTAChanged: () -> Void
@@ -31,35 +37,15 @@ struct MetadataStrip: View {
     @State private var editingField: EditField?
 
     private enum EditField: Hashable {
-        case rstSent, rstReceived, frequency, name, qth, potaRef, sotaRef, grid
-    }
-
-    private var isEditingLine1: Bool {
-        switch editingField {
-        case .rstSent, .rstReceived, .frequency, .potaRef, .sotaRef: return true
-        default: return false
-        }
-    }
-
-    private var isEditingLine2: Bool {
-        switch editingField {
-        case .name, .qth, .grid: return true
-        default: return false
-        }
+        case time, rstSent, rstReceived, frequency, name, qth, potaRef, sotaRef, grid
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if isEditingLine1 {
-                line1Editor
+        Group {
+            if editingField != nil {
+                editorField
             } else {
-                line1Display
-            }
-
-            if isEditingLine2 {
-                line2Editor
-            } else if !name.isEmpty || !qth.isEmpty || !gridInput.isEmpty {
-                line2Display
+                chipRows
             }
         }
         .onChange(of: editFocus) { _, newValue in
@@ -67,51 +53,72 @@ struct MetadataStrip: View {
                 if editingField == .frequency {
                     onFrequencyCommitted()
                 }
+                if editingField == .time {
+                    onTimeCommitted()
+                }
                 editingField = nil
             }
         }
     }
 
-    // MARK: - Line 1 Display
+    // MARK: - Chip Rows
 
-    private var line1Display: some View {
-        HStack(spacing: 0) {
+    private var chipRows: some View {
+        FlowLayout(spacing: 6, rowSpacing: 4) {
+            if !timeOnInput.isEmpty {
+                segment(timeOnInput.insertingTimeSeparator + "Z", field: .time)
+            }
+
             frequencySegment
-            dot
             modeSegment
-            dot
             segment(rstSent, field: .rstSent)
-            dot
             segment(rstReceived, field: .rstReceived)
 
             if potaRefValid, let ref = potaRefFormatted {
-                dot
                 refSegment(ref, field: .potaRef, color: Color.appGreen)
             } else if !potaRefInput.isEmpty {
-                dot
                 segment(potaRefInput, field: .potaRef)
             }
 
             if sotaRefValid, let ref = sotaRefFormatted {
-                dot
                 refSegment(ref, field: .sotaRef, color: Color.appBlue)
             } else if !sotaRefInput.isEmpty {
-                dot
                 segment(sotaRefInput, field: .sotaRef)
             }
 
-            Spacer()
+            if !name.isEmpty {
+                segment(name, field: .name)
+                    .layoutValue(key: FlowLayout.MaxWidthFraction.self, value: 0.6)
+            }
+
+            if !qth.isEmpty {
+                segment(qth, field: .qth)
+            }
+
+            if !gridInput.isEmpty {
+                segment(gridInput, field: .grid)
+            }
         }
-        .font(.appMetadataLine1)
+        .font(.appMetadata)
         .foregroundStyle(Color.appTextSecondary)
         .lineLimit(1)
     }
 
-    // MARK: - Line 1 Editor
+    // MARK: - Editor
 
-    private var line1Editor: some View {
+    private var editorField: some View {
         Group {
             switch editingField {
+            case .time:
+                TextField("1432", text: $timeOnInput)
+                    .focused($editFocus, equals: .time)
+                    #if os(iOS)
+                    .keyboardType(.numberPad)
+                    #endif
+                    .onChange(of: timeOnInput) { _, newValue in
+                        let sanitized = String(newValue.filter(\.isNumber).prefix(4))
+                        if sanitized != newValue { timeOnInput = sanitized }
+                    }
             case .rstSent:
                 TextField(mode == "SSB" ? "59" : "599", text: $rstSent)
                     .focused($editFocus, equals: .rstSent)
@@ -158,72 +165,6 @@ struct MetadataStrip: View {
                         onManualOverride("sotaRef")
                         onSOTAChanged()
                     }
-            default:
-                EmptyView()
-            }
-        }
-        .textFieldStyle(.roundedBorder)
-        .font(.appMetadataLine1)
-        .submitLabel(.done)
-        .onSubmit {
-            let wasFrequency = editingField == .frequency
-            editingField = nil
-            editFocus = nil
-            if wasFrequency { onFrequencyCommitted() }
-            onSubmit()
-        }
-        .textContentType(.none)
-        #if os(iOS)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) { }
-        }
-        #endif
-    }
-
-    // MARK: - Line 2 Display
-
-    private var line2Display: some View {
-        HStack(spacing: 0) {
-            if !name.isEmpty {
-                Button {
-                    editingField = .name
-                    editFocus = .name
-                } label: {
-                    Text(name)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .layoutPriority(-1)
-            }
-
-            if !name.isEmpty && !qth.isEmpty {
-                dot
-            }
-
-            if !qth.isEmpty {
-                segment(qth, field: .qth)
-            }
-
-            if !gridInput.isEmpty {
-                if !name.isEmpty || !qth.isEmpty { dot }
-                segment(gridInput, field: .grid)
-                    .monospacedDigit()
-            }
-
-            Spacer()
-        }
-        .font(.appMetadataLine2)
-        .foregroundStyle(Color.appTextSecondary)
-        .lineLimit(1)
-    }
-
-    // MARK: - Line 2 Editor
-
-    private var line2Editor: some View {
-        Group {
-            switch editingField {
             case .name:
                 TextField("Name", text: $name)
                     .focused($editFocus, equals: .name)
@@ -240,19 +181,28 @@ struct MetadataStrip: View {
                     .focused($editFocus, equals: .grid)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-            default:
+            case nil:
                 EmptyView()
             }
         }
         .textFieldStyle(.roundedBorder)
-        .font(.appMetadataLine2)
+        .font(.appMetadata)
         .submitLabel(.done)
         .onSubmit {
+            let wasFrequency = editingField == .frequency
+            let wasTime = editingField == .time
             editingField = nil
             editFocus = nil
+            if wasFrequency { onFrequencyCommitted() }
+            if wasTime { onTimeCommitted() }
             onSubmit()
         }
         .textContentType(.none)
+        #if os(iOS)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) { }
+        }
+        #endif
     }
 
     // MARK: - Helpers
@@ -316,10 +266,5 @@ struct MetadataStrip: View {
             .background(Color.appTextSecondary.opacity(0.1), in: Capsule())
         }
         .buttonStyle(.plain)
-    }
-
-    private var dot: some View {
-        Text(" · ")
-            .foregroundStyle(Color.appTextSecondary.opacity(0.5))
     }
 }

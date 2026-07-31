@@ -2,7 +2,7 @@ import Foundation
 
 struct ParsedEntry {
     enum TokenKind {
-        case callsign, rst, frequency, mode, qth, gridSquare, potaRef, sotaRef, unrecognized
+        case callsign, rst, frequency, mode, qth, gridSquare, potaRef, sotaRef, time, unrecognized
     }
 
     struct ClassifiedToken {
@@ -19,6 +19,7 @@ struct ParsedEntry {
     var gridSquare: String?
     var potaRef: String?
     var sotaRef: String?
+    var timeOn: String?
     var tokens: [ClassifiedToken] = []
 }
 
@@ -47,6 +48,9 @@ enum OmniFieldParser {
             } else if isFrequency(token) {
                 result.frequency = token
                 result.tokens.append(.init(text: token, kind: .frequency))
+            } else if let time = parseTimeToken(token) {
+                result.timeOn = time
+                result.tokens.append(.init(text: token, kind: .time))
             } else if isQTH(token) {
                 result.qth = token.uppercased()
                 result.tokens.append(.init(text: token, kind: .qth))
@@ -94,6 +98,25 @@ enum OmniFieldParser {
     /// Matches a decimal number (frequency in MHz)
     private static func isFrequency(_ token: String) -> Bool {
         token.contains(".") && Double(token) != nil
+    }
+
+    /// UTC time token: HHMM digits with a trailing Z, e.g. "1432Z" or "932Z".
+    /// The Z suffix disambiguates from RST. Returns "HHMM" or nil.
+    private static func parseTimeToken(_ token: String) -> String? {
+        guard token.count >= 4, token.count <= 5,
+              token.last == "Z" || token.last == "z" else { return nil }
+        return parseTime(String(token.dropLast()))
+    }
+
+    /// Validates bare HHMM digits (3-4 chars, HH < 24, MM < 60).
+    /// Returns the zero-padded "HHMM" or nil.
+    static func parseTime(_ raw: String) -> String? {
+        guard raw.count >= 3, raw.count <= 4,
+              raw.allSatisfy(\.isNumber) else { return nil }
+        let padded = String(repeating: "0", count: 4 - raw.count) + raw
+        guard let hh = Int(padded.prefix(2)), hh < 24,
+              let mm = Int(padded.suffix(2)), mm < 60 else { return nil }
+        return padded
     }
 
     /// Matches US state, DC, territory, or Canadian province/territory abbreviation
