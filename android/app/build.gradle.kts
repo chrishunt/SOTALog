@@ -17,7 +17,7 @@ android {
         applicationId = "com.sotalog.app"
         minSdk = 28
         targetSdk = 35
-        versionCode = 4
+        versionCode = 5
         versionName = appVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

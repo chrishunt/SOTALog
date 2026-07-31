@@ -217,7 +217,7 @@ final class QSOEntryViewModel {
         }
     }
 
-    /// Strip consumed tokens (frequency, mode, QTH, park ref, summit ref) from entryText
+    /// Strip consumed tokens (frequency, mode, QTH, grid, park ref, summit ref) from entryText
     /// once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
     /// Pushes frequency/mode to radio when consumed.
     private func consumeTokens(_ parsed: ParsedEntry) {

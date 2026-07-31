@@ -97,9 +97,9 @@ A success haptic on save is the only confirmation. No toasts, no banners, no mod
 
 ### The OmniField
 
-The callsign field is also a command line. Space-separated tokens after the callsign are parsed as RST, frequency, mode (CW/SSB/FM), QTH, or P2P/S2S references. This lets a skilled operator log an entire QSO without leaving a single text field. Unrecognized tokens are silently ignored — never show parse errors in the logging flow.
+The callsign field is also a command line. Space-separated tokens after the callsign are parsed as RST, frequency, mode (CW/SSB/FM), QTH, Maidenhead grid, or P2P/S2S references. This lets a skilled operator log an entire QSO without leaving a single text field. Unrecognized tokens are silently ignored — never show parse errors in the logging flow.
 
-**Token consumption:** When the parser recognizes a token (frequency, QTH, park ref, summit ref) and the operator types a space after it, the token is consumed — stripped from the callsign field and "moved" to the metadata strip. The callsign and RST tokens always remain in the field. This keeps the omnibox clean: type `W1AW 59 55 14.060 NC ` and the field shows `W1AW 59 55` while the metadata strip displays the consumed values.
+**Token consumption:** When the parser recognizes a token (frequency, QTH, grid, park ref, summit ref) and the operator types a space after it, the token is consumed — stripped from the callsign field and "moved" to the metadata strip. The callsign and RST tokens always remain in the field. This keeps the omnibox clean: type `W1AW 59 55 14.060 NC ` and the field shows `W1AW 59 55` while the metadata strip displays the consumed values.
 
 ### Manual overrides are respected
 
