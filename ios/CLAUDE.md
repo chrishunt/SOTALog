@@ -133,8 +133,8 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
 
 **Post-upload:**
 
-10. Commit version bump + changelog: `git commit -m "Release <version>"`
-11. Tag: `git tag v<version>` and push with `git push --tags`
+10. Commit version bump + changelog on a release branch (`git commit -m "Release <version>"`), open a PR against `main`, and merge it once CI passes. `main` does not accept direct pushes.
+11. Tag the merge commit on `main`: `git fetch origin && git tag v<version> origin/main`, then push with `git push origin v<version>`
 12. Update comparison links at the bottom of `CHANGELOG.md` to include the new version
 13. In App Store Connect, add "What to Test" notes from the changelog
 14. Verify build appears in TestFlight for beta testers
