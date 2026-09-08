@@ -10,6 +10,7 @@ import com.sotalog.android.data.remote.api.QRZLookupApi
 import com.sotalog.android.domain.models.CallsignHistory
 import com.sotalog.android.domain.models.Log
 import com.sotalog.android.domain.models.QSO
+import com.sotalog.android.domain.models.SOTASummit
 import com.sotalog.android.makeSpot
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -420,6 +421,67 @@ class QSOEntryViewModelTest {
             advanceUntilIdle()
 
             assertEquals(4, vm.timesWorked.value, "Badge count comes from COUNT(*) of QSO rows")
+        }
+    }
+
+    // MARK: - Dupe Detection
+
+    @Nested
+    inner class `Dupe Detection` {
+
+        private val summit001 = SOTASummit(code = "W6/NC-001", codeNormalized = "W6NC001", name = "Mount Tamalpais")
+        private val summit002 = SOTASummit(code = "W6/NC-002", codeNormalized = "W6NC002", name = "Mount Diablo")
+
+        /** A prior 20m CW contact with K3ABC in this log, optionally from a summit. */
+        private fun priorQSO(sotaRef: String? = null) = QSO(
+            id = 7, logId = 1, callsign = "K3ABC", date = "20240101", timeOn = "1200",
+            frequency = 14.060, band = "20m", mode = "CW", sotaRef = sotaRef,
+        )
+
+        @BeforeEach
+        fun stubSummits() {
+            coEvery { referenceDao.searchSummitsByNormalizedPrefix("W6NC001", 1) } returns listOf(summit001)
+            coEvery { referenceDao.searchSummitsByNormalizedPrefix("W6NC002", 1) } returns listOf(summit002)
+        }
+
+        @Test
+        fun `same station from the same summit is a dupe`() = runTest {
+            coEvery { qsoDao.getByLogId(1) } returns listOf(priorQSO(sotaRef = "W6/NC-001"))
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("K3ABC W6NC001 ")
+            advanceUntilIdle()
+
+            assertTrue(vm.isDupe.value)
+        }
+
+        @Test
+        fun `same station from a different summit is not a dupe`() = runTest {
+            coEvery { qsoDao.getByLogId(1) } returns listOf(priorQSO(sotaRef = "W6/NC-001"))
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("K3ABC W6NC002 ")
+            advanceUntilIdle()
+
+            assertFalse(vm.isDupe.value, "A different summit is a new S2S contact")
+        }
+
+        @Test
+        fun `dupe clears when a summit reference is added`() = runTest {
+            coEvery { qsoDao.getByLogId(1) } returns listOf(priorQSO())
+            val vm = makeVM()
+            advanceUntilIdle()
+
+            vm.onEntryTextChanged("K3ABC")
+            advanceUntilIdle()
+            assertTrue(vm.isDupe.value, "Same station, band, and mode with no references is a dupe")
+
+            // The operator adds the other station's summit via the chip editor: now it's S2S.
+            vm.onSotaRefChanged("W6NC001")
+            advanceUntilIdle()
+            assertFalse(vm.isDupe.value, "Validating a reference re-runs the dupe check")
         }
     }
 

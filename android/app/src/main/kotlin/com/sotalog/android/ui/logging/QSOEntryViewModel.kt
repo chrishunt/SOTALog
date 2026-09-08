@@ -152,6 +152,13 @@ class QSOEntryViewModel @Inject constructor(
     val defaultRST: String
         get() = if (_mode.value == "CW") "599" else "59"
 
+    /** The other station's summit/park as they would be saved: the validated, formatted code, or null. */
+    private val resolvedSotaRef: String?
+        get() = if (_sotaRefValid.value) _sotaRefFormatted.value else null
+
+    private val resolvedPotaRef: String?
+        get() = if (_potaRefValid.value) _potaRefFormatted.value else null
+
     init {
         viewModelScope.launch {
             log = logDao.getById(logId)
@@ -458,6 +465,11 @@ class QSOEntryViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Check if this callsign+band+mode+references is a duplicate within the current activation.
+     * The key is the same tuple the save writes, so the same station worked again from a
+     * different summit or park (S2S/P2P) is a new contact, not a dupe.
+     */
     private suspend fun resolveDupe(call: String) {
         val freq = _frequencyText.value.toDoubleOrNull()
         val band = freq?.let { BandPlan.band(it) }
@@ -467,10 +479,14 @@ class QSOEntryViewModel @Inject constructor(
         }
         val qsos = qsoDao.getByLogId(logId)
         val editingId = _editingQSO.value?.id
+        val sotaRef = resolvedSotaRef
+        val potaRef = resolvedPotaRef
         val dupe = qsos.any { qso ->
             qso.callsign.equals(call, ignoreCase = true) &&
                 qso.band == band &&
                 qso.mode == _mode.value &&
+                qso.sotaRef == sotaRef &&
+                qso.potaRef == potaRef &&
                 qso.id != editingId
         }
         _isDupe.value = dupe
@@ -498,48 +514,43 @@ class QSOEntryViewModel @Inject constructor(
 
     // MARK: - POTA P2P Validation
 
+    /** Validates the park reference and re-runs the dupe check, since the reference is part of the dupe key. */
     fun validatePOTARef() {
         val normalized = _potaRefInput.value.uppercase().filter { it.isLetterOrDigit() }
         if (normalized.length < 3) {
             _potaRefValid.value = false
             _potaRefFormatted.value = null
             _potaRefName.value = null
+            recheckDupe()
             return
         }
         viewModelScope.launch {
             val parks = referenceDao.searchParksByNormalizedPrefix(normalized, 1)
             val park = parks.firstOrNull { it.referenceNormalized == normalized }
-            if (park != null) {
-                _potaRefValid.value = true
-                _potaRefFormatted.value = park.reference
-                _potaRefName.value = park.name
-            } else {
-                _potaRefValid.value = false
-                _potaRefFormatted.value = null
-                _potaRefName.value = null
-            }
+            _potaRefValid.value = park != null
+            _potaRefFormatted.value = park?.reference
+            _potaRefName.value = park?.name
+            recheckDupe()
         }
     }
 
     // MARK: - SOTA S2S Validation
 
+    /** Validates the summit reference and re-runs the dupe check, since the reference is part of the dupe key. */
     fun validateSOTARef() {
         val normalized = _sotaRefInput.value.uppercase().filter { it.isLetterOrDigit() }
         if (normalized.length < 4) {
             _sotaRefValid.value = false
             _sotaRefFormatted.value = null
+            recheckDupe()
             return
         }
         viewModelScope.launch {
             val summits = referenceDao.searchSummitsByNormalizedPrefix(normalized, 1)
             val summit = summits.firstOrNull { it.codeNormalized == normalized }
-            if (summit != null) {
-                _sotaRefValid.value = true
-                _sotaRefFormatted.value = summit.code
-            } else {
-                _sotaRefValid.value = false
-                _sotaRefFormatted.value = null
-            }
+            _sotaRefValid.value = summit != null
+            _sotaRefFormatted.value = summit?.code
+            recheckDupe()
         }
     }
 
@@ -610,8 +621,8 @@ class QSOEntryViewModel @Inject constructor(
                     name = _name.value.ifEmpty { null },
                     qth = _qth.value.ifEmpty { null },
                     grid = resolvedGrid,
-                    sotaRef = if (_sotaRefValid.value) _sotaRefFormatted.value else null,
-                    potaRef = if (_potaRefValid.value) _potaRefFormatted.value else null,
+                    sotaRef = resolvedSotaRef,
+                    potaRef = resolvedPotaRef,
                     qrzLogId = editing.qrzLogId,
                     syncedToQRZ = editing.syncedToQRZ,
                 )
@@ -632,8 +643,8 @@ class QSOEntryViewModel @Inject constructor(
                     name = _name.value.ifEmpty { null },
                     qth = _qth.value.ifEmpty { null },
                     grid = resolvedGrid,
-                    sotaRef = if (_sotaRefValid.value) _sotaRefFormatted.value else null,
-                    potaRef = if (_potaRefValid.value) _potaRefFormatted.value else null,
+                    sotaRef = resolvedSotaRef,
+                    potaRef = resolvedPotaRef,
                 )
                 val newId = qsoDao.insert(qso)
                 _lastSavedQSO.value = qso.copy(id = newId)

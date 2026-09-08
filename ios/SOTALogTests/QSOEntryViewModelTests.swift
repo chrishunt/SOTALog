@@ -494,6 +494,59 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(after, 0, "Deleting the QSO drops the count")
     }
 
+    // MARK: - Dupe Detection
+
+    /// Seeds two summits so typed references validate, and logs a prior 20m CW contact with
+    /// K3ABC, optionally from a summit.
+    private func seedDupeFixtures(priorSummit: String?) async throws {
+        try await ReferenceRepository(database: db).importSummits([
+            SOTASummit(code: "W6/NC-001", codeNormalized: "W6NC001", name: "Mount Tamalpais"),
+            SOTASummit(code: "W6/NC-002", codeNormalized: "W6NC002", name: "Mount Diablo"),
+        ])
+        var prior = QSO(logId: log.id!, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m", mode: "CW", sotaRef: priorSummit)
+        try await QSORepository(database: db).save(&prior)
+    }
+
+    func testSameStationFromSameSummitIsDupe() async throws {
+        try await seedDupeFixtures(priorSummit: "W6/NC-001")
+        let vm = makeVM()
+
+        vm.entryText = "K3ABC W6NC001 "
+        vm.parseEntry()
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+
+        XCTAssertTrue(vm.isDupe)
+    }
+
+    func testSameStationFromDifferentSummitIsNotDupe() async throws {
+        try await seedDupeFixtures(priorSummit: "W6/NC-001")
+        let vm = makeVM()
+
+        vm.entryText = "K3ABC W6NC002 "
+        vm.parseEntry()
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+
+        XCTAssertFalse(vm.isDupe, "A different summit is a new S2S contact")
+    }
+
+    func testDupeClearsWhenSummitReferenceIsAdded() async throws {
+        try await seedDupeFixtures(priorSummit: nil)
+        let vm = makeVM()
+
+        vm.entryText = "K3ABC"
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+        XCTAssertTrue(vm.isDupe, "Same station, band, and mode with no references is a dupe")
+
+        // The operator adds the other station's summit via the chip editor: now it's S2S.
+        vm.sotaRefInput = "W6NC001"
+        vm.validateSOTARef()
+        try await Task.sleep(for: .milliseconds(300))
+        XCTAssertFalse(vm.isDupe, "Validating a reference re-runs the dupe check")
+    }
+
     // MARK: - Spot Prefill
 
     func testPrefillFromSpot() {

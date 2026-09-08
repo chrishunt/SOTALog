@@ -64,14 +64,21 @@ class QSORepository @Inject constructor(
         qsoDao.update(qso.copy(syncedToQRZ = true, qrzLogId = qrzLogId))
     }
 
+    /**
+     * Check if a callsign+band+mode+references combination already exists in this log.
+     * References are the other station's summit and park (S2S/P2P): the same station worked
+     * again from a different summit or park is a new contact, not a dupe. null matches only null.
+     */
     suspend fun isDuplicate(
         callsign: String,
         band: String,
         mode: String,
+        sotaRef: String?,
+        potaRef: String?,
         logId: Long,
         excludingId: Long?,
     ): Boolean = withContext(Dispatchers.IO) {
-        qsoDao.countDuplicates(callsign, band, mode, logId, excludingId) > 0
+        qsoDao.countDuplicates(callsign, band, mode, sotaRef, potaRef, logId, excludingId) > 0
     }
 
     suspend fun saveLastSyncedQRZLogId(qrzLogId: Long) = withContext(Dispatchers.IO) {

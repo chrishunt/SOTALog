@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - Number keys above the keyboard insert at the cursor instead of appending to the end of the callsign field
 - Android: the number key row hides while a metadata chip is being edited, so digits no longer land in the callsign field
+- The DUPE badge now takes the other station's summit and park into account, so working the same station again from a different summit or park is no longer flagged as a duplicate
 
 ## [1.8] - 2026-07-31
 
