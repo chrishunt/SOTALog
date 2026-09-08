@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -81,6 +82,7 @@ fun QSOEntryPanel(
     val editingQSO by viewModel.editingQSO.collectAsStateWithLifecycle()
 
     val focusRequester = remember { FocusRequester() }
+    var callsignFocused by remember { mutableStateOf(false) }
 
     // Haptic feedback on save
     LaunchedEffect(saveCount) {
@@ -176,20 +178,25 @@ fun QSOEntryPanel(
                     viewModel.saveQSO()
                     focusRequester.requestFocus()
                 },
-                modifier = Modifier.focusRequester(focusRequester),
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { callsignFocused = it.isFocused },
             )
 
-            // Number key row for quick digit/slash entry
-            NumberKeyRow(
-                onKey = { char ->
-                    val cursor = textFieldValue.selection.start
-                    val newText = textFieldValue.text.substring(0, cursor) + char +
-                        textFieldValue.text.substring(cursor)
-                    val newCursor = cursor + char.length
-                    textFieldValue = TextFieldValue(newText, TextRange(newCursor))
-                    viewModel.onEntryTextChanged(newText)
-                },
-            )
+            // Number key row for quick digit/slash entry. Shown only while the callsign
+            // field has focus, so digits can't land there while a metadata chip is edited.
+            if (callsignFocused) {
+                NumberKeyRow(
+                    onKey = { char ->
+                        val cursor = textFieldValue.selection.start
+                        val newText = textFieldValue.text.substring(0, cursor) + char +
+                            textFieldValue.text.substring(cursor)
+                        val newCursor = cursor + char.length
+                        textFieldValue = TextFieldValue(newText, TextRange(newCursor))
+                        viewModel.onEntryTextChanged(newText)
+                    },
+                )
+            }
         }
     }
 }

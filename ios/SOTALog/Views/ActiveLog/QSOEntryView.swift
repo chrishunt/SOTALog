@@ -19,6 +19,10 @@ struct QSOEntryView: View {
     @State private var editingMacro: CWMacro?
     @State private var pressedMacroPosition: Int?
     @FocusState private var focusedField: Field?
+    #if os(iOS)
+    // The text field currently editing, so the number key row can type into it at the cursor.
+    @State private var activeTextField: UITextField?
+    #endif
 
     enum Field: Hashable {
         case callsign, frequency, name, qth, sotaRef, potaRef
@@ -58,8 +62,8 @@ struct QSOEntryView: View {
 
             #if os(iOS)
             if focusedField == .callsign {
-                NumberKeyRow { char in
-                    viewModel.entryText.append(char)
+                NumberKeyRow { key in
+                    insertKey(key)
                 }
                 .padding(.horizontal, -13)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -74,6 +78,7 @@ struct QSOEntryView: View {
         #if os(iOS)
         .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { notification in
             guard let textField = notification.object as? UITextField else { return }
+            activeTextField = textField
             DispatchQueue.main.async {
                 if focusedField == .callsign {
                     let end = textField.endOfDocument
@@ -81,6 +86,11 @@ struct QSOEntryView: View {
                 } else {
                     textField.selectAll(nil)
                 }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidEndEditingNotification)) { notification in
+            if let textField = notification.object as? UITextField, textField === activeTextField {
+                activeTextField = nil
             }
         }
         #endif
@@ -274,6 +284,18 @@ struct QSOEntryView: View {
             await loadMacros()
         }
     }
+
+    #if os(iOS)
+    /// Types a number-row key the way the keyboard would: at the cursor, replacing any
+    /// selection. Falls back to appending when no text field is editing.
+    private func insertKey(_ key: String) {
+        if let textField = activeTextField {
+            textField.insertText(key)
+        } else {
+            viewModel.entryText.append(key)
+        }
+    }
+    #endif
 
     private func submitQSO() {
         guard !viewModel.parsedCallsign.isEmpty else { return }
