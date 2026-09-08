@@ -119,8 +119,8 @@ Upload to Google Play Console via the web interface.
 
 **Post-upload:**
 
-9. Commit version bump + changelog: `git commit -m "Release <version>"`
-10. Tag: `git tag v<version>` and push with `git push --tags`
+9. Commit version bump + changelog on a release branch (`git commit -m "Release <version>"`), open a PR against `main`, and merge it once CI passes. `main` does not accept direct pushes.
+10. Tag the merge commit on `main`: `git fetch origin && git tag v<version> origin/main`, then push with `git push origin v<version>`
 
 **Google Play release:**
 

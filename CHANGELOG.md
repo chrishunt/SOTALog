@@ -4,7 +4,7 @@ All notable changes to SOTA Log will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.9] - 2026-09-08
 
 ### Fixed
 - Number keys above the keyboard insert at the cursor instead of appending to the end of the callsign field
@@ -247,7 +247,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Maidenhead grid square conversion
 - TestFlight distribution configuration
 
-[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.8...HEAD
+[unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.9...HEAD
+[1.9]: https://github.com/chrishunt/SOTALog/compare/v1.8...v1.9
 [1.8]: https://github.com/chrishunt/SOTALog/compare/v1.7...v1.8
 [1.7]: https://github.com/chrishunt/SOTALog/compare/v1.6...v1.7
 [1.6]: https://github.com/chrishunt/SOTALog/compare/v1.5...v1.6
