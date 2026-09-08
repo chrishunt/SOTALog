@@ -64,11 +64,13 @@ struct QSORepository {
         }
     }
 
-    /// Check if a callsign+band+mode combination already exists in this log
-    func isDuplicate(callsign: String, band: String, mode: String, logId: Int64, excludingId: Int64?) async throws -> Bool {
+    /// Check if a callsign+band+mode+references combination already exists in this log.
+    /// References are the other station's summit and park (S2S/P2P): the same station worked
+    /// again from a different summit or park is a new contact, not a dupe. nil matches only nil.
+    func isDuplicate(callsign: String, band: String, mode: String, sotaRef: String?, potaRef: String?, logId: Int64, excludingId: Int64?) async throws -> Bool {
         try await database.dbWriter.read { db in
-            var sql = "SELECT COUNT(*) FROM qso WHERE callsign = ? AND band = ? AND mode = ? AND logId = ?"
-            var args: [any DatabaseValueConvertible] = [callsign, band, mode, logId]
+            var sql = "SELECT COUNT(*) FROM qso WHERE callsign = ? AND band = ? AND mode = ? AND logId = ? AND sotaRef IS ? AND potaRef IS ?"
+            var args: [(any DatabaseValueConvertible)?] = [callsign, band, mode, logId, sotaRef, potaRef]
             if let excludingId {
                 sql += " AND id != ?"
                 args.append(excludingId)

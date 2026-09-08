@@ -277,6 +277,86 @@ final class QSORepositoryExtendedTests: XCTestCase {
     }
 }
 
+// MARK: - QSORepository Duplicate Detection
+
+final class QSORepositoryDuplicateTests: XCTestCase {
+    private var db: AppDatabase!
+    private var qsoRepo: QSORepository!
+    private var logId: Int64!
+
+    override func setUp() async throws {
+        db = try AppDatabase.empty()
+        qsoRepo = QSORepository(database: db)
+        logId = try await makeLogWithId(in: db).id!
+
+        // One S2S contact and one plain chaser, both 20m CW.
+        var s2s = QSO(logId: logId, callsign: "K3ABC", date: "20240101", timeOn: "1200", band: "20m", mode: "CW", sotaRef: "W6/NC-001")
+        try await qsoRepo.save(&s2s)
+        var chaser = QSO(logId: logId, callsign: "N4XYZ", date: "20240101", timeOn: "1201", band: "20m", mode: "CW")
+        try await qsoRepo.save(&chaser)
+    }
+
+    private func isDupe(
+        _ callsign: String, band: String = "20m", mode: String = "CW",
+        sotaRef: String? = nil, potaRef: String? = nil, excludingId: Int64? = nil
+    ) async throws -> Bool {
+        try await qsoRepo.isDuplicate(
+            callsign: callsign, band: band, mode: mode,
+            sotaRef: sotaRef, potaRef: potaRef, logId: logId, excludingId: excludingId
+        )
+    }
+
+    func testSameStationFromSameSummitIsDupe() async throws {
+        let dupe = try await isDupe("K3ABC", sotaRef: "W6/NC-001")
+        XCTAssertTrue(dupe)
+    }
+
+    func testSameStationFromDifferentSummitIsNotDupe() async throws {
+        let dupe = try await isDupe("K3ABC", sotaRef: "W6/NC-002")
+        XCTAssertFalse(dupe, "A different summit is a new S2S contact")
+    }
+
+    func testSummitContactAfterPlainContactIsNotDupe() async throws {
+        let dupe = try await isDupe("N4XYZ", sotaRef: "W6/NC-001")
+        XCTAssertFalse(dupe, "A chaser who moves onto a summit is a new S2S contact")
+    }
+
+    func testPlainContactAfterSummitContactIsNotDupe() async throws {
+        let dupe = try await isDupe("K3ABC")
+        XCTAssertFalse(dupe)
+    }
+
+    func testPlainRepeatIsDupe() async throws {
+        let dupe = try await isDupe("N4XYZ")
+        XCTAssertTrue(dupe)
+    }
+
+    func testParkReferenceIsPartOfTheKey() async throws {
+        var p2p = QSO(logId: logId, callsign: "W5DEF", date: "20240101", timeOn: "1202", band: "20m", mode: "CW", potaRef: "US-0001")
+        try await qsoRepo.save(&p2p)
+
+        let samePark = try await isDupe("W5DEF", potaRef: "US-0001")
+        let otherPark = try await isDupe("W5DEF", potaRef: "US-0002")
+        let noPark = try await isDupe("W5DEF")
+        XCTAssertTrue(samePark)
+        XCTAssertFalse(otherPark, "A different park is a new P2P contact")
+        XCTAssertFalse(noPark)
+    }
+
+    func testDifferentBandOrModeIsNotDupe() async throws {
+        let otherBand = try await isDupe("K3ABC", band: "40m", sotaRef: "W6/NC-001")
+        let otherMode = try await isDupe("K3ABC", mode: "SSB", sotaRef: "W6/NC-001")
+        XCTAssertFalse(otherBand)
+        XCTAssertFalse(otherMode)
+    }
+
+    func testEditingExcludesTheRowBeingEdited() async throws {
+        let s2s = try await qsoRepo.fetchAll(forLogId: logId).first { $0.callsign == "K3ABC" }!
+        let dupe = try await isDupe("K3ABC", sotaRef: "W6/NC-001", excludingId: s2s.id)
+        XCTAssertFalse(dupe)
+    }
+}
+
 // MARK: - QSORepository Full Refresh Import
 
 final class QSORepositoryFullRefreshTests: XCTestCase {

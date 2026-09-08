@@ -60,6 +60,10 @@ final class QSOEntryViewModel {
         mode == "CW" ? "599" : "59"
     }
 
+    /// The other station's summit/park as they would be saved: the validated, formatted code, or nil.
+    private var resolvedSotaRef: String? { sotaRefValid ? sotaRefFormatted : nil }
+    private var resolvedPotaRef: String? { potaRefValid ? potaRefFormatted : nil }
+
     // CW Keyer
     var keyerSendCount: Int = 0
 
@@ -381,7 +385,9 @@ final class QSOEntryViewModel {
         }
     }
 
-    /// Check if this callsign+band+mode is a duplicate within the current activation
+    /// Check if this callsign+band+mode+references is a duplicate within the current activation.
+    /// The key is the same tuple the save writes, so the same station worked again from a
+    /// different summit or park (S2S/P2P) is a new contact, not a dupe.
     private func resolveDupe(_ call: String) async {
         guard let logId = log.id else { return }
         let band = Double(frequencyText).flatMap { BandPlan.band(for: $0) }
@@ -393,6 +399,8 @@ final class QSOEntryViewModel {
             callsign: call.uppercased(),
             band: band,
             mode: mode,
+            sotaRef: resolvedSotaRef,
+            potaRef: resolvedPotaRef,
             logId: logId,
             excludingId: editingQSO?.id
         )) ?? false
@@ -462,51 +470,44 @@ final class QSOEntryViewModel {
 
     // MARK: - POTA P2P Validation
 
+    /// Validates the park reference and re-runs the dupe check, since the reference is part of the dupe key.
     func validatePOTARef() {
         let normalized = potaRefInput.sanitizedAlphanumeric
         guard normalized.count >= 3 else {
             potaRefValid = false
             potaRefFormatted = nil
             potaRefName = nil
+            recheckDupe()
             return
         }
         Task {
-            if let park = try? await refRepo.fetchParkByNormalized(normalized) {
-                await MainActor.run {
-                    potaRefValid = true
-                    potaRefFormatted = park.reference
-                    potaRefName = park.name
-                }
-            } else {
-                await MainActor.run {
-                    potaRefValid = false
-                    potaRefFormatted = nil
-                    potaRefName = nil
-                }
+            let park = try? await refRepo.fetchParkByNormalized(normalized)
+            await MainActor.run {
+                potaRefValid = park != nil
+                potaRefFormatted = park?.reference
+                potaRefName = park?.name
+                recheckDupe()
             }
         }
     }
 
     // MARK: - SOTA S2S Validation
 
+    /// Validates the summit reference and re-runs the dupe check, since the reference is part of the dupe key.
     func validateSOTARef() {
         let normalized = sotaRefInput.sanitizedAlphanumeric
         guard normalized.count >= 4 else {
             sotaRefValid = false
             sotaRefFormatted = nil
+            recheckDupe()
             return
         }
         Task {
-            if let summit = try? await refRepo.fetchSummitByNormalized(normalized) {
-                await MainActor.run {
-                    sotaRefValid = true
-                    sotaRefFormatted = summit.code
-                }
-            } else {
-                await MainActor.run {
-                    sotaRefValid = false
-                    sotaRefFormatted = nil
-                }
+            let summit = try? await refRepo.fetchSummitByNormalized(normalized)
+            await MainActor.run {
+                sotaRefValid = summit != nil
+                sotaRefFormatted = summit?.code
+                recheckDupe()
             }
         }
     }
@@ -594,8 +595,8 @@ final class QSOEntryViewModel {
                 name: name.isEmpty ? nil : name,
                 qth: qth.isEmpty ? nil : qth,
                 grid: resolvedGrid,
-                sotaRef: sotaRefValid ? sotaRefFormatted : nil,
-                potaRef: potaRefValid ? potaRefFormatted : nil,
+                sotaRef: resolvedSotaRef,
+                potaRef: resolvedPotaRef,
                 qrzLogId: editing.qrzLogId,
                 syncedToQRZ: editing.syncedToQRZ
             )
@@ -615,8 +616,8 @@ final class QSOEntryViewModel {
                 name: name.isEmpty ? nil : name,
                 qth: qth.isEmpty ? nil : qth,
                 grid: resolvedGrid,
-                sotaRef: sotaRefValid ? sotaRefFormatted : nil,
-                potaRef: potaRefValid ? potaRefFormatted : nil
+                sotaRef: resolvedSotaRef,
+                potaRef: resolvedPotaRef
             )
         }
 

@@ -325,6 +325,23 @@ class QSORepositoryTest {
     }
 
     @Nested
+    inner class `Duplicate Detection` {
+
+        @Test
+        fun `is duplicate passes the other station's references through to the query`() = runTest {
+            val qsoDao = mockk<QSODao>()
+            val db = mockk<SOTALogDatabase>()
+            val repo = QSORepository(qsoDao, db)
+
+            coEvery { qsoDao.countDuplicates("K3ABC", "20m", "CW", "W6/NC-001", null, 1L, null) } returns 1
+            coEvery { qsoDao.countDuplicates("K3ABC", "20m", "CW", "W6/NC-002", null, 1L, null) } returns 0
+
+            assertEquals(true, repo.isDuplicate("K3ABC", "20m", "CW", "W6/NC-001", null, 1L, null))
+            assertEquals(false, repo.isDuplicate("K3ABC", "20m", "CW", "W6/NC-002", null, 1L, null))
+        }
+    }
+
+    @Nested
     inner class `Last Sync Date` {
 
         @Test

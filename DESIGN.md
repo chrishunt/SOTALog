@@ -117,6 +117,10 @@ Spots live in a half-sheet accessible from ActiveLogView's toolbar (antenna icon
 
 POTA and SOTA reference inputs validate against the local database. Valid references show a checkmark in their type color (green for POTA, blue for SOTA) and the resolved name. Invalid references show nothing — no error state, just absence of confirmation. Don't punish the operator for typing.
 
+### Dupes are keyed the way the QSO is saved
+
+The DUPE badge means saving would write a row that matches one already in this log on callsign, band, mode, and the other station's summit and park references. The same station worked again from a different summit or park is a new contact — S2S and P2P credit is per reference — so it is not a dupe. The badge is information, not gatekeeping; the operator can always save.
+
 ### Activation thresholds
 
 POTA needs 10 QSOs; SOTA needs 4. The activation status shows progress and changes color on completion. This is information, not gatekeeping — the operator can always keep logging.

@@ -61,12 +61,15 @@ interface QSODao {
     @Query(
         """SELECT COUNT(*) FROM qso
            WHERE callsign = :callsign AND band = :band AND mode = :mode
+           AND sotaRef IS :sotaRef AND potaRef IS :potaRef
            AND logId = :logId AND (:excludingId IS NULL OR id != :excludingId)"""
     )
     suspend fun countDuplicates(
         callsign: String,
         band: String,
         mode: String,
+        sotaRef: String?,
+        potaRef: String?,
         logId: Long,
         excludingId: Long?,
     ): Int
