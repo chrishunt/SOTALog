@@ -4,6 +4,12 @@ All notable changes to SOTA Log will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+- Number keys above the keyboard insert at the cursor instead of appending to the end of the callsign field
+- Android: the number key row hides while a metadata chip is being edited, so digits no longer land in the callsign field
+
 ## [1.8] - 2026-07-31
 
 ### Added
