@@ -5,7 +5,7 @@ let package = Package(
     name: "SOTALog",
     platforms: [.iOS(.v17), .macOS(.v14)],
     dependencies: [
-        .package(url: "git@github.com:chrishunt/ham-core.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "git@github.com:chrishunt/ham-core.git", from: "1.0.0"),
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
     ],
     targets: [
