@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
-- The domain layer — models, the GRDB database and repositories, ADIF, band plan, callsign utilities, and the SOTA, POTA and QRZ clients — now lives in the `HamCore` Swift package at `HamCore/`, which the iOS app consumes by path. No user-facing change
+- The domain layer — models, the GRDB database and repositories, ADIF, band plan, callsign utilities, and the SOTA, POTA and QRZ clients — now lives in the separate [`ham-core`](https://github.com/chrishunt/ham-core) Swift package, which the iOS app depends on. No user-facing change
 
 ## [1.9] - 2026-09-08
 

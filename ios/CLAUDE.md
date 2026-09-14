@@ -10,11 +10,14 @@
 cd ios && swift build
 ```
 
-The domain layer lives in the `HamCore` package at the repo root (`../HamCore`), which `ios/Package.swift` and `project.yml` reference by relative path. When a change touches HamCore, run its tests too:
+The domain layer comes from the [`ham-core`](https://github.com/chrishunt/ham-core) package, pinned by version in `Package.swift` and `project.yml`. To change both at once, point the iOS package at a local checkout while you work, then put the pin back:
 
 ```sh
-cd HamCore && swift test
+swift package edit ham-core --path ../../ham-core   # from ios/
+swift package unedit ham-core                        # when done
 ```
+
+Run ham-core's own `swift test` in that repo for any change made there, and bump the pin here once it is tagged.
 
 ### iOS Simulator build, install, and launch
 
@@ -120,7 +123,7 @@ Key details:
 
 **Test & verify:**
 
-6. Run tests: `swift test` (from `ios/`, and from `HamCore/` if it changed)
+6. Run tests: `swift test` (from `ios/`)
 7. Build for the simulator, install, and launch to verify the app works (follow "iOS Simulator build, install, and launch" steps above)
 
 **Build & upload:**
@@ -155,4 +158,4 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
 
 ## Workflow
 
-- After completing a change, always run tests first (`swift test` from `ios/`, and from `HamCore/` when HamCore changed). If tests pass, build for the simulator, install, and launch the app so the user can test. Follow the "iOS Simulator build, install, and launch" steps above.
+- After completing a change, always run tests first (`swift test` from `ios/`). If tests pass, build for the simulator, install, and launch the app so the user can test. Follow the "iOS Simulator build, install, and launch" steps above.

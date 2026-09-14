@@ -16,15 +16,6 @@ jobs:
       - uses: actions/checkout@v4
       - run: swift test
 
-  test-hamcore:
-    runs-on: macos-15
-    defaults:
-      run:
-        working-directory: HamCore
-    steps:
-      - uses: actions/checkout@v4
-      - run: swift test
-
   test-android:
     runs-on: ubuntu-latest
     defaults:
