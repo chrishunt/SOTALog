@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 struct NewLogView: View {
     let database: AppDatabase

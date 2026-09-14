@@ -1,14 +1,14 @@
 import Foundation
 
-enum POTALocationService {
+public enum POTALocationService {
     /// A POTA location (state/province/territory) with center coordinates.
-    struct Location: Decodable {
-        let locationCode: String
-        let latitude: Double?
-        let longitude: Double?
-        let entityId: Int?
+    public struct Location: Decodable {
+        public let locationCode: String
+        public let latitude: Double?
+        public let longitude: Double?
+        public let entityId: Int?
 
-        enum CodingKeys: String, CodingKey {
+        public enum CodingKeys: String, CodingKey {
             case locationCode = "locationDesc"
             case latitude
             case longitude
@@ -17,14 +17,14 @@ enum POTALocationService {
     }
 
     /// A park with coordinates from the per-location API.
-    struct ParkCoordinate: Decodable {
-        let reference: String
-        let latitude: Double?
-        let longitude: Double?
+    public struct ParkCoordinate: Decodable {
+        public let reference: String
+        public let latitude: Double?
+        public let longitude: Double?
     }
 
     /// Fetches all POTA locations (states/provinces/territories).
-    static func fetchLocations() async throws -> [Location] {
+    public static func fetchLocations() async throws -> [Location] {
         let url = URL(string: "https://api.pota.app/locations")!
         var request = URLRequest(url: url)
         request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
@@ -33,7 +33,7 @@ enum POTALocationService {
     }
 
     /// Fetches parks with coordinates for a specific location code.
-    static func fetchParksInLocation(_ code: String) async throws -> [ParkCoordinate] {
+    public static func fetchParksInLocation(_ code: String) async throws -> [ParkCoordinate] {
         let encoded = code.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? code
         let url = URL(string: "https://api.pota.app/location/parks/\(encoded)")!
         var request = URLRequest(url: url)
@@ -44,7 +44,7 @@ enum POTALocationService {
 
     /// Finds the nearest location codes to the user's position.
     /// Returns up to `limit` locations sorted by distance.
-    static func nearestLocationCodes(
+    public static func nearestLocationCodes(
         latitude: Double,
         longitude: Double,
         from locations: [Location],
@@ -63,14 +63,14 @@ enum POTALocationService {
 
     /// Equirectangular approximation of distance in km.
     /// Good enough for sorting; avoids trig-heavy haversine.
-    static func approxDistanceKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
+    public static func approxDistanceKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Double {
         let dLat = (lat2 - lat1) * 111.32
         let dLon = (lon2 - lon1) * 111.32 * cos(lat1 * .pi / 180)
         return (dLat * dLat + dLon * dLon).squareRoot()
     }
 
     /// Converts km to miles.
-    static func kmToMiles(_ km: Double) -> Double {
+    public static func kmToMiles(_ km: Double) -> Double {
         km * 0.621371
     }
 
@@ -80,7 +80,7 @@ enum POTALocationService {
     ///   - userLatitude: User's current latitude (nil = use default country)
     ///   - userLongitude: User's current longitude (nil = use default country)
     ///   - onProgress: Progress callback for UI updates
-    static func enrichParks(
+    public static func enrichParks(
         refRepo: ReferenceRepository,
         userLatitude: Double?,
         userLongitude: Double?,

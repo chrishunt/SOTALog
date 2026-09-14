@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 extension Font {
     static let appCallsign = Font.headline.monospaced()

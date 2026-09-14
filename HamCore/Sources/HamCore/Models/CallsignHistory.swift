@@ -5,16 +5,16 @@ import GRDB
 /// The "times worked" count is NOT stored here — it is derived on demand from the
 /// `qso` table (see `QSORepository.countForCallsign`), which is the single source
 /// of truth and stays correct across edits, deletes, and imports automatically.
-struct CallsignHistory: Codable, Identifiable, Equatable {
-    var callsign: String
-    var name: String?
-    var qth: String?
-    var grid: String?
-    var lastWorked: Date?
+public struct CallsignHistory: Codable, Identifiable, Equatable {
+    public var callsign: String
+    public var name: String?
+    public var qth: String?
+    public var grid: String?
+    public var lastWorked: Date?
 
-    var id: String { callsign }
+    public var id: String { callsign }
 
-    init(
+    public init(
         callsign: String,
         name: String? = nil,
         qth: String? = nil,
@@ -30,5 +30,5 @@ struct CallsignHistory: Codable, Identifiable, Equatable {
 }
 
 extension CallsignHistory: FetchableRecord, PersistableRecord {
-    static var databaseTableName = "callsignHistory"
+    public static var databaseTableName = "callsignHistory"
 }

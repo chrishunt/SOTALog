@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 struct ReferenceManagerView: View {
     let database: AppDatabase

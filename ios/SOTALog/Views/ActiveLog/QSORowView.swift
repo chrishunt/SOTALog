@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 struct QSORowView: View {
     let qso: QSO

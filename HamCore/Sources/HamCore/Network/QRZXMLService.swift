@@ -1,10 +1,10 @@
 import Foundation
 
-enum QRZXMLService {
+public enum QRZXMLService {
     private static let baseURL = "https://xmldata.qrz.com/xml/current/"
 
     /// Authenticates with QRZ XML API and returns a session key.
-    static func login(username: String, password: String) async throws -> String {
+    public static func login(username: String, password: String) async throws -> String {
         var components = URLComponents(string: baseURL)!
         components.queryItems = [
             URLQueryItem(name: "username", value: username),
@@ -26,7 +26,7 @@ enum QRZXMLService {
     }
 
     /// Looks up a callsign using the QRZ XML API.
-    static func lookup(callsign: String, sessionKey: String) async throws -> QRZCallsignResult {
+    public static func lookup(callsign: String, sessionKey: String) async throws -> QRZCallsignResult {
         var components = URLComponents(string: baseURL)!
         components.queryItems = [
             URLQueryItem(name: "s", value: sessionKey),
@@ -72,12 +72,12 @@ enum QRZXMLService {
         return value.isEmpty ? nil : value
     }
 
-    enum QRZXMLError: LocalizedError {
+    public enum QRZXMLError: LocalizedError {
         case loginFailed(String)
         case sessionExpired
         case lookupFailed(String)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .loginFailed(let reason): return "QRZ login failed: \(reason)"
             case .sessionExpired: return "QRZ session expired, please re-authenticate"

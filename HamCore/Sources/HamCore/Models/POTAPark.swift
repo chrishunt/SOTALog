@@ -1,27 +1,43 @@
 import Foundation
 import GRDB
 
-struct POTAPark: Codable, Identifiable, Equatable {
-    var reference: String
-    var name: String
-    var referenceNormalized: String?
-    var latitude: Double?
-    var longitude: Double?
-    var locationDesc: String?
+public struct POTAPark: Codable, Identifiable, Equatable {
+    public var reference: String
+    public var name: String
+    public var referenceNormalized: String?
+    public var latitude: Double?
+    public var longitude: Double?
+    public var locationDesc: String?
 
-    var id: String { reference }
+    public init(
+        reference: String,
+        name: String,
+        referenceNormalized: String? = nil,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        locationDesc: String? = nil
+    ) {
+        self.reference = reference
+        self.name = name
+        self.referenceNormalized = referenceNormalized
+        self.latitude = latitude
+        self.longitude = longitude
+        self.locationDesc = locationDesc
+    }
+
+    public var id: String { reference }
 
     /// Display string: "US-4431 Prescott NF"
-    var displayName: String {
+    public var displayName: String {
         "\(reference) \(name)"
     }
 
     /// Strips dashes and uppercases: "US-4431" → "US4431"
-    static func normalize(_ reference: String) -> String {
+    public static func normalize(_ reference: String) -> String {
         reference.replacingOccurrences(of: "-", with: "").uppercased()
     }
 }
 
 extension POTAPark: FetchableRecord, PersistableRecord {
-    static var databaseTableName = "potaPark"
+    public static var databaseTableName = "potaPark"
 }

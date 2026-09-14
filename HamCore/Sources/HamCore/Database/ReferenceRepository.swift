@@ -1,12 +1,16 @@
 import Foundation
 import GRDB
 
-struct ReferenceRepository {
-    let database: AppDatabase
+public struct ReferenceRepository {
+    public let database: AppDatabase
+
+    public init(database: AppDatabase) {
+        self.database = database
+    }
 
     // MARK: - POTA Parks
 
-    func searchParks(query: String, limit: Int = 20) async throws -> [POTAPark] {
+    public func searchParks(query: String, limit: Int = 20) async throws -> [POTAPark] {
         let normalized = POTAPark.normalize(query)
         return try await database.dbWriter.read { db in
             let pattern = "%\(normalized)%"
@@ -18,13 +22,13 @@ struct ReferenceRepository {
         }
     }
 
-    func fetchPark(reference: String) async throws -> POTAPark? {
+    public func fetchPark(reference: String) async throws -> POTAPark? {
         try await database.dbWriter.read { db in
             try POTAPark.fetchOne(db, id: reference)
         }
     }
 
-    func fetchParkByNormalized(_ normalized: String) async throws -> POTAPark? {
+    public func fetchParkByNormalized(_ normalized: String) async throws -> POTAPark? {
         try await database.dbWriter.read { db in
             try POTAPark
                 .filter(Column("referenceNormalized") == normalized.uppercased())
@@ -32,7 +36,7 @@ struct ReferenceRepository {
         }
     }
 
-    func importParks(_ parks: [POTAPark]) async throws {
+    public func importParks(_ parks: [POTAPark]) async throws {
         try await database.dbWriter.write { db in
             for park in parks {
                 try park.save(db)
@@ -40,19 +44,19 @@ struct ReferenceRepository {
         }
     }
 
-    func parkCount() async throws -> Int {
+    public func parkCount() async throws -> Int {
         try await database.dbWriter.read { db in
             try POTAPark.fetchCount(db)
         }
     }
 
-    func deleteAllParks() async throws {
+    public func deleteAllParks() async throws {
         _ = try await database.dbWriter.write { db in
             try POTAPark.deleteAll(db)
         }
     }
 
-    func nearbyParks(latitude: Double, longitude: Double, limit: Int = 10) async throws -> [POTAPark] {
+    public func nearbyParks(latitude: Double, longitude: Double, limit: Int = 10) async throws -> [POTAPark] {
         try await database.dbWriter.read { db in
             let delta = 1.0 // ~111 km bounding box
             let cosLat = cos(latitude * .pi / 180)
@@ -75,7 +79,7 @@ struct ReferenceRepository {
         }
     }
 
-    func enrichParksWithCoordinates(_ coords: [(reference: String, latitude: Double, longitude: Double)]) async throws {
+    public func enrichParksWithCoordinates(_ coords: [(reference: String, latitude: Double, longitude: Double)]) async throws {
         try await database.dbWriter.write { db in
             let stmt = try db.makeStatement(sql: """
                 UPDATE potaPark SET latitude = ?, longitude = ? WHERE reference = ?
@@ -88,7 +92,7 @@ struct ReferenceRepository {
 
     // MARK: - SOTA Summits
 
-    func searchSummits(query: String, limit: Int = 20) async throws -> [SOTASummit] {
+    public func searchSummits(query: String, limit: Int = 20) async throws -> [SOTASummit] {
         let normalized = SOTASummit.normalize(query)
         return try await database.dbWriter.read { db in
             let pattern = "%\(normalized)%"
@@ -99,13 +103,13 @@ struct ReferenceRepository {
         }
     }
 
-    func fetchSummit(code: String) async throws -> SOTASummit? {
+    public func fetchSummit(code: String) async throws -> SOTASummit? {
         try await database.dbWriter.read { db in
             try SOTASummit.fetchOne(db, id: code)
         }
     }
 
-    func fetchSummitByNormalized(_ normalized: String) async throws -> SOTASummit? {
+    public func fetchSummitByNormalized(_ normalized: String) async throws -> SOTASummit? {
         try await database.dbWriter.read { db in
             try SOTASummit
                 .filter(Column("codeNormalized") == normalized.uppercased())
@@ -113,7 +117,7 @@ struct ReferenceRepository {
         }
     }
 
-    func importSummits(_ summits: [SOTASummit]) async throws {
+    public func importSummits(_ summits: [SOTASummit]) async throws {
         try await database.dbWriter.write { db in
             for summit in summits {
                 try summit.save(db)
@@ -121,19 +125,19 @@ struct ReferenceRepository {
         }
     }
 
-    func summitCount() async throws -> Int {
+    public func summitCount() async throws -> Int {
         try await database.dbWriter.read { db in
             try SOTASummit.fetchCount(db)
         }
     }
 
-    func deleteAllSummits() async throws {
+    public func deleteAllSummits() async throws {
         _ = try await database.dbWriter.write { db in
             try SOTASummit.deleteAll(db)
         }
     }
 
-    func nearbySummits(latitude: Double, longitude: Double, limit: Int = 10) async throws -> [SOTASummit] {
+    public func nearbySummits(latitude: Double, longitude: Double, limit: Int = 10) async throws -> [SOTASummit] {
         try await database.dbWriter.read { db in
             let delta = 1.0
             let cosLat = cos(latitude * .pi / 180)
@@ -158,13 +162,13 @@ struct ReferenceRepository {
 
     // MARK: - Metadata
 
-    func fetchMetadata(key: String) async throws -> ReferenceMetadata? {
+    public func fetchMetadata(key: String) async throws -> ReferenceMetadata? {
         try await database.dbWriter.read { db in
             try ReferenceMetadata.filter(Column("key") == key).fetchOne(db)
         }
     }
 
-    func saveMetadata(_ metadata: ReferenceMetadata) async throws {
+    public func saveMetadata(_ metadata: ReferenceMetadata) async throws {
         try await database.dbWriter.write { db in
             try metadata.save(db)
         }

@@ -1,13 +1,13 @@
 import Foundation
 import GRDB
 
-struct CWMacro: Codable, Identifiable, Equatable {
-    var id: Int64?
-    var position: Int
-    var label: String
-    var template: String
+public struct CWMacro: Codable, Identifiable, Equatable {
+    public var id: Int64?
+    public var position: Int
+    public var label: String
+    public var template: String
 
-    init(
+    public init(
         id: Int64? = nil,
         position: Int,
         label: String,
@@ -19,7 +19,7 @@ struct CWMacro: Codable, Identifiable, Equatable {
         self.template = template
     }
 
-    static let defaults: [CWMacro] = [
+    public static let defaults: [CWMacro] = [
         CWMacro(position: 0, label: "CQ", template: "CQ {activity} DE {myCall} K"),
         CWMacro(position: 1, label: "?", template: "{call}?"),
         CWMacro(position: 2, label: "EXCH", template: "{call} UR {rst} {rst} BK"),
@@ -30,9 +30,9 @@ struct CWMacro: Codable, Identifiable, Equatable {
 }
 
 extension CWMacro: FetchableRecord, MutablePersistableRecord {
-    static var databaseTableName = "cwMacro"
+    public static var databaseTableName = "cwMacro"
 
-    mutating func didInsert(_ inserted: InsertionSuccess) {
+    public mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
     }
 }

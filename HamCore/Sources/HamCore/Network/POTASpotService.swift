@@ -1,8 +1,8 @@
 import Foundation
 
-enum POTASpotService {
+public enum POTASpotService {
     /// Fetches current POTA activator spots.
-    static func fetchSpots() async throws -> [Spot] {
+    public static func fetchSpots() async throws -> [Spot] {
         let url = URL(string: "https://api.pota.app/spot/activator")!
         var request = URLRequest(url: url)
         request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Resolves callsign prefixes to US states, Canadian provinces, and DX countries.
-enum CallsignPrefixResolver {
+public enum CallsignPrefixResolver {
 
     // MARK: - US Call Areas (digit-based)
 
@@ -115,13 +115,13 @@ enum CallsignPrefixResolver {
     /// Abbreviates a full country name to its ISO 3166-1 alpha-3 code.
     /// e.g. "Japan" → "JPN", "Germany" → "DEU"
     /// Returns the original string if no mapping is found.
-    static func abbreviate(_ country: String) -> String {
+    public static func abbreviate(_ country: String) -> String {
         countryToISO[country] ?? country
     }
 
     /// Resolves a callsign to a likely QTH string.
     /// Returns state abbreviation for US, province for Canada, ISO alpha-3 for DX.
-    static func resolve(_ callsign: String) -> String? {
+    public static func resolve(_ callsign: String) -> String? {
         let call = callsign.uppercased()
         guard call.count >= 2 else { return nil }
 

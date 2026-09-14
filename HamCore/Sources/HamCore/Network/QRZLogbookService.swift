@@ -1,10 +1,10 @@
 import Foundation
 
-enum QRZLogbookService {
+public enum QRZLogbookService {
     private static let baseURL = URL(string: "https://logbook.qrz.com/api")!
 
     /// Tests an API key by requesting account status.
-    static func testAPIKey(apiKey: String) async throws {
+    public static func testAPIKey(apiKey: String) async throws {
         let params: [(String, String)] = [
             ("KEY", apiKey),
             ("ACTION", "STATUS"),
@@ -20,7 +20,7 @@ enum QRZLogbookService {
     }
 
     /// Uploads a single QSO to QRZ logbook.
-    static func uploadQSO(apiKey: String, adifRecord: String) async throws -> Int64? {
+    public static func uploadQSO(apiKey: String, adifRecord: String) async throws -> Int64? {
         let params: [(String, String)] = [
             ("KEY", apiKey),
             ("ACTION", "INSERT"),
@@ -44,7 +44,7 @@ enum QRZLogbookService {
     }
 
     /// Downloads QSOs from QRZ logbook using pagination.
-    static func downloadQSOs(apiKey: String, afterLogId: Int64 = 0) async throws -> (adif: String, count: Int) {
+    public static func downloadQSOs(apiKey: String, afterLogId: Int64 = 0) async throws -> (adif: String, count: Int) {
         let params: [(String, String)] = [
             ("KEY", apiKey),
             ("ACTION", "FETCH"),
@@ -101,7 +101,7 @@ enum QRZLogbookService {
     /// Strategy: extract short known fields by regex, then treat the remainder as ADIF.
     private static let knownFields = ["RESULT", "REASON", "COUNT", "LOGID", "LOGIDS"]
 
-    static func parseResponse(_ response: String) -> [String: String] {
+    public static func parseResponse(_ response: String) -> [String: String] {
         var result: [String: String] = [:]
         var remaining = response
 
@@ -132,12 +132,12 @@ enum QRZLogbookService {
         return result
     }
 
-    enum QRZError: LocalizedError {
+    public enum QRZError: LocalizedError {
         case apiKeyFailed(String)
         case uploadFailed(String)
         case downloadFailed(String)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .apiKeyFailed(let reason): return "QRZ API key failed: \(reason)"
             case .uploadFailed(let reason): return "QRZ upload failed: \(reason)"

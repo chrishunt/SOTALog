@@ -1,5 +1,5 @@
 import XCTest
-@testable import SOTALog
+@testable import HamCore
 
 // MARK: - Distance Calculation
 

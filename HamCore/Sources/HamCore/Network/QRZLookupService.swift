@@ -1,14 +1,14 @@
 import Foundation
 
-final class QRZLookupService {
+public final class QRZLookupService {
     private let historyRepo: CallsignHistoryRepository
     private var sessionKey: String?
 
-    init(historyRepo: CallsignHistoryRepository) {
+    public init(historyRepo: CallsignHistoryRepository) {
         self.historyRepo = historyRepo
     }
 
-    func lookup(_ callsign: String) async -> QRZCallsignResult? {
+    public func lookup(_ callsign: String) async -> QRZCallsignResult? {
         guard let username = KeychainService.load(key: .qrzUsername),
               let password = KeychainService.load(key: .qrzPassword) else {
             return nil

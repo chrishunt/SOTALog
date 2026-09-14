@@ -1,18 +1,22 @@
 import Foundation
 import GRDB
 
-struct QSORepository {
-    let database: AppDatabase
+public struct QSORepository {
+    public let database: AppDatabase
+
+    public init(database: AppDatabase) {
+        self.database = database
+    }
 
     // MARK: - Fetch
 
-    func fetchAll() async throws -> [QSO] {
+    public func fetchAll() async throws -> [QSO] {
         try await database.dbWriter.read { db in
             try QSO.order(Column("id").desc).fetchAll(db)
         }
     }
 
-    func fetchAll(forLogId logId: Int64) async throws -> [QSO] {
+    public func fetchAll(forLogId logId: Int64) async throws -> [QSO] {
         try await database.dbWriter.read { db in
             try QSO
                 .filter(Column("logId") == logId)
@@ -21,7 +25,7 @@ struct QSORepository {
         }
     }
 
-    func fetchUnsynced() async throws -> [QSO] {
+    public func fetchUnsynced() async throws -> [QSO] {
         try await database.dbWriter.read { db in
             try QSO
                 .filter(Column("syncedToQRZ") == false)
@@ -30,20 +34,20 @@ struct QSORepository {
         }
     }
 
-    func fetchCount(forLogId logId: Int64) async throws -> Int {
+    public func fetchCount(forLogId logId: Int64) async throws -> Int {
         try await database.dbWriter.read { db in
             try QSO.filter(Column("logId") == logId).fetchCount(db)
         }
     }
 
-    func fetch(id: Int64) async throws -> QSO? {
+    public func fetch(id: Int64) async throws -> QSO? {
         try await database.dbWriter.read { db in
             try QSO.fetchOne(db, id: id)
         }
     }
 
     /// Persist sync date after successful sync
-    func saveLastSyncedQRZLogId(_ qrzLogId: Int64) async throws {
+    public func saveLastSyncedQRZLogId(_ qrzLogId: Int64) async throws {
         try await database.dbWriter.write { db in
             try db.execute(sql: """
                 INSERT INTO referenceMetadata (key, lastRefreshed, recordCount)
@@ -54,7 +58,7 @@ struct QSORepository {
     }
 
     /// Read last sync date
-    func lastSyncDate() async throws -> Date? {
+    public func lastSyncDate() async throws -> Date? {
         try await database.dbWriter.read { db in
             let row = try Row.fetchOne(db, sql: """
                 SELECT lastRefreshed FROM referenceMetadata WHERE key = 'qrzSync'
@@ -67,7 +71,7 @@ struct QSORepository {
     /// Check if a callsign+band+mode+references combination already exists in this log.
     /// References are the other station's summit and park (S2S/P2P): the same station worked
     /// again from a different summit or park is a new contact, not a dupe. nil matches only nil.
-    func isDuplicate(callsign: String, band: String, mode: String, sotaRef: String?, potaRef: String?, logId: Int64, excludingId: Int64?) async throws -> Bool {
+    public func isDuplicate(callsign: String, band: String, mode: String, sotaRef: String?, potaRef: String?, logId: Int64, excludingId: Int64?) async throws -> Bool {
         try await database.dbWriter.read { db in
             var sql = "SELECT COUNT(*) FROM qso WHERE callsign = ? AND band = ? AND mode = ? AND logId = ? AND sotaRef IS ? AND potaRef IS ?"
             var args: [(any DatabaseValueConvertible)?] = [callsign, band, mode, logId, sotaRef, potaRef]
@@ -81,7 +85,7 @@ struct QSORepository {
     }
 
     /// Count all QSOs for a callsign on a given date (any log, including unattached)
-    func countForCallsignOnDate(_ callsign: String, date: String) async throws -> Int {
+    public func countForCallsignOnDate(_ callsign: String, date: String) async throws -> Int {
         try await database.dbWriter.read { db in
             try Int.fetchOne(db, sql: """
                 SELECT COUNT(*) FROM qso
@@ -92,7 +96,7 @@ struct QSORepository {
 
     /// Total number of QSOs logged with a callsign across all logs — the source of
     /// truth for the "times worked" badge.
-    func countForCallsign(_ callsign: String) async throws -> Int {
+    public func countForCallsign(_ callsign: String) async throws -> Int {
         try await database.dbWriter.read { db in
             try Int.fetchOne(db, sql: """
                 SELECT COUNT(*) FROM qso
@@ -103,14 +107,14 @@ struct QSORepository {
 
     // MARK: - Full Refresh Import
 
-    struct FullRefreshResult {
-        var importedCount: Int
-        var activationsCreated: Int
-        var activationsReused: Int
+    public struct FullRefreshResult {
+        public var importedCount: Int
+        public var activationsCreated: Int
+        public var activationsReused: Int
     }
 
     /// Loads POTA reference validation dictionary: normalizedRef → formattedRef
-    func loadValidPotaRefs() async throws -> [String: String] {
+    public func loadValidPotaRefs() async throws -> [String: String] {
         try await database.dbWriter.read { db in
             var dict: [String: String] = [:]
             let rows = try Row.fetchAll(db, sql: "SELECT reference, referenceNormalized FROM potaPark")
@@ -125,7 +129,7 @@ struct QSORepository {
     }
 
     /// Loads SOTA reference validation dictionary: normalizedCode → formattedCode
-    func loadValidSotaCodes() async throws -> [String: String] {
+    public func loadValidSotaCodes() async throws -> [String: String] {
         try await database.dbWriter.read { db in
             var dict: [String: String] = [:]
             let rows = try Row.fetchAll(db, sql: "SELECT code, codeNormalized FROM sotaSummit")
@@ -142,7 +146,7 @@ struct QSORepository {
     /// Replaces all synced QSOs with fresh data from QRZ, preserving local unsynced QSOs.
     /// Single atomic transaction: deletes synced QSOs, removes empty logs, creates/reuses
     /// activations, and inserts all imported QSOs.
-    func fullRefreshImport(
+    public func fullRefreshImport(
         groupedQSOs: [(key: SyncImporter.ActivationKey, qsos: [SyncImporter.ParsedQSORecord])],
         unattachedQSOs: [SyncImporter.ParsedQSORecord]
     ) async throws -> FullRefreshResult {
@@ -261,7 +265,7 @@ struct QSORepository {
     // MARK: - Save
 
     @discardableResult
-    func save(_ qso: inout QSO) async throws -> QSO {
+    public func save(_ qso: inout QSO) async throws -> QSO {
         qso = try await database.dbWriter.write { [qso] db in
             var mutableQSO = qso
             try mutableQSO.save(db)
@@ -270,7 +274,7 @@ struct QSORepository {
         return qso
     }
 
-    func markSynced(id: Int64, qrzLogId: Int64) async throws {
+    public func markSynced(id: Int64, qrzLogId: Int64) async throws {
         try await database.dbWriter.write { db in
             try db.execute(
                 sql: "UPDATE qso SET syncedToQRZ = 1, qrzLogId = ? WHERE id = ?",
@@ -281,7 +285,7 @@ struct QSORepository {
 
     // MARK: - Delete
 
-    func delete(id: Int64) async throws {
+    public func delete(id: Int64) async throws {
         _ = try await database.dbWriter.write { db in
             try QSO.deleteOne(db, id: id)
         }
@@ -291,7 +295,7 @@ struct QSORepository {
 
     /// Observes worked composite keys for a given UTC date.
     /// Emits a `Set<String>` of keys in the format "DATE|CALL|REF|BAND|MODE".
-    func observeWorkedKeys(date: String, in writer: any DatabaseWriter, onChange: @escaping (Set<String>) -> Void) -> AnyDatabaseCancellable {
+    public func observeWorkedKeys(date: String, in writer: any DatabaseWriter, onChange: @escaping (Set<String>) -> Void) -> AnyDatabaseCancellable {
         let observation = ValueObservation.tracking { db -> Set<String> in
             let rows = try Row.fetchAll(db, sql: """
                 SELECT callsign, band, mode, potaRef, sotaRef FROM qso WHERE date = ?
@@ -320,7 +324,7 @@ struct QSORepository {
     /// Starts observing QSOs for a log, calling the handler on each change.
     /// Ordered newest-first by QSO time (not insertion) so back-timed and
     /// time-corrected QSOs land in chronological position.
-    func observeAll(forLogId logId: Int64, in writer: any DatabaseWriter, onChange: @escaping ([QSO]) -> Void) -> AnyDatabaseCancellable {
+    public func observeAll(forLogId logId: Int64, in writer: any DatabaseWriter, onChange: @escaping ([QSO]) -> Void) -> AnyDatabaseCancellable {
         let observation = ValueObservation.tracking { db in
             try QSO
                 .filter(Column("logId") == logId)

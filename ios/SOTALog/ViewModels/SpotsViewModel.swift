@@ -1,4 +1,5 @@
 import Foundation
+import HamCore
 import Observation
 
 @Observable

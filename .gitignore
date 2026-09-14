@@ -2,6 +2,9 @@
 ios/build/
 ios/.build/
 
+# HamCore package build artifacts
+HamCore/.build/
+
 # Android build artifacts
 android/.gradle/
 android/build/

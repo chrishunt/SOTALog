@@ -1,11 +1,10 @@
 import Foundation
-import SwiftUI
 import GRDB
 
-struct AppDatabase {
-    let dbWriter: any DatabaseWriter
+public struct AppDatabase {
+    public let dbWriter: any DatabaseWriter
 
-    init(_ dbWriter: any DatabaseWriter) throws {
+    public init(_ dbWriter: any DatabaseWriter) throws {
         self.dbWriter = dbWriter
         try migrator.migrate(dbWriter)
     }
@@ -201,38 +200,18 @@ struct AppDatabase {
         return migrator
     }
 
-    /// Creates a shared on-disk database
-    static func shared() throws -> AppDatabase {
-        let fileManager = FileManager.default
-        let appSupportURL = try fileManager.url(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask,
-            appropriateFor: nil,
-            create: true
-        )
-        let directoryURL = appSupportURL.appendingPathComponent("SOTALog", isDirectory: true)
-        try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
-        let dbPool = try DatabasePool(path: databaseURL.path)
+    /// Opens the on-disk database at `url`, creating the file and its directory
+    /// if needed, and migrates it to the current schema.
+    public static func onDisk(at url: URL) throws -> AppDatabase {
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let dbPool = try DatabasePool(path: url.path)
         return try AppDatabase(dbPool)
     }
 
     /// Creates an in-memory database for testing
-    static func empty() throws -> AppDatabase {
+    public static func empty() throws -> AppDatabase {
         let dbQueue = try DatabaseQueue(configuration: .init())
         return try AppDatabase(dbQueue)
-    }
-}
-
-// MARK: - SwiftUI Environment
-
-private struct AppDatabaseKey: EnvironmentKey {
-    static var defaultValue: AppDatabase?
-}
-
-extension EnvironmentValues {
-    var appDatabase: AppDatabase? {
-        get { self[AppDatabaseKey.self] }
-        set { self[AppDatabaseKey.self] = newValue }
     }
 }

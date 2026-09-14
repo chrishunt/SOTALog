@@ -4,6 +4,11 @@ All notable changes to SOTA Log will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+- The domain layer — models, the GRDB database and repositories, ADIF, band plan, callsign utilities, and the SOTA, POTA and QRZ clients — now lives in the `HamCore` Swift package at `HamCore/`, which the iOS app consumes by path. No user-facing change
+
 ## [1.9] - 2026-09-08
 
 ### Fixed
@@ -248,6 +253,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - TestFlight distribution configuration
 
 [unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.9...HEAD
+[Unreleased]: https://github.com/chrishunt/SOTALog/compare/v1.9...HEAD
 [1.9]: https://github.com/chrishunt/SOTALog/compare/v1.8...v1.9
 [1.8]: https://github.com/chrishunt/SOTALog/compare/v1.7...v1.8
 [1.7]: https://github.com/chrishunt/SOTALog/compare/v1.6...v1.7

@@ -4,11 +4,15 @@ import GRDB
 /// Stores cached enrichment (name/QTH/grid/lastWorked) per callsign. The worked
 /// count is derived from the `qso` table on demand and is intentionally not kept
 /// here — see `QSORepository.countForCallsign`.
-struct CallsignHistoryRepository {
-    let database: AppDatabase
+public struct CallsignHistoryRepository {
+    public let database: AppDatabase
+
+    public init(database: AppDatabase) {
+        self.database = database
+    }
 
     /// Fetches the history for a callsign
-    func fetch(callsign: String) async throws -> CallsignHistory? {
+    public func fetch(callsign: String) async throws -> CallsignHistory? {
         try await database.dbWriter.read { db in
             try CallsignHistory.fetchOne(db, id: callsign.uppercased())
         }
@@ -16,7 +20,7 @@ struct CallsignHistoryRepository {
 
     /// Records that a QSO was just logged: refreshes lastWorked and fills in
     /// name/qth/grid if provided. Call this when creating a new QSO.
-    func recordQSO(callsign: String, name: String?, qth: String?, grid: String?) async throws {
+    public func recordQSO(callsign: String, name: String?, qth: String?, grid: String?) async throws {
         try await database.dbWriter.write { db in
             let key = callsign.uppercased()
             if var existing = try CallsignHistory.fetchOne(db, id: key) {
@@ -40,7 +44,7 @@ struct CallsignHistoryRepository {
 
     /// Updates enrichment with data from a QRZ lookup or an edit, without touching
     /// lastWorked (no new contact was made).
-    func updateFromLookup(callsign: String, name: String?, qth: String?, grid: String?) async throws {
+    public func updateFromLookup(callsign: String, name: String?, qth: String?, grid: String?) async throws {
         try await database.dbWriter.write { db in
             let key = callsign.uppercased()
             if var existing = try CallsignHistory.fetchOne(db, id: key) {

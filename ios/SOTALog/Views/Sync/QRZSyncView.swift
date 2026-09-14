@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 struct QRZSyncView: View {
     let database: AppDatabase

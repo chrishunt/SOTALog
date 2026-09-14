@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 // Shims for iOS-only SwiftUI modifiers so the project compiles on macOS (SPM build)
 #if os(macOS)

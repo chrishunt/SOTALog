@@ -1,8 +1,8 @@
 import Foundation
 
-enum SOTASummitService {
+public enum SOTASummitService {
     /// Downloads and parses the SOTA summits CSV.
-    static func fetchSummits() async throws -> [SOTASummit] {
+    public static func fetchSummits() async throws -> [SOTASummit] {
         let url = URL(string: "https://www.sotadata.org.uk/summitslist.csv")!
         var request = URLRequest(url: url)
         request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
@@ -17,7 +17,7 @@ enum SOTASummitService {
 
     /// Parses the SOTA summits CSV format.
     /// Expected columns: SummitCode,AssociationName,RegionName,SummitName,AltM,AltFt,GridRef1,GridRef2,Longitude,Latitude,Points,BonusPoints,ValidFrom,ValidTo,ActivationCount,ActivationDate,ActivationCall
-    static func parseCSV(_ csv: String) -> [SOTASummit] {
+    public static func parseCSV(_ csv: String) -> [SOTASummit] {
         let lines = csv.components(separatedBy: .newlines)
         guard lines.count > 1 else { return [] }
 
@@ -78,10 +78,10 @@ enum SOTASummitService {
         return fields
     }
 
-    enum SOTAError: LocalizedError {
+    public enum SOTAError: LocalizedError {
         case invalidEncoding
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .invalidEncoding: return "Could not decode SOTA summits data"
             }

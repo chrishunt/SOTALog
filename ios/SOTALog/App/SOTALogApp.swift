@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 import TipKit
 
 @main

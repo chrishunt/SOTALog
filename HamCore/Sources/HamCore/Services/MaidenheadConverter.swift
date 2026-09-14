@@ -1,13 +1,13 @@
 import Foundation
 
 /// Converts latitude/longitude to Maidenhead grid square locator.
-enum MaidenheadConverter {
+public enum MaidenheadConverter {
     /// Converts lat/lon to a 6-character Maidenhead grid square.
     /// - Parameters:
     ///   - latitude: Latitude in decimal degrees (-90 to 90)
     ///   - longitude: Longitude in decimal degrees (-180 to 180)
     /// - Returns: 6-character grid square (e.g. "FM19la")
-    static func gridSquare(latitude: Double, longitude: Double) -> String {
+    public static func gridSquare(latitude: Double, longitude: Double) -> String {
         let lon = longitude + 180.0
         let lat = latitude + 90.0
 
@@ -37,7 +37,7 @@ enum MaidenheadConverter {
     }
 
     /// Returns just the 4-character grid square (field + square).
-    static func grid4(latitude: Double, longitude: Double) -> String {
+    public static func grid4(latitude: Double, longitude: Double) -> String {
         String(gridSquare(latitude: latitude, longitude: longitude).prefix(4))
     }
 }

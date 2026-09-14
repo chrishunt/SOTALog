@@ -1,8 +1,8 @@
 import Foundation
 
-enum POTAParkService {
+public enum POTAParkService {
     /// Downloads and parses the POTA all-parks CSV.
-    static func fetchAllParks() async throws -> [POTAPark] {
+    public static func fetchAllParks() async throws -> [POTAPark] {
         let url = URL(string: "https://pota.app/all_parks.csv")!
         var request = URLRequest(url: url)
         request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
@@ -17,7 +17,7 @@ enum POTAParkService {
 
     /// Parses the POTA parks CSV.
     /// Expected header: reference,name,active,entityId,locationDesc,...
-    static func parseCSV(_ csv: String) -> [POTAPark] {
+    public static func parseCSV(_ csv: String) -> [POTAPark] {
         let lines = csv.components(separatedBy: .newlines)
         guard lines.count > 1 else { return [] }
 
@@ -84,10 +84,10 @@ enum POTAParkService {
         return fields
     }
 
-    enum POTAError: LocalizedError {
+    public enum POTAError: LocalizedError {
         case invalidEncoding
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .invalidEncoding: return "Could not decode POTA parks data"
             }

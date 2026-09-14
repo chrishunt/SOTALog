@@ -1,10 +1,10 @@
 import Foundation
 
-enum SOTASpotService {
+public enum SOTASpotService {
     private static let baseURL = "https://api-db2.sota.org.uk"
 
     /// Fetches the current SOTA spots epoch. Returns a UUID string that changes when spots are updated.
-    static func fetchEpoch() async throws -> String {
+    public static func fetchEpoch() async throws -> String {
         let url = URL(string: "\(baseURL)/api/spots/epoch")!
         var request = URLRequest(url: url)
         request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")
@@ -16,7 +16,7 @@ enum SOTASpotService {
     }
 
     /// Fetches current SOTA CW, SSB, and FM spots (last 1 hour, all bands).
-    static func fetchSpots() async throws -> [Spot] {
+    public static func fetchSpots() async throws -> [Spot] {
         let url = URL(string: "\(baseURL)/api/spots/-1/all/cw,ssb,fm")!
         var request = URLRequest(url: url)
         request.setValue("SOTA Log/1.0", forHTTPHeaderField: "User-Agent")

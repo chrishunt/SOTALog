@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 struct LogbookSyncSignInView: View {
     @Bindable var viewModel: QRZSyncViewModel

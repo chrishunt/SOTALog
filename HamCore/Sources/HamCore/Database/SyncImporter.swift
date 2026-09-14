@@ -1,44 +1,44 @@
 import Foundation
 
-enum SyncImporter {
+public enum SyncImporter {
 
     // MARK: - Types
 
-    struct ActivationKey: Hashable {
-        let date: String
-        let potaReference: String?
-        let sotaReference: String?
+    public struct ActivationKey: Hashable {
+        public let date: String
+        public let potaReference: String?
+        public let sotaReference: String?
 
         // Carried for Log creation but NOT part of equality/hash
-        var stationCallsign: String
-        var myGrid: String?
+        public var stationCallsign: String
+        public var myGrid: String?
 
-        func hash(into hasher: inout Hasher) {
+        public func hash(into hasher: inout Hasher) {
             hasher.combine(date)
             hasher.combine(potaReference)
             hasher.combine(sotaReference)
         }
 
-        static func == (lhs: ActivationKey, rhs: ActivationKey) -> Bool {
+        public static func == (lhs: ActivationKey, rhs: ActivationKey) -> Bool {
             lhs.date == rhs.date &&
             lhs.potaReference == rhs.potaReference &&
             lhs.sotaReference == rhs.sotaReference
         }
     }
 
-    struct ParsedQSORecord {
-        var qso: QSO
-        var rawFields: [String: String]
+    public struct ParsedQSORecord {
+        public var qso: QSO
+        public var rawFields: [String: String]
     }
 
-    struct GroupingResult {
-        var activations: [(key: ActivationKey, qsos: [ParsedQSORecord])]
-        var unattached: [ParsedQSORecord]
+    public struct GroupingResult {
+        public var activations: [(key: ActivationKey, qsos: [ParsedQSORecord])]
+        public var unattached: [ParsedQSORecord]
     }
 
     // MARK: - Grouping
 
-    static func groupByActivation(
+    public static func groupByActivation(
         records: [[String: String]],
         fallbackCallsign: String?,
         validPotaRefs: [String: String],

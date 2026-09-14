@@ -1,10 +1,10 @@
 import Foundation
 import Security
 
-enum KeychainService {
+public enum KeychainService {
     private static let serviceName = "com.sotalog.app"
 
-    enum Key: String {
+    public enum Key: String {
         case qrzAPIKey = "qrz_api_key"
         case qrzUsername = "qrz_username"
         case qrzPassword = "qrz_password"
@@ -12,7 +12,7 @@ enum KeychainService {
         case myCallsign = "my_callsign"
     }
 
-    static func save(key: Key, value: String) throws {
+    public static func save(key: Key, value: String) throws {
         let data = Data(value.utf8)
 
         // Delete existing item first
@@ -38,7 +38,7 @@ enum KeychainService {
         }
     }
 
-    static func load(key: Key) -> String? {
+    public static func load(key: Key) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
@@ -57,7 +57,7 @@ enum KeychainService {
         return String(data: data, encoding: .utf8)
     }
 
-    static func delete(key: Key) {
+    public static func delete(key: Key) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
@@ -66,10 +66,10 @@ enum KeychainService {
         SecItemDelete(query as CFDictionary)
     }
 
-    enum KeychainError: LocalizedError {
+    public enum KeychainError: LocalizedError {
         case saveFailed(OSStatus)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .saveFailed(let status):
                 return "Keychain save failed with status \(status)"

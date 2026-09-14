@@ -1,6 +1,5 @@
 import Foundation
-@testable import SOTALog
-import HamCore
+@testable import HamCore
 
 /// Creates a Spot with sensible defaults for testing.
 func makeSpot(

@@ -1,5 +1,6 @@
 import XCTest
 @testable import SOTALog
+import HamCore
 
 final class FlowLayoutTests: XCTestCase {
 

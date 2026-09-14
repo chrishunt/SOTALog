@@ -1,19 +1,19 @@
 import Foundation
 import GRDB
 
-struct Log: Codable, Identifiable, Equatable, Hashable {
-    var id: Int64?
-    var createdAt: Date?
-    var date: String
-    var myCallsign: String
-    var myGrid: String?
-    var potaReference: String?
-    var sotaReference: String?
-    var parkName: String?
-    var summitName: String?
-    var notes: String?
+public struct Log: Codable, Identifiable, Equatable, Hashable {
+    public var id: Int64?
+    public var createdAt: Date?
+    public var date: String
+    public var myCallsign: String
+    public var myGrid: String?
+    public var potaReference: String?
+    public var sotaReference: String?
+    public var parkName: String?
+    public var summitName: String?
+    public var notes: String?
 
-    init(
+    public init(
         id: Int64? = nil,
         createdAt: Date? = nil,
         date: String = "",
@@ -38,7 +38,7 @@ struct Log: Codable, Identifiable, Equatable, Hashable {
     }
 
     /// Formats "20240315" as "2024-03-15" for display
-    var formattedDate: String {
+    public var formattedDate: String {
         guard date.count == 8 else { return date }
         let y = date.prefix(4)
         let m = date.dropFirst(4).prefix(2)
@@ -47,13 +47,13 @@ struct Log: Codable, Identifiable, Equatable, Hashable {
     }
 
     /// Whether this activation is a POTA activation
-    var isPOTA: Bool { potaReference != nil }
+    public var isPOTA: Bool { potaReference != nil }
 
     /// Whether this activation is a SOTA activation
-    var isSOTA: Bool { sotaReference != nil }
+    public var isSOTA: Bool { sotaReference != nil }
 
     /// Display name for the activation reference (shows both for dual activations)
-    var referenceDisplay: String? {
+    public var referenceDisplay: String? {
         var parts: [String] = []
         if let ref = potaReference { parts.append(ref) }
         if let ref = sotaReference { parts.append(ref) }
@@ -62,9 +62,9 @@ struct Log: Codable, Identifiable, Equatable, Hashable {
 }
 
 extension Log: FetchableRecord, MutablePersistableRecord {
-    static var databaseTableName = "log"
+    public static var databaseTableName = "log"
 
-    mutating func didInsert(_ inserted: InsertionSuccess) {
+    public mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
     }
 }

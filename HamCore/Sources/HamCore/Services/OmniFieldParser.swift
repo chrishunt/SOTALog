@@ -1,31 +1,31 @@
 import Foundation
 
-struct ParsedEntry {
-    enum TokenKind {
+public struct ParsedEntry {
+    public enum TokenKind {
         case callsign, rst, frequency, mode, qth, gridSquare, potaRef, sotaRef, time, unrecognized
     }
 
-    struct ClassifiedToken {
-        let text: String
-        let kind: TokenKind
+    public struct ClassifiedToken {
+        public let text: String
+        public let kind: TokenKind
     }
 
-    var callsign: String = ""
-    var rstSent: String?
-    var rstReceived: String?
-    var frequency: String?
-    var mode: String?
-    var qth: String?
-    var gridSquare: String?
-    var potaRef: String?
-    var sotaRef: String?
-    var timeOn: String?
-    var tokens: [ClassifiedToken] = []
+    public var callsign: String = ""
+    public var rstSent: String?
+    public var rstReceived: String?
+    public var frequency: String?
+    public var mode: String?
+    public var qth: String?
+    public var gridSquare: String?
+    public var potaRef: String?
+    public var sotaRef: String?
+    public var timeOn: String?
+    public var tokens: [ClassifiedToken] = []
 }
 
-enum OmniFieldParser {
+public enum OmniFieldParser {
 
-    static func parse(_ input: String) -> ParsedEntry {
+    public static func parse(_ input: String) -> ParsedEntry {
         let tokens = input.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
         guard let first = tokens.first else { return ParsedEntry() }
 
@@ -110,7 +110,7 @@ enum OmniFieldParser {
 
     /// Validates bare HHMM digits (3-4 chars, HH < 24, MM < 60).
     /// Returns the zero-padded "HHMM" or nil.
-    static func parseTime(_ raw: String) -> String? {
+    public static func parseTime(_ raw: String) -> String? {
         guard raw.count >= 3, raw.count <= 4,
               raw.allSatisfy(\.isNumber) else { return nil }
         let padded = String(repeating: "0", count: 4 - raw.count) + raw
@@ -127,7 +127,7 @@ enum OmniFieldParser {
     /// Maidenhead grid: 4, 6, or 8 chars with strict alternation.
     /// Pair 1 (field): A-R letters. Pair 2 (square): digits. Pair 3 (subsquare): a-x letters. Pair 4: digits.
     /// Returns canonical mixed-case form (field upper, subsquare lower) or nil.
-    static func parseGridSquare(_ token: String) -> String? {
+    public static func parseGridSquare(_ token: String) -> String? {
         guard token.count == 4 || token.count == 6 || token.count == 8 else { return nil }
         let upper = Array(token.uppercased())
         let lower = Array(token.lowercased())

@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 /// Leading-aligned wrapping layout. Each subview keeps its natural size and
 /// overflow moves to the next row — chips wrap instead of truncating.

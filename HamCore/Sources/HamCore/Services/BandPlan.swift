@@ -1,16 +1,16 @@
 import Foundation
 
 /// Maps frequencies (MHz) to amateur radio band names and modes.
-enum BandPlan {
-    struct BandEntry {
-        let name: String
-        let lower: Double  // MHz
-        let upper: Double  // MHz
-        let ssbBoundary: Double?  // MHz — frequency above which SSB begins; nil for CW-only bands
-        let fmBoundary: Double?   // MHz — frequency above which FM begins; nil for bands without an FM sub-band
+public enum BandPlan {
+    public struct BandEntry {
+        public let name: String
+        public let lower: Double  // MHz
+        public let upper: Double  // MHz
+        public let ssbBoundary: Double?  // MHz — frequency above which SSB begins; nil for CW-only bands
+        public let fmBoundary: Double?   // MHz — frequency above which FM begins; nil for bands without an FM sub-band
     }
 
-    static let bands: [BandEntry] = [
+    public static let bands: [BandEntry] = [
         BandEntry(name: "160m", lower: 1.800, upper: 2.000,   ssbBoundary: 1.843,   fmBoundary: nil),
         BandEntry(name: "80m",  lower: 3.500, upper: 4.000,   ssbBoundary: 3.600,   fmBoundary: nil),
         BandEntry(name: "60m",  lower: 5.330, upper: 5.410,   ssbBoundary: nil,     fmBoundary: nil),
@@ -26,12 +26,12 @@ enum BandPlan {
     ]
 
     /// Returns the band name for a given frequency in MHz, or nil if out of range.
-    static func band(for frequencyMHz: Double) -> String? {
+    public static func band(for frequencyMHz: Double) -> String? {
         bands.first { frequencyMHz >= $0.lower && frequencyMHz <= $0.upper }?.name
     }
 
     /// Returns "CW", "SSB", or "FM" based on frequency position within the band, or nil if out of band.
-    static func mode(for frequencyMHz: Double) -> String? {
+    public static func mode(for frequencyMHz: Double) -> String? {
         guard let entry = bands.first(where: { frequencyMHz >= $0.lower && frequencyMHz <= $0.upper }) else {
             return nil
         }
@@ -45,7 +45,7 @@ enum BandPlan {
     }
 
     /// Returns the default CW sub-band frequency for a given band name.
-    static func defaultCWFrequency(for band: String) -> Double? {
+    public static func defaultCWFrequency(for band: String) -> Double? {
         switch band {
         case "160m": return 1.810
         case "80m":  return 3.530
@@ -64,7 +64,7 @@ enum BandPlan {
     }
 
     /// Returns the default SSB sub-band frequency for a given band name, or nil for CW-only bands.
-    static func defaultSSBFrequency(for band: String) -> Double? {
+    public static func defaultSSBFrequency(for band: String) -> Double? {
         switch band {
         case "160m": return 1.850
         case "80m":  return 3.860
@@ -81,7 +81,7 @@ enum BandPlan {
     }
 
     /// Returns the default FM sub-band frequency for a given band name, or nil for bands without an FM sub-band.
-    static func defaultFMFrequency(for band: String) -> Double? {
+    public static func defaultFMFrequency(for band: String) -> Double? {
         switch band {
         case "6m": return 52.525   // US 6m simplex calling
         case "2m": return 146.520  // US 2m simplex calling
@@ -90,5 +90,5 @@ enum BandPlan {
     }
 
     /// All band names in order
-    static let allBands: [String] = bands.map(\.name)
+    public static let allBands: [String] = bands.map(\.name)
 }

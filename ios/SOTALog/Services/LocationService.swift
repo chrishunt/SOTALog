@@ -1,4 +1,5 @@
 import CoreLocation
+import HamCore
 
 @Observable
 final class LocationService: NSObject, CLLocationManagerDelegate {
