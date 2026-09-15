@@ -1,4 +1,5 @@
 import Foundation
+import HamCore
 
 struct SOTAmatService {
     static let phoneNumber = "+16017682628"

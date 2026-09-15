@@ -8,6 +8,15 @@
         "revision" : "36e30a6f1ef10e4194f6af0cff90888526f0c115",
         "version" : "7.10.0"
       }
+    },
+    {
+      "identity" : "ham-core",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:chrishunt/ham-core.git",
+      "state" : {
+        "revision" : "05f4b6932c3e4ec935c4232b651ebcb8f58ec02a",
+        "version" : "1.0.0"
+      }
     }
   ],
   "version" : 2

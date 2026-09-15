@@ -1,14 +1,15 @@
 import SwiftUI
+import HamCore
 import GRDB
 
 struct LogListView: View {
-    let database: AppDatabase
+    let database: LogbookDatabase
     @State private var viewModel: LogListViewModel
     @State private var showNewLog = false
     @State private var navigationPath = NavigationPath()
     @State private var pendingNavLog: Log?
 
-    init(database: AppDatabase) {
+    init(database: LogbookDatabase) {
         self.database = database
         self._viewModel = State(initialValue: LogListViewModel(database: database))
     }

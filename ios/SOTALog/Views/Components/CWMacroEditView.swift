@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 struct CWMacroEditView: View {
     let macro: CWMacro

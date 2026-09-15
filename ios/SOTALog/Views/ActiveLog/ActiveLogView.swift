@@ -1,8 +1,9 @@
 import SwiftUI
+import HamCore
 import TipKit
 
 struct ActiveLogView: View {
-    let database: AppDatabase
+    let database: LogbookDatabase
     let log: Log
 
     @Environment(SpotRouter.self) private var spotRouter
@@ -12,7 +13,7 @@ struct ActiveLogView: View {
     @State private var showSpots = false
     @State private var showSpotMe = false
 
-    init(database: AppDatabase, log: Log) {
+    init(database: LogbookDatabase, log: Log) {
         self.database = database
         self.log = log
         self._viewModel = State(initialValue: ActiveLogViewModel(database: database, log: log))

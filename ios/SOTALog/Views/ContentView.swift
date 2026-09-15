@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 struct ContentView: View {
     @Environment(\.appDatabase) private var database

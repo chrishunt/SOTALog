@@ -1,5 +1,6 @@
 import Foundation
 @testable import SOTALog
+import HamCore
 
 /// Creates a Spot with sensible defaults for testing.
 func makeSpot(
@@ -52,7 +53,7 @@ func makeUTCDate(
 
 /// Creates and saves a Log, returning it with its assigned ID.
 func makeLogWithId(
-    in database: AppDatabase,
+    in database: LogbookDatabase,
     callsign: String = "W1AW",
     potaRef: String? = nil,
     sotaRef: String? = nil

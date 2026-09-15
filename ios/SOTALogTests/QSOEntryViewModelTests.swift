@@ -1,13 +1,14 @@
 import XCTest
 @testable import SOTALog
+import HamCore
 
 final class QSOEntryViewModelTests: XCTestCase {
 
-    private var db: AppDatabase!
+    private var db: LogbookDatabase!
     private var log: Log!
 
     override func setUp() async throws {
-        db = try AppDatabase.empty()
+        db = try LogbookDatabase.empty()
         log = try await makeLogWithId(in: db, potaRef: "US-4431", sotaRef: "W4C/CM-001")
     }
 
@@ -953,7 +954,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     }
 
     func testExpandTemplate_withPOTARef() async throws {
-        let db = try AppDatabase.empty()
+        let db = try LogbookDatabase.empty()
         let potaLog = try await makeLogWithId(in: db, potaRef: "US-4431")
         let vm = QSOEntryViewModel(database: db, log: potaLog)
         let result = vm.expandTemplate("CQ {activity} DE {myCall} K")
@@ -961,7 +962,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     }
 
     func testExpandTemplate_noRef() async throws {
-        let db = try AppDatabase.empty()
+        let db = try LogbookDatabase.empty()
         let noRefLog = try await makeLogWithId(in: db)
         let vm = QSOEntryViewModel(database: db, log: noRefLog)
         let result = vm.expandTemplate("CQ {activity} DE {myCall} K")
@@ -1028,7 +1029,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     }
 
     func testPreviewTemplate_emptySOTAKeepsPlaceholder() async throws {
-        let db = try AppDatabase.empty()
+        let db = try LogbookDatabase.empty()
         let noRefLog = try await makeLogWithId(in: db)
         let vm = QSOEntryViewModel(database: db, log: noRefLog)
         let result = vm.previewExpandTemplate("{mySOTA}")
@@ -1048,7 +1049,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     }
 
     func testPreviewTemplate_emptyActivityKeepsPlaceholder() async throws {
-        let db = try AppDatabase.empty()
+        let db = try LogbookDatabase.empty()
         let noRefLog = try await makeLogWithId(in: db)
         let vm = QSOEntryViewModel(database: db, log: noRefLog)
         let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} K")
@@ -1090,7 +1091,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     }
 
     func testExpandTemplate_stripsPOTADash() async throws {
-        let db = try AppDatabase.empty()
+        let db = try LogbookDatabase.empty()
         let potaLog = try await makeLogWithId(in: db, potaRef: "US-4431")
         let vm = QSOEntryViewModel(database: db, log: potaLog)
         let result = vm.expandTemplate("{myPOTA}")
@@ -1104,7 +1105,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     }
 
     func testPreviewTemplate_activityResolvesPOTA() async throws {
-        let db = try AppDatabase.empty()
+        let db = try LogbookDatabase.empty()
         let potaLog = try await makeLogWithId(in: db, potaRef: "US-4431")
         let vm = QSOEntryViewModel(database: db, log: potaLog)
         let result = vm.previewExpandTemplate("CQ {activity} DE {myCall} K")

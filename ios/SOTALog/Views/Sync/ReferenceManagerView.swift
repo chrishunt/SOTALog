@@ -1,7 +1,8 @@
 import SwiftUI
+import HamCore
 
 struct ReferenceManagerView: View {
-    let database: AppDatabase
+    let database: LogbookDatabase
 
     var body: some View {
         Group {

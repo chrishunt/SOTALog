@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 /// Inline status display with labeled QSO count and per-reference progress.
 ///

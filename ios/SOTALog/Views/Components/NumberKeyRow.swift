@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import HamCore
 
 struct NumberKeyRow: View {
     let onKey: (String) -> Void

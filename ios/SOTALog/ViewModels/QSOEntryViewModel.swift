@@ -1,9 +1,10 @@
 import Foundation
+import HamCore
 import Observation
 
 @Observable
 final class QSOEntryViewModel {
-    private let database: AppDatabase
+    private let database: LogbookDatabase
     private let log: Log
     private let qsoRepo: QSORepository
     private let historyRepo: CallsignHistoryRepository
@@ -79,7 +80,7 @@ final class QSOEntryViewModel {
     private var modePushTime: Date?
     private let pushCooldown: TimeInterval = 2
 
-    init(database: AppDatabase, log: Log) {
+    init(database: LogbookDatabase, log: Log) {
         self.database = database
         self.log = log
         self.qsoRepo = QSORepository(database: database)

@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 // Okabe-Ito color blind-safe palette with light/dark mode variants.
 // Light mode: Okabe-Ito base values (designed for light backgrounds).

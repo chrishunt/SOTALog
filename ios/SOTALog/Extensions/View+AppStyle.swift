@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 // MARK: - Badge Modifier
 

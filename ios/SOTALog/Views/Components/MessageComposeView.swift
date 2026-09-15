@@ -1,5 +1,6 @@
 #if canImport(MessageUI)
 import MessageUI
+import HamCore
 import SwiftUI
 
 struct MessageComposeView: UIViewControllerRepresentable {

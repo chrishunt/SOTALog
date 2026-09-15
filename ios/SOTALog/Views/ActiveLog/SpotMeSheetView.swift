@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 #if canImport(MessageUI)
 import MessageUI
 #endif

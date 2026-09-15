@@ -12,6 +12,9 @@ settings:
     TARGETED_DEVICE_FAMILY: "1"
 
 packages:
+  HamCore:
+    url: git@github.com:chrishunt/ham-core.git
+    from: 1.0.0
   GRDB:
     url: https://github.com/groue/GRDB.swift.git
     from: "7.0.0"
@@ -60,6 +63,7 @@ targets:
         CURRENT_PROJECT_VERSION: 21
         CODE_SIGN_STYLE: Automatic
     dependencies:
+      - package: HamCore
       - package: GRDB
 
   SOTALogTests:
@@ -69,6 +73,7 @@ targets:
       - path: SOTALogTests
     dependencies:
       - target: SOTALog
+      - package: HamCore
       - package: GRDB
     settings:
       base:

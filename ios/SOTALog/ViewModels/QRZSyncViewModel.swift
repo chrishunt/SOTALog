@@ -1,9 +1,10 @@
 import Foundation
+import HamCore
 import Observation
 
 @MainActor @Observable
 final class QRZSyncViewModel {
-    private let database: AppDatabase
+    private let database: LogbookDatabase
     private let qsoRepo: QSORepository
     private let logRepo: LogRepository
     private let refRepo: ReferenceRepository
@@ -49,7 +50,7 @@ final class QRZSyncViewModel {
         case failure(String)
     }
 
-    init(database: AppDatabase) {
+    init(database: LogbookDatabase) {
         self.database = database
         self.qsoRepo = QSORepository(database: database)
         self.logRepo = LogRepository(database: database)
@@ -78,8 +79,8 @@ final class QRZSyncViewModel {
         }
         let unattachedQSOs = qsosByLogId[nil] ?? []
         adifExport = ADIFFile(
-            filename: ADIFFormatter.exportAllFilename(),
-            content: ADIFFormatter.encodeFile(sections: sections, unattached: unattachedQSOs)
+            filename: ADIFFormatter.exportAllFilename(software: .sotaLog),
+            content: ADIFFormatter.encodeFile(sections: sections, unattached: unattachedQSOs, software: .sotaLog)
         )
     }
 
@@ -122,7 +123,7 @@ final class QRZSyncViewModel {
     private func testAPIKey(_ apiKey: String) async {
         guard !apiKey.isEmpty else { return }
         do {
-            try await QRZLogbookService.testAPIKey(apiKey: apiKey)
+            try await QRZLogbookService(client: .sotaLog).testAPIKey(apiKey: apiKey)
             apiKeyTestResult = .success
         } catch {
             apiKeyTestResult = .failure(error.localizedDescription)
@@ -132,7 +133,7 @@ final class QRZSyncViewModel {
     private func testXMLLogin(_ username: String, _ password: String) async {
         guard !username.isEmpty, !password.isEmpty else { return }
         do {
-            let sessionKey = try await QRZXMLService.login(username: username, password: password)
+            let sessionKey = try await QRZXMLService(client: .sotaLog).login(username: username, password: password)
             try? KeychainService.save(key: .qrzSessionKey, value: sessionKey)
             xmlLoginTestResult = .success
         } catch {
@@ -193,7 +194,7 @@ final class QRZSyncViewModel {
                 let log = qso.logId.flatMap { logMap[$0] }
                 let adif = ADIFFormatter.encode(qso: qso, log: log)
 
-                if let qrzLogId = try await QRZLogbookService.uploadQSO(apiKey: apiKey, adifRecord: adif) {
+                if let qrzLogId = try await QRZLogbookService(client: .sotaLog).uploadQSO(apiKey: apiKey, adifRecord: adif) {
                     if let qsoId = qso.id {
                         try await qsoRepo.markSynced(id: qsoId, qrzLogId: qrzLogId)
                     }
@@ -235,7 +236,7 @@ final class QRZSyncViewModel {
             var previousMaxLogId: Int64 = -1
 
             for _ in 0..<200 {
-                let result = try await QRZLogbookService.downloadQSOs(apiKey: apiKey, afterLogId: afterLogId)
+                let result = try await QRZLogbookService(client: .sotaLog).downloadQSOs(apiKey: apiKey, afterLogId: afterLogId)
                 let records = ADIFFormatter.decode(result.adif)
                 allRecords.append(contentsOf: records)
 
@@ -312,7 +313,7 @@ final class QRZSyncViewModel {
         syncStatus = .preparingReferences
 
         if needsPota {
-            let parks = try await POTAParkService.fetchAllParks()
+            let parks = try await POTAParkService(client: .sotaLog).fetchAllParks()
             try await refRepo.deleteAllParks()
             try await refRepo.importParks(parks)
             try await refRepo.saveMetadata(ReferenceMetadata(
@@ -323,7 +324,7 @@ final class QRZSyncViewModel {
         }
 
         if needsSota {
-            let summits = try await SOTASummitService.fetchSummits()
+            let summits = try await SOTASummitService(client: .sotaLog).fetchSummits()
             try await refRepo.deleteAllSummits()
             try await refRepo.importSummits(summits)
             try await refRepo.saveMetadata(ReferenceMetadata(

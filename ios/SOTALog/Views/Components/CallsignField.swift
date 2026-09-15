@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 /// A large monospaced callsign input field with optional times-worked badge.
 /// Accepts an optional sanitizer closure for input filtering.

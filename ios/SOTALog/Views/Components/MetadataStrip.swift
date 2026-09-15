@@ -1,4 +1,5 @@
 import SwiftUI
+import HamCore
 
 /// Compact metadata display for QSO entry: a single cloud of chips in stable
 /// semantic order — [time] frequency, mode, RST sent, RST received,

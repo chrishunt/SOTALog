@@ -1,4 +1,5 @@
 import Foundation
+import HamCore
 import Observation
 
 @Observable
@@ -77,8 +78,8 @@ final class SpotsViewModel {
         defer { isLoading = false }
 
         do {
-            async let pota = POTASpotService.fetchSpots()
-            async let sota = SOTASpotService.fetchSpots()
+            async let pota = POTASpotService(client: .sotaLog).fetchSpots()
+            async let sota = SOTASpotService(client: .sotaLog).fetchSpots()
 
             let (potaResult, sotaResult) = try await (pota, sota)
             potaSpots = potaResult
@@ -106,15 +107,15 @@ final class SpotsViewModel {
 
             do {
                 // Every tick: check SOTA epoch, fetch only if changed
-                let epoch = try await SOTASpotService.fetchEpoch()
+                let epoch = try await SOTASpotService(client: .sotaLog).fetchEpoch()
                 if epoch != sotaEpoch {
-                    sotaSpots = try await SOTASpotService.fetchSpots()
+                    sotaSpots = try await SOTASpotService(client: .sotaLog).fetchSpots()
                     sotaEpoch = epoch
                 }
 
                 // Every 3rd tick (~60s): also fetch POTA
                 if tickCount % 3 == 0 {
-                    potaSpots = try await POTASpotService.fetchSpots()
+                    potaSpots = try await POTASpotService(client: .sotaLog).fetchSpots()
                 }
 
                 spots = potaSpots + sotaSpots

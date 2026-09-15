@@ -10,6 +10,26 @@
 cd ios && swift build
 ```
 
+### HamCore
+
+The domain layer — models, the database, ADIF, band plan, OmniField parsing, and the SOTA, POTA and QRZ clients — is the [`ham-core`](https://github.com/chrishunt/ham-core) package, pinned by version in `Package.swift` and `project.yml`. Its own repository documents how it works (a DocC catalog and `Documentation/`); this one documents only how the app uses it:
+
+- `App/LogbookDatabase+App.swift` opens the database in Application Support and puts it in the SwiftUI environment as `appDatabase`.
+- `App/SOTALogIdentity.swift` is the app's name and version as HamCore sees them: `APIClient.sotaLog` carries the User-Agent to SOTA, POTA and QRZ, and `ADIFFormatter.Software.sotaLog` goes into ADIF headers.
+- `Services/KeychainService.swift` and `Services/KeychainQRZCredentials.swift` keep QRZ credentials in the keychain and hand them to HamCore's QRZ lookup through its `QRZCredentialStore` protocol.
+- `Services/ADIFFile+Transferable.swift` makes HamCore's ADIF documents shareable and declares the `.adi` type from Info.plist.
+- `Models/CWMacro+Defaults.swift` holds the six default message keys; HamCore stores macros but not their content, so the app seeds them on first use.
+- `SOTALogTests/HamCoreBoundaryTests.swift` checks these seams. Tests never touch the network; HamCore's clients take an injectable transport if a test ever needs one.
+
+Domain logic belongs in ham-core, not here. To change both at once, point the iOS package at a local checkout while you work, then put the pin back:
+
+```sh
+swift package edit ham-core --path ../../ham-core   # from ios/
+swift package unedit ham-core                        # when done
+```
+
+Run ham-core's own `swift test` in that repo for any change made there, and bump the pin here once it is tagged.
+
 ### iOS Simulator build, install, and launch
 
 All commands below run from `ios/` (the subdirectory containing the Xcode project and `project.yml`).
