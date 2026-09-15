@@ -14,6 +14,10 @@ jobs:
         working-directory: ios
     steps:
       - uses: actions/checkout@v4
+      # ham-core is a private repository; this read-only deploy key lets SwiftPM clone it.
+      - uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.HAM_CORE_DEPLOY_KEY }}
       - run: swift test
 
   test-android:
