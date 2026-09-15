@@ -4,7 +4,7 @@ import SwiftUI
 import TipKit
 
 struct QSOEntryView: View {
-    let database: AppDatabase
+    let database: LogbookDatabase
     let log: Log
     @Binding var editingQSO: QSO?
     @Binding var pendingSpot: Spot?
@@ -30,7 +30,7 @@ struct QSOEntryView: View {
     }
 
     init(
-        database: AppDatabase, log: Log, editingQSO: Binding<QSO?>, pendingSpot: Binding<Spot?>,
+        database: LogbookDatabase, log: Log, editingQSO: Binding<QSO?>, pendingSpot: Binding<Spot?>,
         onSave: @escaping (QSO) -> Void,
         onFrequencyChanged: ((String) -> Void)? = nil,
         onModeChanged: ((String) -> Void)? = nil
@@ -44,7 +44,7 @@ struct QSOEntryView: View {
         self.onModeChanged = onModeChanged
         self._viewModel = State(initialValue: QSOEntryViewModel(database: database, log: log))
         let historyRepo = CallsignHistoryRepository(database: database)
-        self._qrzService = State(initialValue: QRZLookupService(historyRepo: historyRepo))
+        self._qrzService = State(initialValue: QRZLookupService(historyRepo: historyRepo, credentials: KeychainQRZCredentials(), client: .sotaLog))
     }
 
     var body: some View {
@@ -266,6 +266,7 @@ struct QSOEntryView: View {
 
     private func loadMacros() async {
         let repo = CWMacroRepository(database: database)
+        try? await repo.seedIfEmpty(CWMacro.defaults)
         cwMacros = (try? await repo.fetchAll()) ?? []
     }
 
@@ -279,9 +280,10 @@ struct QSOEntryView: View {
     }
 
     private func resetMacro(position: Int) {
+        guard let factory = CWMacro.defaults.first(where: { $0.position == position }) else { return }
         let repo = CWMacroRepository(database: database)
         Task {
-            try? await repo.resetOne(position: position)
+            try? await repo.replace(position: position, with: factory)
             await loadMacros()
         }
     }

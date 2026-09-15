@@ -5,8 +5,8 @@ struct ReferenceDownloadRow: View {
     let title: String
     let metadataKey: String
     let unitName: String
-    let database: AppDatabase
-    let download: (ReferenceRepository, _ onProgress: @escaping (String) -> Void) async throws -> Int
+    let database: LogbookDatabase
+    let download: (ReferenceRepository, _ onProgress: @escaping @Sendable (String) -> Void) async throws -> Int
     var onComplete: (() -> Void)?
 
     @State private var metadata: ReferenceMetadata?
@@ -71,7 +71,8 @@ struct ReferenceDownloadRow: View {
 
         do {
             let count = try await download(refRepo) { message in
-                progress = message
+                // HamCore reports progress from background tasks; SwiftUI state lives on the main actor.
+                Task { @MainActor in progress = message }
             }
             try await refRepo.saveMetadata(ReferenceMetadata(
                 key: metadataKey,
@@ -88,7 +89,7 @@ struct ReferenceDownloadRow: View {
 
 extension ReferenceDownloadRow {
     static func potaParks(
-        database: AppDatabase,
+        database: LogbookDatabase,
         userLatitude: Double? = nil,
         userLongitude: Double? = nil,
         onComplete: (() -> Void)? = nil
@@ -100,14 +101,14 @@ extension ReferenceDownloadRow {
             database: database,
             download: { refRepo, onProgress in
                 onProgress("Downloading parks...")
-                let parks = try await POTAParkService.fetchAllParks()
+                let parks = try await POTAParkService(client: .sotaLog).fetchAllParks()
                 onProgress("Importing \(parks.count) parks...")
                 try await refRepo.deleteAllParks()
                 try await refRepo.importParks(parks)
 
                 // Enrich with coordinates from POTA API
                 do {
-                    try await POTALocationService.enrichParks(
+                    try await POTALocationService(client: .sotaLog).enrichParks(
                         refRepo: refRepo,
                         userLatitude: userLatitude,
                         userLongitude: userLongitude,
@@ -123,7 +124,7 @@ extension ReferenceDownloadRow {
         )
     }
 
-    static func sotaSummits(database: AppDatabase, onComplete: (() -> Void)? = nil) -> ReferenceDownloadRow {
+    static func sotaSummits(database: LogbookDatabase, onComplete: (() -> Void)? = nil) -> ReferenceDownloadRow {
         ReferenceDownloadRow(
             title: "SOTA Summits",
             metadataKey: "sotaSummits",
@@ -131,7 +132,7 @@ extension ReferenceDownloadRow {
             database: database,
             download: { refRepo, onProgress in
                 onProgress("Downloading summits...")
-                let summits = try await SOTASummitService.fetchSummits()
+                let summits = try await SOTASummitService(client: .sotaLog).fetchSummits()
                 onProgress("Importing \(summits.count) summits...")
                 try await refRepo.deleteAllSummits()
                 try await refRepo.importSummits(summits)

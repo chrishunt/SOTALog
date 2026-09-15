@@ -4,11 +4,11 @@ import TipKit
 
 @main
 struct SOTALogApp: App {
-    let database: AppDatabase?
+    let database: LogbookDatabase?
 
     init() {
         do {
-            database = try AppDatabase.shared()
+            database = try LogbookDatabase.shared()
         } catch {
             database = nil
             AppLog.database.error("Database setup failed: \(error.localizedDescription)")

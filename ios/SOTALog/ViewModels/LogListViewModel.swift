@@ -5,7 +5,7 @@ import Observation
 
 @Observable
 final class LogListViewModel {
-    private let database: AppDatabase
+    private let database: LogbookDatabase
     private let logRepo: LogRepository
     private var cancellable: AnyDatabaseCancellable?
 
@@ -14,11 +14,13 @@ final class LogListViewModel {
     var bandsByLog: [Int64: [String]] = [:]
     var allSyncedToQRZ: [Int64: Bool] = [:]
 
-    init(database: AppDatabase) {
+    init(database: LogbookDatabase) {
         self.database = database
         self.logRepo = LogRepository(database: database)
     }
 
+    /// GRDB schedules observation on the main actor, so this runs there.
+    @MainActor
     func startObserving() async {
         let observation = ValueObservation.tracking { db -> ([Log], [Int64: Int], [Int64: [String]], [Int64: Bool]) in
             let logs = try Log.order(Column("date").desc, Column("createdAt").desc).fetchAll(db)

@@ -34,11 +34,11 @@ final class SOTACatServiceTests: XCTestCase {
 
     // MARK: - VFO Sync Respects Manual Overrides
 
-    private var db: AppDatabase!
+    private var db: LogbookDatabase!
     private var log: Log!
 
     override func setUp() async throws {
-        db = try AppDatabase.empty()
+        db = try LogbookDatabase.empty()
         log = try await makeLogWithId(in: db)
     }
 

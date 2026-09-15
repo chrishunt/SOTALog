@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - The domain layer — models, the GRDB database and repositories, ADIF, band plan, callsign utilities, and the SOTA, POTA and QRZ clients — now lives in the separate [`ham-core`](https://github.com/chrishunt/ham-core) Swift package, which the iOS app depends on. No user-facing change
+- ADIF exports record the app's actual version in `PROGRAMVERSION` instead of a fixed 1.0, and the SOTA, POTA and QRZ requests identify the app with its real version
 
 ## [1.9] - 2026-09-08
 

@@ -5,7 +5,7 @@ import Observation
 @MainActor @Observable
 final class NewLogViewModel {
     private static let suggestionLimit = 5
-    private let database: AppDatabase
+    private let database: LogbookDatabase
     private let logRepo: LogRepository
     private let refRepo: ReferenceRepository
     private let locationService = LocationService()
@@ -61,7 +61,7 @@ final class NewLogViewModel {
     private var parkSearchTask: Task<Void, Never>?
     private var summitSearchTask: Task<Void, Never>?
 
-    init(database: AppDatabase) {
+    init(database: LogbookDatabase) {
         self.database = database
         self.logRepo = LogRepository(database: database)
         self.refRepo = ReferenceRepository(database: database)

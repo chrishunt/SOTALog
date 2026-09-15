@@ -2,14 +2,14 @@ import SwiftUI
 import HamCore
 
 struct QRZSyncView: View {
-    let database: AppDatabase
+    let database: LogbookDatabase
     @State private var viewModel: QRZSyncViewModel
     @State private var showLogbookSignIn = false
     @State private var showCallsignSignIn = false
     @State private var showLogbookSignOut = false
     @State private var showCallsignSignOut = false
 
-    init(database: AppDatabase) {
+    init(database: LogbookDatabase) {
         self.database = database
         self._viewModel = State(initialValue: QRZSyncViewModel(database: database))
     }

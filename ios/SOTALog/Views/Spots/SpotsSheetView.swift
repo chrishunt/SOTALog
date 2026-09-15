@@ -3,7 +3,7 @@ import HamCore
 import GRDB
 
 struct SpotsSheetView: View {
-    let database: AppDatabase
+    let database: LogbookDatabase
     @Environment(\.dismiss) private var dismiss
     @Environment(SpotRouter.self) private var spotRouter
     @Environment(SpotsViewModel.self) private var viewModel
@@ -103,7 +103,8 @@ struct SpotsSheetView: View {
                 let today = todayUTCDate()
                 let repo = QSORepository(database: database)
                 workedCancellable = repo.observeWorkedKeys(date: today, in: database.dbWriter) { keys in
-                    workedKeys = keys
+                    // HamCore calls back on the main actor; SwiftUI state must be touched there.
+                    MainActor.assumeIsolated { workedKeys = keys }
                 }
             }
         }

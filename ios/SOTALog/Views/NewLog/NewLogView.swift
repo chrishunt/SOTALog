@@ -2,7 +2,7 @@ import SwiftUI
 import HamCore
 
 struct NewLogView: View {
-    let database: AppDatabase
+    let database: LogbookDatabase
     let onCreated: (Log) -> Void
 
     @State private var viewModel: NewLogViewModel
@@ -13,7 +13,7 @@ struct NewLogView: View {
         case pota, sota
     }
 
-    init(database: AppDatabase, onCreated: @escaping (Log) -> Void) {
+    init(database: LogbookDatabase, onCreated: @escaping (Log) -> Void) {
         self.database = database
         self.onCreated = onCreated
         self._viewModel = State(initialValue: NewLogViewModel(database: database))
