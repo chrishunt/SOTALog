@@ -91,7 +91,7 @@ Read the [contributing guide](CONTRIBUTING.md) and [DESIGN.md](DESIGN.md) before
 
 ## Website
 
-The support page at [sotalog.k2mmt.com](https://sotalog.k2mmt.com) is hosted on Cloudflare Workers. Deploy: `npx wrangler deploy`
+The support page at [sotalog.nn6g.com](https://sotalog.nn6g.com) is hosted on Cloudflare Workers. Deploy: `npx wrangler deploy`
 
 ## License
 
