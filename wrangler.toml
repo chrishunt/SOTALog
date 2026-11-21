@@ -5,9 +5,5 @@ compatibility_date = "2026-03-10"
 directory = "./docs"
 
 [[routes]]
-pattern = "sotalog.k2mmt.com"
-custom_domain = true
-
-[[routes]]
 pattern = "sotalog.nn6g.com"
 custom_domain = true
