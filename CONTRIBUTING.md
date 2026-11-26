@@ -48,21 +48,13 @@ xcodebuild -project SOTALog.xcodeproj -scheme SOTALog \
   build
 ```
 
-**Build (Android):**
-
-```sh
-cd android
-./gradlew assembleDebug
-```
-
 **Run tests:**
 
 ```sh
-cd ios && swift test          # iOS
-cd android && ./gradlew testDebugUnitTest  # Android
+cd ios && swift test
 ```
 
-All tests should pass on both platforms. Run tests before submitting any PR.
+All tests should pass. Run tests before submitting any PR.
 
 ## Mock SOTACat Server
 
@@ -93,9 +85,9 @@ python3 -m pytest tools/test_mock_sotacat.py -v
 
 1. **Read [DESIGN.md](DESIGN.md)** — understand the design philosophy before writing code
 2. **Keep changes small and focused** — one concern per PR
-3. **Run tests** — `swift test` from `ios/` (and `./gradlew testDebugUnitTest` from `android/`)
+3. **Run tests** — `swift test` from `ios/`
 4. **Match existing style** — follow the patterns you see in the codebase
-5. **No new dependencies** without discussion — iOS has one external dependency (GRDB), Android uses the standard Jetpack stack (Room, Hilt, Retrofit, OkHttp). Minimize additions on both platforms
+5. **No new dependencies** without discussion — the app depends on ham-core and GRDB. Minimize additions
 
 ## Working with AI
 
@@ -104,5 +96,5 @@ AI coding tools are encouraged. Be thoughtful of the person reviewing your PR:
 - **Keep PRs small and focused.** Don't let AI generate sprawling changes that are painful to review.
 - **Understand every line you submit.** If you can't explain why a change exists, don't submit it.
 - **Read [DESIGN.md](DESIGN.md) first** — it's written as a guardrail document that works for both humans and AI agents. Feed it to your AI tool as context.
-- **[CLAUDE.md](CLAUDE.md)** has cross-platform workflow instructions. **[ios/CLAUDE.md](ios/CLAUDE.md)** and **[android/CLAUDE.md](android/CLAUDE.md)** have platform-specific build and deploy instructions.
+- **[CLAUDE.md](CLAUDE.md)** describes the repository. **[ios/CLAUDE.md](ios/CLAUDE.md)** has build and deploy instructions.
 - **Don't reference AI tools** in commits or code.
