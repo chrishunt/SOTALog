@@ -7,6 +7,7 @@ struct SpotsSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(SpotRouter.self) private var spotRouter
     @Environment(SpotsViewModel.self) private var viewModel
+    @Environment(CallsignMarksStore.self) private var marksStore
     @State private var workedKeys: Set<String> = []
     @State private var workedCancellable: AnyDatabaseCancellable?
 
@@ -31,7 +32,7 @@ struct SpotsSheetView: View {
                                         spotRouter.pendingSpot = spot
                                         dismiss()
                                     } label: {
-                                        SpotRowView(spot: spot, isWorked: isWorked(spot))
+                                        SpotRowView(spot: spot, isWorked: isWorked(spot), mark: marksStore.marks.mark(for: spot.activatorCallsign))
                                             .contentShape(Rectangle())
                                     }
                                     .buttonStyle(.plain)

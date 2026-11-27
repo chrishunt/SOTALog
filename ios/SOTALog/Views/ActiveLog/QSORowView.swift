@@ -3,6 +3,8 @@ import HamCore
 
 struct QSORowView: View {
     let qso: QSO
+    /// The emoji of every callsign list the station is on, shown before the name.
+    var mark: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -51,12 +53,9 @@ struct QSORowView: View {
     private var detailText: String? {
         let name = qso.name?.isEmpty == false ? qso.name : nil
         let qth = qso.qth?.isEmpty == false ? qso.qth : nil
-        switch (name, qth) {
-        case let (n?, q?): return "\(n) · \(q)"
-        case let (n?, nil): return n
-        case let (nil, q?): return q
-        case (nil, nil): return nil
-        }
+        let person = [mark, name].compactMap { $0 }.joined(separator: " ")
+        let parts = [person.isEmpty ? nil : person, qth].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 }
 

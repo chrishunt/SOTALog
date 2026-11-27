@@ -667,6 +667,33 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.potaRefInput, "US0001")
     }
 
+    func testAListedStationGetsItsMarkAndASavedQSOClearsIt() async throws {
+        let vm = makeVM()
+        vm.markLookup = { $0 == "AC4NK" ? "🌊⭐" : nil }
+
+        vm.entryText = "AC4NK"
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+        XCTAssertEqual(vm.callsignMark, "🌊⭐")
+
+        await vm.saveQSO()
+        XCTAssertNil(vm.callsignMark)
+    }
+
+    func testAnUnlistedStationHasNoMark() async throws {
+        let vm = makeVM()
+        vm.markLookup = { $0 == "AC4NK" ? "🌊" : nil }
+
+        vm.entryText = "AC4NK"
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+        vm.entryText = "W1AW"
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+
+        XCTAssertNil(vm.callsignMark)
+    }
+
     func testSpotFrequencyRespectsManualOverride() async throws {
         let vm = makeVM()
         vm.frequencyText = "14.060"

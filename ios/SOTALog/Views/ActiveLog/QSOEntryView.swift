@@ -14,6 +14,7 @@ struct QSOEntryView: View {
 
     @Environment(SpotsViewModel.self) private var spotsViewModel
     @Environment(SOTACatService.self) private var sotaCatService
+    @Environment(CallsignMarksStore.self) private var marksStore
     @State private var viewModel: QSOEntryViewModel
     @State private var qrzService: QRZLookupService
     @State private var cwMacros: [CWMacro] = []
@@ -111,6 +112,7 @@ struct QSOEntryView: View {
         }
         .onAppear {
             viewModel.spotLookup = spotsViewModel.spotForCallsign
+            viewModel.markLookup = { [marksStore] in marksStore.marks.mark(for: $0) }
             viewModel.qrzLookup = qrzService
             viewModel.sotaCatService = sotaCatService
             if sotaCatService.isConnected {
@@ -155,6 +157,7 @@ struct QSOEntryView: View {
             frequencyText: $viewModel.frequencyText,
             mode: $viewModel.mode,
             name: $viewModel.name,
+            nameMark: viewModel.callsignMark,
             qth: $viewModel.qth,
             potaRefInput: $viewModel.potaRefInput,
             potaRefFormatted: viewModel.potaRefFormatted,
