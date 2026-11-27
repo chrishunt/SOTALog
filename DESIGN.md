@@ -102,6 +102,8 @@ The callsign field is also a command line. Space-separated tokens after the call
 
 **Token consumption:** When the parser recognizes a token (frequency, QTH, grid, time, park ref, summit ref) and the operator types a space after it, the token is consumed — stripped from the callsign field and "moved" to the metadata strip. The callsign and RST tokens always remain in the field. This keeps the omnibox clean: type `W1AW 59 55 14.060 NC ` and the field shows `W1AW 59 55` while the metadata strip displays the consumed values.
 
+**Correct the callsign by retyping it:** A whole callsign typed after the first token replaces the first token once a space follows it (or on Send), and leaves the cursor at the end. `K6ABC 55 K6ABD ` becomes `K6ABD 55 `, and a tail-end catch `ABC 55 K6ABC ` becomes `K6ABC 55 `. The callsign never moves from the front, RSTs are kept, and nothing needs the cursor moved back. A partial (`K6`, `ABC`) changes nothing. The previous station's looked-up name, QTH, grid and badges are dropped, keeping anything the operator typed. There is no clear button: holding delete clears the field, and an empty callsign resets the contact.
+
 ### Manual overrides are respected
 
 If the operator explicitly provides a value — whether by editing a field directly or via the OmniField — auto-populate won't overwrite it. This resets after each save. The principle: never fight the operator. The most recent explicit input always wins.

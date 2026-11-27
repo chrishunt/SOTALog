@@ -361,6 +361,68 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.rstSent, "579")
     }
 
+    // MARK: - Correcting the callsign by retyping it
+
+    /// Types `text` one character at a time, parsing after each, as the field does.
+    private func type(_ text: String, into vm: QSOEntryViewModel) {
+        for character in text {
+            vm.entryText.append(character)
+            vm.parseEntry()
+        }
+    }
+
+    func testRetypedCallsignReplacesFirstAndKeepsRST() {
+        let vm = makeVM()
+        type("K6ABC 55 57 K6ABD ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABD 55 57 ")
+        XCTAssertEqual(vm.parsedCallsign, "K6ABD")
+        XCTAssertEqual(vm.rstSent, "559")
+        XCTAssertEqual(vm.rstReceived, "579")
+    }
+
+    func testFullCallsignReplacesTailEndPartial() {
+        let vm = makeVM()
+        type("ABC 55 K6ABC ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC 55 ")
+    }
+
+    func testCallsignBeingTypedStaysUntilSpace() {
+        let vm = makeVM()
+        type("K6ABC 55 K6AB", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC 55 K6AB")
+        XCTAssertEqual(vm.parsedCallsign, "K6ABC")
+    }
+
+    func testPartialCallsignAfterRSTDoesNotReplace() {
+        let vm = makeVM()
+        type("K6ABC 55 K6 ", into: vm)
+        XCTAssertEqual(vm.parsedCallsign, "K6ABC")
+    }
+
+    func testPortableRegionSuffixReplacesNotSummit() {
+        let vm = makeVM()
+        type("K6ABC 55 K6ABC/7 ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC/7 55 ")
+        XCTAssertEqual(vm.sotaRefInput, "")
+    }
+
+    func testCorrectionClearsLookedUpNameButKeepsTypedQTH() {
+        let vm = makeVM()
+        type("K6ABC 55 CA ", into: vm)
+        vm.name = "Jane"
+        type("W7XYZ ", into: vm)
+        XCTAssertEqual(vm.name, "")
+        XCTAssertEqual(vm.qth, "CA")
+    }
+
+    func testSendSavesCorrectionStillBeingTyped() async throws {
+        let vm = makeVM()
+        type("K6ABC 55 K6ABD", into: vm)
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "559")
+    }
+
     func testSaveNewQSOWithTimeTokenBackTimes() async throws {
         let vm = makeVM()
         vm.entryText = "W1AW 1432Z "

@@ -237,8 +237,9 @@ final class QSOEntryViewModel {
     }
 
     /// Strip consumed tokens (frequency, mode, QTH, grid, park ref, summit ref, time) from
-    /// entryText once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
-    /// Pushes frequency/mode to radio when consumed.
+    /// entryText once they are followed by a space. A whole callsign typed after the first
+    /// token is a correction: it replaces the first token in place. The callsign, RST, and
+    /// unrecognized tokens stay. Pushes frequency/mode to radio when consumed.
     private func consumeTokens(_ parsed: ParsedEntry) {
         let tokens = parsed.tokens
         guard tokens.count > 1 else { return }
@@ -246,6 +247,7 @@ final class QSOEntryViewModel {
         let endsWithSpace = entryText.hasSuffix(" ")
 
         var kept: [String] = []
+        var correctedCallsign: String?
         var consumedFrequency = false
         var consumedMode = false
         for (index, classified) in tokens.enumerated() {
@@ -253,6 +255,8 @@ final class QSOEntryViewModel {
             let isConfirmed = !isLast || endsWithSpace
 
             switch classified.kind {
+            case .callsign where index > 0 && isConfirmed:
+                correctedCallsign = classified.text
             case .callsign, .rst, .unrecognized:
                 kept.append(classified.text)
             case .frequency:
@@ -266,6 +270,13 @@ final class QSOEntryViewModel {
             }
         }
 
+        if let corrected = correctedCallsign {
+            if corrected.sanitizedCallsign != kept[0].sanitizedCallsign {
+                clearStationDetails()
+            }
+            kept[0] = corrected
+        }
+
         var rebuilt = kept.joined(separator: " ")
         if endsWithSpace { rebuilt += " " }
 
@@ -276,6 +287,17 @@ final class QSOEntryViewModel {
         if consumedFrequency || consumedMode {
             pushFrequencyToRadio()
         }
+    }
+
+    /// Send while a corrected callsign is still being typed, with no trailing space yet,
+    /// saves the correction rather than the callsign it replaces.
+    private func applyPendingCorrection() {
+        guard !entryText.hasSuffix(" "),
+              let last = OmniFieldParser.parse(entryText).tokens.dropFirst().last,
+              last.kind == .callsign
+        else { return }
+        entryText += " "
+        parseEntry()
     }
 
     func markManualOverride(_ field: String) {
@@ -558,6 +580,7 @@ final class QSOEntryViewModel {
     // MARK: - Save QSO
 
     func saveQSO() async {
+        applyPendingCorrection()
         let callsign = parsedCallsign
         guard !callsign.isEmpty, let logId = log.id else { return }
 
@@ -681,6 +704,17 @@ final class QSOEntryViewModel {
         previewKind = nil
         manualOverrides = []
         // frequency and mode persist between QSOs
+    }
+
+    /// Forgets what was looked up for the previous callsign when a correction replaces it,
+    /// keeping anything the operator typed. The lookup for the new callsign refills the rest.
+    private func clearStationDetails() {
+        timesWorked = 0
+        workedToday = 0
+        isDupe = false
+        grid = nil
+        if !manualOverrides.contains("name") { name = "" }
+        if !manualOverrides.contains("qth") { qth = "" }
     }
 
     private func clearLookupFields() {
