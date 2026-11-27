@@ -31,7 +31,7 @@ These aren't negotiable. They're the app's identity.
 - Xcode 16+ with iOS 17 SDK
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 
-**Build (iOS):**
+**Build:**
 
 ```sh
 cd ios

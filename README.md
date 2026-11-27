@@ -50,8 +50,6 @@ Read the full design philosophy in [DESIGN.md](DESIGN.md).
 
 ## Building from Source
 
-### iOS
-
 **Prerequisites:** Xcode 16+, iOS 17 SDK, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
 
 ```sh
