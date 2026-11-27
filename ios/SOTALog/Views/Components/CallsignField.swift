@@ -32,8 +32,12 @@ struct CallsignField: View {
                 #if os(iOS)
                 .keyboardType(.asciiCapable)
                 #endif
-                .onChange(of: text) { _, newValue in
-                    text = sanitizer?(newValue) ?? newValue.sanitizedCallsign
+                // Sanitizes the current text, not the value handed in: by now the entry may
+                // have rewritten it (a corrected callsign), and writing the old value back
+                // would undo that. Writing only on a change keeps the field and text in step.
+                .onChange(of: text) { _, _ in
+                    let clean = sanitizer?(text) ?? text.sanitizedCallsign
+                    if clean != text { text = clean }
                 }
 
             if let badge = badgeText {

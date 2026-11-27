@@ -16,6 +16,14 @@ final class QSOEntryViewModelTests: XCTestCase {
         QSOEntryViewModel(database: db, log: log)
     }
 
+    /// Types `text` one character at a time, parsing after each, as the field does.
+    private func type(_ text: String, into vm: QSOEntryViewModel) {
+        for character in text {
+            vm.entryText.append(character)
+            vm.parseEntry()
+        }
+    }
+
     // MARK: - Sensible Defaults
 
     func testFreshViewModelDefaults() {
@@ -29,37 +37,82 @@ final class QSOEntryViewModelTests: XCTestCase {
 
     func testParseEntryAppliesRST() {
         let vm = makeVM()
-        vm.entryText = "W1AW 579"
+        vm.entryText = "W1AW 579 "
         vm.parseEntry()
         XCTAssertEqual(vm.rstSent, "579")
     }
 
     func testParseEntryAppliesFrequency() {
         let vm = makeVM()
-        vm.entryText = "W1AW 7.030"
+        vm.entryText = "W1AW 7.030 "
         vm.parseEntry()
         XCTAssertEqual(vm.frequencyText, "7.030")
     }
 
     func testParseEntryAppliesQTH() {
         let vm = makeVM()
-        vm.entryText = "W1AW NC"
+        vm.entryText = "W1AW NC "
         vm.parseEntry()
         XCTAssertEqual(vm.qth, "NC")
     }
 
     func testParseEntryAppliesPOTARef() {
         let vm = makeVM()
-        vm.entryText = "W1AW US0001"
+        vm.entryText = "W1AW US0001 "
         vm.parseEntry()
         XCTAssertEqual(vm.potaRefInput, "US0001")
     }
 
     func testParseEntryAppliesSOTARef() {
         let vm = makeVM()
-        vm.entryText = "W1AW W4CCM001"
+        vm.entryText = "W1AW W4CCM001 "
         vm.parseEntry()
         XCTAssertEqual(vm.sotaRefInput, "W4CCM001")
+    }
+
+    func testWordBeingTypedIsNotAppliedUntilSpace() {
+        let vm = makeVM()
+        vm.entryText = "W1AW 579 NC"
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "579")
+        XCTAssertEqual(vm.qth, "")
+
+        vm.entryText = "W1AW 579 NC "
+        vm.parseEntry()
+        XCTAssertEqual(vm.qth, "NC")
+    }
+
+    func testConfirmEntryAppliesTheLastWord() {
+        let vm = makeVM()
+        vm.entryText = "W1AW 579"
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "599")
+        vm.confirmEntry()
+        XCTAssertEqual(vm.rstSent, "579")
+    }
+
+    func testDeletingAnRSTWordRestoresTheDefault() {
+        let vm = makeVM()
+        type("W1AW 44 ", into: vm)
+        XCTAssertEqual(vm.rstSent, "449")
+        vm.entryText = "W1AW "
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "599")
+    }
+
+    func testRSTSetOnTheChipSurvivesTyping() {
+        let vm = makeVM()
+        vm.rstSent = "339"
+        vm.markManualOverride("rstSent")
+        type("W1AW CA ", into: vm)
+        XCTAssertEqual(vm.rstSent, "339")
+    }
+
+    func testSaveAppliesTheLastWord() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW 44"
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "449")
     }
 
     // MARK: - Omnifield Overrides Manual Fields
@@ -68,7 +121,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         let vm = makeVM()
         vm.frequencyText = "7.030"
         vm.markManualOverride("frequency")
-        vm.entryText = "W1AW 14.060"
+        vm.entryText = "W1AW 14.060 "
         vm.parseEntry()
         XCTAssertEqual(vm.frequencyText, "14.060")
     }
@@ -77,7 +130,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         let vm = makeVM()
         vm.rstSent = "559"
         vm.markManualOverride("rstSent")
-        vm.entryText = "W1AW 579"
+        vm.entryText = "W1AW 579 "
         vm.parseEntry()
         XCTAssertEqual(vm.rstSent, "579")
     }
@@ -88,7 +141,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.rstSent = "559"
         vm.markManualOverride("frequency")
         vm.markManualOverride("rstSent")
-        vm.entryText = "W1AW 579 14.060"
+        vm.entryText = "W1AW 579 14.060 "
         vm.parseEntry()
         XCTAssertEqual(vm.frequencyText, "14.060")
         XCTAssertEqual(vm.rstSent, "579")
@@ -253,7 +306,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         await vm.saveQSO()
 
         // After save, overrides are cleared — parseEntry should now apply frequency
-        vm.entryText = "K3ABC 7.030"
+        vm.entryText = "K3ABC 7.030 "
         vm.parseEntry()
         XCTAssertEqual(vm.frequencyText, "7.030")
     }
@@ -332,7 +385,7 @@ final class QSOEntryViewModelTests: XCTestCase {
 
     func testParseEntryAppliesTimeToken() {
         let vm = makeVM()
-        vm.entryText = "W1AW 1432Z"
+        vm.entryText = "W1AW 1432Z "
         vm.parseEntry()
         XCTAssertEqual(vm.timeOnInput, "1432")
     }
@@ -346,13 +399,9 @@ final class QSOEntryViewModelTests: XCTestCase {
     }
 
     func testTimeTokenTypingDoesNotCorruptRST() {
-        // Typing "1432Z" passes through RST-shaped prefixes ("14", "143").
-        // The kind flip must reset the previewed RST.
+        // Typing "1432Z" passes through RST-shaped prefixes ("14", "143"), which are never applied.
         let vm = makeVM()
-        for text in ["W1AW 1", "W1AW 14", "W1AW 143", "W1AW 1432", "W1AW 1432Z"] {
-            vm.entryText = text
-            vm.parseEntry()
-        }
+        type("W1AW 1432Z ", into: vm)
         XCTAssertEqual(vm.rstSent, "599")
         XCTAssertEqual(vm.rstReceived, "599")
         XCTAssertEqual(vm.timeOnInput, "1432")
@@ -360,12 +409,9 @@ final class QSOEntryViewModelTests: XCTestCase {
 
     func testFrequencyTypingDoesNotCorruptRST() {
         let vm = makeVM()
-        for text in ["W1AW 1", "W1AW 14", "W1AW 14.", "W1AW 14.0", "W1AW 14.060"] {
-            vm.entryText = text
-            vm.parseEntry()
-        }
+        type("W1AW 7.030 ", into: vm)
         XCTAssertEqual(vm.rstSent, "599")
-        XCTAssertEqual(vm.frequencyText, "14.060")
+        XCTAssertEqual(vm.frequencyText, "7.030")
     }
 
     func testRSTSurvivesConfirmationSpace() {
@@ -375,6 +421,333 @@ final class QSOEntryViewModelTests: XCTestCase {
             vm.parseEntry()
         }
         XCTAssertEqual(vm.rstSent, "579")
+    }
+
+    // MARK: - Correcting the callsign by retyping it
+
+    func testRetypedCallsignReplacesFirstAndKeepsRST() {
+        let vm = makeVM()
+        type("K6ABC 55 57 K6ABD ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABD 55 57 ")
+        XCTAssertEqual(vm.parsedCallsign, "K6ABD")
+        XCTAssertEqual(vm.rstSent, "559")
+        XCTAssertEqual(vm.rstReceived, "579")
+    }
+
+    func testFullCallsignReplacesTailEndPartial() {
+        let vm = makeVM()
+        type("ABC 55 K6ABC ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC 55 ")
+    }
+
+    func testCallsignBeingTypedStaysUntilSpace() {
+        let vm = makeVM()
+        type("K6ABC 55 K6AB", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC 55 K6AB")
+        XCTAssertEqual(vm.parsedCallsign, "K6ABC")
+    }
+
+    func testPartialCallsignAfterRSTDoesNotReplace() {
+        let vm = makeVM()
+        type("K6ABC 55 K6 ", into: vm)
+        XCTAssertEqual(vm.parsedCallsign, "K6ABC")
+        XCTAssertEqual(vm.entryText, "K6ABC 55 K6 ")
+    }
+
+    func testShorthandAfterRSTDoesNotReplace() {
+        let vm = makeVM()
+        type("K6ABC 55 P2P ", into: vm)
+        XCTAssertEqual(vm.parsedCallsign, "K6ABC")
+    }
+
+    func testRetypingTheSameCallsignKeepsDetails() {
+        let vm = makeVM()
+        type("K6ABC 55 ", into: vm)
+        vm.name = "Jane"
+        vm.timesWorked = 3
+        type("K6ABC ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC 55 ")
+        XCTAssertEqual(vm.name, "Jane")
+        XCTAssertEqual(vm.timesWorked, 3)
+    }
+
+    func testPortableRegionSuffixReplacesNotSummit() {
+        let vm = makeVM()
+        type("K6ABC 55 K6ABC/7 ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC/7 55 ")
+        XCTAssertEqual(vm.sotaRefInput, "")
+    }
+
+    func testCorrectionClearsLookedUpNameButKeepsTypedQTH() {
+        let vm = makeVM()
+        type("K6ABC 55 CA ", into: vm)
+        vm.name = "Jane"
+        vm.timesWorked = 3
+        vm.workedToday = 1
+        vm.isDupe = true
+        type("W7XYZ ", into: vm)
+        XCTAssertEqual(vm.name, "")
+        XCTAssertEqual(vm.qth, "CA")
+        XCTAssertEqual(vm.timesWorked, 0)
+        XCTAssertEqual(vm.workedToday, 0)
+        XCTAssertFalse(vm.isDupe)
+    }
+
+    func testCorrectionDropsReferenceFromOldCallsignsSpot() async throws {
+        let vm = makeVM()
+        vm.spotLookup = { call in
+            guard call == "K6ABC" else { return nil }
+            return makeSpot(callsign: "K6ABC", frequency: 14.062, sotaReference: "W6/CT-002")
+        }
+        type("K6ABC 55", into: vm)
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+        XCTAssertEqual(vm.sotaRefInput, "W6CT002")
+
+        type(" K6ABD ", into: vm)
+        XCTAssertEqual(vm.sotaRefInput, "")
+    }
+
+    func testCorrectionKeepsReferenceFromTappedSpot() {
+        let vm = makeVM()
+        vm.prefillFromSpot(makeSpot(callsign: "K3ABC", frequency: 14.062, sotaReference: "W4C/CM-001"))
+        type(" 55 K3ABD ", into: vm)
+        XCTAssertEqual(vm.entryText, "K3ABD 55 ")
+        XCTAssertEqual(vm.sotaRefInput, "W4CCM001")
+    }
+
+    func testCorrectionWhileEditingDropsSavedGridButKeepsReferences() async throws {
+        let vm = makeVM()
+        vm.loadForEditing(QSO(
+            id: 42, logId: log.id!, callsign: "K6ABC", date: "20240101", timeOn: "1234",
+            frequency: 14.062, band: "20m", mode: "CW", rstSent: "599", rstReceived: "599",
+            name: "Jane", qth: "CA", grid: "CM87", sotaRef: "W6/CT-002"
+        ))
+        type(" K6ABD ", into: vm)
+        XCTAssertEqual(vm.sotaRefInput, "W6CT002")
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertNil(vm.lastSavedQSO?.name)
+        XCTAssertNil(vm.lastSavedQSO?.grid)
+    }
+
+    func testCorrectionThroughAStatePrefixKeepsTypedQTH() {
+        let vm = makeVM()
+        type("K6ABC 55 CA ", into: vm)
+        type("VA3XYZ ", into: vm)
+        XCTAssertEqual(vm.entryText, "VA3XYZ 55 ")
+        XCTAssertEqual(vm.qth, "CA")
+        XCTAssertTrue(vm.hasManualOverride("qth"))
+    }
+
+    func testCorrectionThroughAParkShapeKeepsTypedPark() {
+        let vm = makeVM()
+        type("K6ABC 55 US-0041 ", into: vm)
+        type("KD9XYZ ", into: vm)
+        XCTAssertEqual(vm.entryText, "KD9XYZ 55 ")
+        XCTAssertEqual(vm.potaRefInput, "US-0041")
+    }
+
+    func testTokenPreviewingAnotherKindKeepsTypedFields() {
+        let vm = makeVM()
+        type("K6ABC NC ", into: vm)
+        type("CA-1234 ", into: vm)
+        XCTAssertEqual(vm.qth, "NC")
+
+        let other = makeVM()
+        type("K6ABC US-0041 ", into: other)
+        type("FN31 ", into: other)
+        XCTAssertEqual(other.potaRefInput, "US-0041")
+        XCTAssertEqual(other.gridInput, "FN31")
+    }
+
+    func testCorrectionWhileEditingSavesTheNewStationsGridFromTheLog() async throws {
+        let vm = makeVM()
+        vm.entryText = "K6ABD"
+        vm.gridInput = "FN31"
+        await vm.saveQSO()
+
+        vm.loadForEditing(QSO(
+            id: 42, logId: log.id!, callsign: "K6ABC", date: "20240101", timeOn: "1234",
+            frequency: 14.062, band: "20m", mode: "CW", rstSent: "599", rstReceived: "599",
+            grid: "CM87"
+        ))
+        type(" K6ABD", into: vm)
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertEqual(vm.lastSavedQSO?.grid, "FN31")
+    }
+
+    func testDeletingATypedRSTWhileEditingRestoresTheSavedRST() {
+        let vm = makeVM()
+        vm.loadForEditing(QSO(
+            id: 42, logId: log.id!, callsign: "K6ABC", date: "20240101", timeOn: "1234",
+            frequency: 14.062, band: "20m", mode: "CW", rstSent: "449", rstReceived: "339"
+        ))
+        type(" 57 ", into: vm)
+        XCTAssertEqual(vm.rstSent, "579")
+        vm.entryText = "K6ABC "
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "449")
+        XCTAssertEqual(vm.rstReceived, "339")
+    }
+
+    func testCallsignShapedPartialReplacesOnSpace() {
+        let vm = makeVM()
+        type("K6ABC 55 K6A ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6A 55 ")
+    }
+
+    func testCWKeyMidCallLeavesTheCallToFinish() {
+        let vm = makeVM()
+        type("W7X", into: vm)
+        XCTAssertEqual(vm.expandTemplate("{call}?"), "W7X?")
+        vm.sendCWMacro("{call}?")
+        type("YZ", into: vm)
+        XCTAssertEqual(vm.entryText, "W7XYZ")
+        XCTAssertEqual(vm.parsedCallsign, "W7XYZ")
+    }
+
+    func testCWKeySendsTypedWordsWithoutApplyingThem() {
+        let vm = makeVM()
+        type("K6ABC 55 VA", into: vm)
+        vm.sendCWMacro("{call}?")
+        XCTAssertEqual(vm.entryText, "K6ABC 55 VA")
+        XCTAssertEqual(vm.qth, "")
+
+        let unfinishedRST = makeVM()
+        type("K6ABC 55", into: unfinishedRST)
+        XCTAssertEqual(unfinishedRST.expandTemplate("{call} UR {rst}"), "K6ABC UR 55N")
+        XCTAssertEqual(unfinishedRST.rstSent, "599")
+
+        let unfinishedCorrection = makeVM()
+        type("K6ABC 55 W7X", into: unfinishedCorrection)
+        XCTAssertEqual(unfinishedCorrection.expandTemplate("{call} UR {rst}"), "W7X UR 55N")
+        XCTAssertEqual(unfinishedCorrection.parsedCallsign, "K6ABC")
+    }
+
+    func testChipEditAfterAnUnfinishedWordWins() async throws {
+        let vm = makeVM()
+        type("W1AW 55 CA", into: vm)
+        vm.confirmEntry() // opening a chip finishes the word first
+        vm.qth = "OR"
+        vm.markManualOverride("qth")
+        vm.rstSent = "449"
+        vm.markManualOverride("rstSent")
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.qth, "OR")
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "449")
+    }
+
+    func testRSTChipEditSurvivesLaterTypingAndDeletingTheWord() async throws {
+        let vm = makeVM()
+        type("W1AW 55 ", into: vm)
+        vm.rstSent = "449"
+        vm.markManualOverride("rstSent")
+        type("C", into: vm)
+        XCTAssertEqual(vm.rstSent, "449")
+        vm.entryText = "W1AW "
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "449")
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "449")
+    }
+
+    func testRetypedRSTWordAfterAChipEditApplies() {
+        let vm = makeVM()
+        type("W1AW 55 ", into: vm)
+        vm.rstSent = "449"
+        vm.markManualOverride("rstSent")
+        vm.entryText = "W1AW "
+        vm.parseEntry()
+        type("33 ", into: vm)
+        XCTAssertEqual(vm.rstSent, "339")
+    }
+
+    func testCallTypedInFrontOfTheOldOneIsKept() {
+        let vm = makeVM()
+        type("K6ABC 55", into: vm)
+        vm.entryText = "W7XYZ K6ABC 55"
+        vm.parseEntry()
+        XCTAssertEqual(vm.parsedCallsign, "W7XYZ")
+        XCTAssertEqual(vm.entryText, "W7XYZ K6ABC 55")
+        XCTAssertEqual(vm.expandTemplate("{call}"), "W7XYZ")
+
+        vm.entryText = "W7XYZ K6ABC 55 "
+        vm.parseEntry()
+        XCTAssertEqual(vm.parsedCallsign, "W7XYZ")
+    }
+
+    func testUndoingACorrectionWhileEditingKeepsAGrid() async throws {
+        let vm = makeVM()
+        vm.entryText = "K6ABC"
+        vm.gridInput = "CM87"
+        await vm.saveQSO()
+        let saved = try XCTUnwrap(vm.lastSavedQSO)
+
+        vm.loadForEditing(saved)
+        type(" K6ABD ", into: vm)
+        XCTAssertEqual(vm.gridInput, "")
+        type("K6ABC", into: vm) // undone on Send, which fills the grid from the log
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABC")
+        XCTAssertEqual(vm.lastSavedQSO?.grid, "CM87")
+    }
+
+    func testSpotCallsignIsSanitized() {
+        let vm = makeVM()
+        vm.prefillFromSpot(makeSpot(callsign: "\u{202E}k6abc", frequency: 14.062))
+        XCTAssertEqual(vm.entryText, "K6ABC")
+    }
+
+    func testConfirmLeavesALoneCallsignToFinish() {
+        let vm = makeVM()
+        type("W7X", into: vm)
+        vm.confirmEntry()
+        XCTAssertEqual(vm.entryText, "W7X")
+    }
+
+    func testCorrectionCancelsTheOldCallsignsPendingLookup() async throws {
+        let vm = makeVM()
+        vm.spotLookup = { call in
+            call == "K6ABC" ? makeSpot(callsign: "K6ABC", frequency: 14.062, potaReference: "US-0041") : nil
+        }
+        type("K6ABC 55 K6ABD", into: vm)
+        vm.callsignChanged()
+        vm.confirmEntry()
+        try await Task.sleep(for: .milliseconds(400))
+        XCTAssertEqual(vm.parsedCallsign, "K6ABD")
+        XCTAssertEqual(vm.potaRefInput, "")
+    }
+
+    func testShorteningTheCallsignKeepsTypedQTH() {
+        let vm = makeVM()
+        type("K6ABC 55 CA ", into: vm)
+        vm.entryText = "K6 55 "
+        vm.parseEntry()
+        vm.callsignChanged()
+        XCTAssertEqual(vm.qth, "CA")
+    }
+
+    func testSendSavesCorrectionStillBeingTyped() async throws {
+        let vm = makeVM()
+        type("K6ABC 55 K6ABD", into: vm)
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "559")
+    }
+
+    func testSendCorrectionFillsDetailsFromTheLog() async throws {
+        let vm = makeVM()
+        vm.entryText = "K6ABD"
+        vm.name = "Bob"
+        await vm.saveQSO()
+
+        type("K6ABC 55 K6ABD", into: vm)
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertEqual(vm.lastSavedQSO?.name, "Bob")
+        XCTAssertEqual(vm.lastSavedQSO?.qth, "CA")
     }
 
     func testSaveNewQSOWithTimeTokenBackTimes() async throws {
@@ -769,7 +1142,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.callsignChanged()
 
         // After clearing, overrides should be reset so parseEntry works freely
-        vm.entryText = "K3ABC 7.030"
+        vm.entryText = "K3ABC 7.030 "
         vm.parseEntry()
         XCTAssertEqual(vm.frequencyText, "7.030", "Frequency override should be cleared after empty callsign")
     }
@@ -867,7 +1240,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     func testOmnifieldRSTExpandedForCW() {
         let vm = makeVM()
         XCTAssertEqual(vm.mode, "CW")
-        vm.entryText = "W1AW 55"
+        vm.entryText = "W1AW 55 "
         vm.parseEntry()
         XCTAssertEqual(vm.rstSent, "559", "2-digit RST should expand to 3-digit for CW")
     }
@@ -875,7 +1248,7 @@ final class QSOEntryViewModelTests: XCTestCase {
     func testOmnifieldRSTNotExpandedForSSB() {
         let vm = makeVM()
         vm.mode = "SSB"
-        vm.entryText = "W1AW 55"
+        vm.entryText = "W1AW 55 "
         vm.parseEntry()
         XCTAssertEqual(vm.rstSent, "55", "2-digit RST should stay 2-digit for SSB")
     }
@@ -1130,11 +1503,11 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(result, "CQ POTA DE W1AW K")
     }
 
-    // MARK: - Maidenhead Grid (omnifield + preview-clear leak)
+    // MARK: - Maidenhead Grid
 
     func testParseEntryAppliesGrid() {
         let vm = makeVM()
-        vm.entryText = "W1AW CM87"
+        vm.entryText = "W1AW CM87 "
         vm.parseEntry()
         XCTAssertEqual(vm.gridInput, "CM87")
         XCTAssertEqual(vm.potaRefInput, "", "CM87 must not also populate POTA")
@@ -1142,69 +1515,40 @@ final class QSOEntryViewModelTests: XCTestCase {
 
     func testParseEntryCanonicalizesGrid() {
         let vm = makeVM()
-        vm.entryText = "W1AW fn31PR"
+        vm.entryText = "W1AW fn31PR "
         vm.parseEntry()
         XCTAssertEqual(vm.gridInput, "FN31pr")
     }
 
-    func testGridPreviewClearsWhenTypingBeyondValidLength() {
+    func testGridTypedThroughShorterShapesSetsOnlyTheFinishedGrid() {
+        // "FN31ma" passes through a 4-char grid and a 5-char non-grid; neither is applied.
         let vm = makeVM()
-        // Type "FN31" → grid set
-        vm.entryText = "W1AW FN31"
-        vm.parseEntry()
-        XCTAssertEqual(vm.gridInput, "FN31")
-        // Keep typing "FN31m" → 5 chars, not a valid grid, not POTA either
-        vm.entryText = "W1AW FN31m"
-        vm.parseEntry()
-        XCTAssertEqual(vm.gridInput, "", "5-char intermediate should clear stale grid preview")
-        // Keep typing "FN31ma" → 6-char grid, set again
-        vm.entryText = "W1AW FN31ma"
-        vm.parseEntry()
+        type("W1AW FN31ma", into: vm)
+        XCTAssertEqual(vm.gridInput, "")
+        type(" ", into: vm)
         XCTAssertEqual(vm.gridInput, "FN31ma")
     }
 
-    func testGridPreviewClearsWhenTransitioningFromPOTAToGrid() {
-        // Pre-existing bug: type "FN31" once → potaRefInput got "FN31" stale.
-        // After fix: "FN31" now classifies as grid (precedence). But what if user types something
-        // that's POTA then transitions to grid? e.g. "K1234" (POTA) then deletes/retypes.
-        // More direct: type a POTA candidate that's also not a grid, then transition to grid.
+    func testConfirmedPOTAStaysStickyWhenTypingAGrid() {
         let vm = makeVM()
-        vm.entryText = "W1AW K1234"
-        vm.parseEntry()
-        XCTAssertEqual(vm.potaRefInput, "K1234")
-        // Now blow it away and type a grid
-        vm.entryText = "W1AW CM87"
-        vm.parseEntry()
-        XCTAssertEqual(vm.gridInput, "CM87")
-        XCTAssertEqual(vm.potaRefInput, "", "Stale POTA preview should clear when last token becomes grid")
-    }
-
-    func testConfirmedPOTAStaysStickyWhenGridPreviewAppears() {
-        // Confirmed (consumed) tokens must NOT be cleared by preview-flip.
-        let vm = makeVM()
-        // Confirm POTA by adding trailing space — token is consumed (stripped from entryText)
         vm.entryText = "W1AW US4431 "
         vm.parseEntry()
         XCTAssertEqual(vm.potaRefInput, "US4431")
         XCTAssertFalse(vm.entryText.contains("US4431"), "POTA token should be consumed")
 
-        // Operator types a grid onto the already-consumed state
-        vm.entryText += "CM87"
-        vm.parseEntry()
-
+        type("CM87 ", into: vm)
         XCTAssertEqual(vm.potaRefInput, "US4431", "Confirmed POTA must remain")
         XCTAssertEqual(vm.gridInput, "CM87")
     }
 
-    func testGridPreviewClearsWhenLastTokenBecomesUnrecognized() {
+    func testHalfTypedWordsChangeNoField() {
         let vm = makeVM()
-        vm.entryText = "W1AW CM87"
-        vm.parseEntry()
-        XCTAssertEqual(vm.gridInput, "CM87")
-        // Keep typing into something unrecognized — y/z are outside the a-x sub-square range
-        vm.entryText = "W1AW CM87yz"
-        vm.parseEntry()
-        XCTAssertEqual(vm.gridInput, "", "Invalid 6-char grid should clear stale preview")
+        type("W1AW CAR K1234X CM87yz", into: vm)
+        XCTAssertEqual(vm.qth, "")
+        XCTAssertEqual(vm.potaRefInput, "")
+        XCTAssertEqual(vm.gridInput, "")
+        XCTAssertFalse(vm.hasManualOverride("qth"))
+        XCTAssertFalse(vm.hasManualOverride("potaRef"))
     }
 
     func testGridConsumedAfterTrailingSpace() {
@@ -1269,34 +1613,5 @@ final class QSOEntryViewModelTests: XCTestCase {
         await vm.saveQSO()
 
         XCTAssertNil(vm.lastSavedQSO?.grid, "Clearing pill during edit must drop the saved grid")
-    }
-
-    func testQTHPreviewClearAlsoDropsManualOverride() {
-        let vm = makeVM()
-        vm.entryText = "W1AW CA"
-        vm.parseEntry()
-        XCTAssertEqual(vm.qth, "CA")
-        XCTAssertTrue(vm.hasManualOverride("qth"))
-
-        // Type past it — "CAR" is unrecognized (not a QTH, not POTA, not grid)
-        vm.entryText = "W1AW CAR"
-        vm.parseEntry()
-        XCTAssertEqual(vm.qth, "")
-        XCTAssertFalse(vm.hasManualOverride("qth"),
-                       "Preview-clear must drop the override so QRZ or the log can fill the empty field")
-    }
-
-    func testPOTAPreviewClearAlsoDropsManualOverride() {
-        let vm = makeVM()
-        vm.entryText = "W1AW K1234"
-        vm.parseEntry()
-        XCTAssertEqual(vm.potaRefInput, "K1234")
-        XCTAssertTrue(vm.hasManualOverride("potaRef"))
-
-        // Transition to a grid — preview-clear should empty POTA and drop its override
-        vm.entryText = "W1AW CM87"
-        vm.parseEntry()
-        XCTAssertEqual(vm.potaRefInput, "")
-        XCTAssertFalse(vm.hasManualOverride("potaRef"))
     }
 }

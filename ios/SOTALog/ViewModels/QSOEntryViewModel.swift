@@ -34,9 +34,13 @@ final class QSOEntryViewModel {
     // Tracks which fields were manually edited (not set by omnifield)
     private var manualOverrides: Set<String> = []
 
-    // Kind of the last unconfirmed (no trailing space) omnifield token from the prior parse.
-    // Used to clear a previously previewed field when the operator types past it into a new kind.
-    private var previewKind: ParsedEntry.TokenKind?
+    // The RST last applied from a word in the entry field, by override key.
+    private var appliedEntryRST: [String: String] = [:]
+    // The RSTs whose chip still shows the entry word's value, so deleting the word resets them.
+    private var rstFromEntry: Set<String> = []
+    // Whether a callsign correction emptied the grid pill while editing, so save uses the new
+    // station's looked-up grid instead of treating the empty pill as cleared by the operator.
+    private var gridClearedByCorrection = false
 
     // Editing state
     var editingQSO: QSO?
@@ -146,99 +150,88 @@ final class QSOEntryViewModel {
 
     // MARK: - Omnifield Parsing
 
+    /// Applies the words the operator has finished: the ones followed by a space. The word
+    /// still being typed waits for a space or Send (`confirmEntry()`), so a half-typed word
+    /// never changes a field, as `VA3XYZ` would otherwise be read as a state at `VA`.
     func parseEntry() {
         let parsed = OmniFieldParser.parse(entryText)
+        let finishedText = entryText.hasSuffix(" ")
+            ? entryText
+            : entryText.split(separator: " ").dropLast().joined(separator: " ")
+        let finished = finishedText == entryText ? parsed : OmniFieldParser.parse(finishedText)
 
-        // Clear stale previews when the last unconfirmed token flips kind.
-        let endsWithSpace = entryText.hasSuffix(" ")
-        let currentLastKind: ParsedEntry.TokenKind? = endsWithSpace ? nil : parsed.tokens.last?.kind
-        if let prev = previewKind, prev != currentLastKind {
-            clearPreview(kind: prev)
-        }
-        previewKind = currentLastKind
-
-        if let parsedMode = parsed.mode {
+        if let parsedMode = finished.mode {
             mode = parsedMode
             markManualOverride("mode")
             updateRSTForMode()
         }
 
-        if let rst = parsed.rstSent {
-            rstSent = expandRST(rst)
-            markManualOverride("rstSent")
-        }
-        if let rst = parsed.rstReceived {
-            rstReceived = expandRST(rst)
-            markManualOverride("rstReceived")
-        }
-        if let freq = parsed.frequency {
+        applyEntryRST(finished.rstSent, to: \.rstSent, key: "rstSent", saved: editingQSO?.rstSent)
+        applyEntryRST(finished.rstReceived, to: \.rstReceived, key: "rstReceived", saved: editingQSO?.rstReceived)
+
+        if let freq = finished.frequency {
             frequencyText = freq
             markManualOverride("frequency")
             updateModeFromFrequency()
         }
-        if let q = parsed.qth {
+        if let q = finished.qth {
             qth = q
             markManualOverride("qth")
         }
-        if let g = parsed.gridSquare {
+        if let g = finished.gridSquare {
             gridInput = g
         }
-        if let ref = parsed.potaRef {
+        if let ref = finished.potaRef {
             potaRefInput = ref
             markManualOverride("potaRef")
             validatePOTARef()
         }
-        if let ref = parsed.sotaRef {
+        if let ref = finished.sotaRef {
             sotaRefInput = ref
             markManualOverride("sotaRef")
             validateSOTARef()
         }
-        if let time = parsed.timeOn {
+        if let time = finished.timeOn {
             timeOnInput = time
         }
 
         consumeTokens(parsed)
     }
 
-    /// Clears a previously-previewed field when the operator types past it into a different kind.
-    /// Only applies to fields that show a live preview in the metadata strip. Also drops the
-    /// corresponding manualOverride so a subsequent auto-populate isn't suppressed.
-    private func clearPreview(kind: ParsedEntry.TokenKind) {
-        switch kind {
-        case .rst:
-            // A partially-typed time or frequency ("14…") previews as RST until the
-            // trailing Z or decimal point flips its kind. Reset both RST fields; any
-            // real RST tokens stay in entryText and re-apply in the same parse.
-            rstSent = defaultRST
-            rstReceived = defaultRST
-            manualOverrides.remove("rstSent")
-            manualOverrides.remove("rstReceived")
-        case .time:
-            timeOnInput = editingQSO?.timeOn ?? ""
-        case .qth:
-            qth = ""
-            manualOverrides.remove("qth")
-        case .gridSquare:
-            gridInput = ""
-        case .potaRef:
-            potaRefInput = ""
-            potaRefFormatted = nil
-            potaRefName = nil
-            potaRefValid = false
-            manualOverrides.remove("potaRef")
-        case .sotaRef:
-            sotaRefInput = ""
-            sotaRefFormatted = nil
-            sotaRefValid = false
-            manualOverrides.remove("sotaRef")
-        default:
-            break
+    /// Applies an RST word only when it is new or changed, since RST words stay in the field
+    /// and are read again on every keystroke; an unchanged word must not undo a chip edit.
+    /// Deleting the word restores the default (or saved) RST, unless the chip was edited since.
+    private func applyEntryRST(
+        _ word: String?, to field: ReferenceWritableKeyPath<QSOEntryViewModel, String>, key: String, saved: String?
+    ) {
+        let value = word.map(expandRST)
+        guard value != appliedEntryRST[key] else { return }
+        appliedEntryRST[key] = value
+        if let value {
+            self[keyPath: field] = value
+            manualOverrides.insert(key)
+            rstFromEntry.insert(key)
+        } else if rstFromEntry.remove(key) != nil {
+            self[keyPath: field] = saved ?? defaultRST
+            manualOverrides.remove(key)
         }
     }
 
+    /// Finishes the word still being typed after the callsign, as a space would. Send and
+    /// opening a chip call this, so `K6ABC 55` uses the 55 without a trailing space. A lone
+    /// callsign is left alone, so it can still be finished where the cursor is.
+    func confirmEntry() {
+        guard !entryText.hasSuffix(" "),
+              entryText.split(separator: " ").count > 1
+        else { return }
+        entryText += " "
+        parseEntry()
+    }
+
     /// Strip consumed tokens (frequency, mode, QTH, grid, park ref, summit ref, time) from
-    /// entryText once they are followed by a space. Callsign, RST, and unrecognized tokens stay.
-    /// Pushes frequency/mode to radio when consumed.
+    /// entryText once they are followed by a space. A whole callsign typed after the first
+    /// token is a correction: it replaces the first token in place. The callsign, RST, and
+    /// unrecognized tokens stay. Pushes frequency/mode to radio when consumed.
     private func consumeTokens(_ parsed: ParsedEntry) {
         let tokens = parsed.tokens
         guard tokens.count > 1 else { return }
@@ -246,6 +239,7 @@ final class QSOEntryViewModel {
         let endsWithSpace = entryText.hasSuffix(" ")
 
         var kept: [String] = []
+        var correctedCallsign: String?
         var consumedFrequency = false
         var consumedMode = false
         for (index, classified) in tokens.enumerated() {
@@ -253,6 +247,10 @@ final class QSOEntryViewModel {
             let isConfirmed = !isLast || endsWithSpace
 
             switch classified.kind {
+            // Only the word just finished at the end is a correction. A call further left is
+            // older text, such as the old call after a new one was typed in front of it.
+            case .callsign where index > 0 && isLast && endsWithSpace:
+                correctedCallsign = classified.text
             case .callsign, .rst, .unrecognized:
                 kept.append(classified.text)
             case .frequency:
@@ -264,6 +262,13 @@ final class QSOEntryViewModel {
                     kept.append(classified.text)
                 }
             }
+        }
+
+        if let corrected = correctedCallsign {
+            if corrected.sanitizedCallsign != kept[0].sanitizedCallsign {
+                clearDetailsForCorrectedCallsign()
+            }
+            kept[0] = corrected
         }
 
         var rebuilt = kept.joined(separator: " ")
@@ -280,6 +285,8 @@ final class QSOEntryViewModel {
 
     func markManualOverride(_ field: String) {
         manualOverrides.insert(field)
+        // A chip edit replaces the entry word's RST, so deleting the word no longer resets it.
+        rstFromEntry.remove(field)
     }
 
     func hasManualOverride(_ field: String) -> Bool {
@@ -323,6 +330,7 @@ final class QSOEntryViewModel {
     /// The log, then the prefix resolver — LOW authority, only fills empty fields
     private func resolveLocal(_ call: String) async {
         if let details = try? await qsoRepo.details(forCallsign: call) {
+            guard !Task.isCancelled else { return }
             await MainActor.run {
                 if let n = details.name, name.isEmpty { name = n }
                 if let q = details.qth, qth.isEmpty { qth = q }
@@ -369,7 +377,7 @@ final class QSOEntryViewModel {
 
     /// Spot lookup — populates references (not frequency or mode)
     private func resolveSpotData(_ call: String) async {
-        guard let spot = spotLookup?(call) else { return }
+        guard let spot = spotLookup?(call), !Task.isCancelled else { return }
         await MainActor.run {
             if let ref = spot.potaReference,
                !manualOverrides.contains("potaRef"), potaRefInput.isEmpty {
@@ -516,7 +524,8 @@ final class QSOEntryViewModel {
     func loadForEditing(_ qso: QSO) {
         guard !qso.syncedToQRZ else { return }
         editingQSO = qso
-        entryText = qso.callsign
+        gridClearedByCorrection = false
+        entryText = qso.callsign.sanitizedOmnifield
         rstSent = qso.rstSent
         rstReceived = qso.rstReceived
         mode = qso.mode
@@ -525,12 +534,16 @@ final class QSOEntryViewModel {
         }
         name = qso.name ?? ""
         qth = qso.qth ?? ""
+        // The saved references are where the station was, so fixing a misspelled
+        // callsign keeps them. Name, QTH and grid belong to the old callsign.
         if let ref = qso.potaRef {
             potaRefInput = POTAPark.normalize(ref)
+            markManualOverride("potaRef")
             validatePOTARef()
         }
         if let ref = qso.sotaRef {
             sotaRefInput = SOTASummit.normalize(ref)
+            markManualOverride("sotaRef")
             validateSOTARef()
         }
         // Restore saved grid into the pill so it's visible and editable during edit.
@@ -557,22 +570,32 @@ final class QSOEntryViewModel {
 
     // MARK: - Save QSO
 
+    /// Main actor because finishing the last word writes the entry and fields the view is bound to.
+    @MainActor
     func saveQSO() async {
         // Only a save that succeeds below may report a contact as saved.
         lastSavedQSO = nil
+        let typedCallsign = parsedCallsign
+        confirmEntry()
         let callsign = parsedCallsign
+        if callsign != typedCallsign {
+            // The debounced lookup never ran for a correction made on Send. Fill
+            // what the log and the prefix know, which works offline and is instant.
+            await resolveLocal(callsign)
+        }
         guard !callsign.isEmpty, let logId = log.id else { return }
 
         let frequency = Double(frequencyText)
         let band = frequency.flatMap { BandPlan.band(for: $0) } ?? "20m"
 
         // Operator-typed grid wins. New QSO with empty input falls back to the hidden
-        // auto-populated value; an empty pill during edit means the operator cleared it.
+        // auto-populated value; an empty pill during edit means the operator cleared it,
+        // unless a callsign correction emptied it for the new station's lookup.
         // Invalid typed input persists as nil — ADIF GRIDSQUARE has a defined format and shouldn't carry junk.
         let resolvedGrid: String?
         if !gridInput.isEmpty {
             resolvedGrid = OmniFieldParser.parseGridSquare(gridInput)
-        } else if isEditing {
+        } else if editingQSO != nil, !gridClearedByCorrection {
             resolvedGrid = nil
         } else {
             resolvedGrid = grid
@@ -643,18 +666,21 @@ final class QSOEntryViewModel {
         // Clear all fields first so stale data from a previous spot doesn't persist
         clearFieldsForNextQSO()
 
-        entryText = spot.activatorCallsign.uppercased()
+        entryText = spot.activatorCallsign.sanitizedOmnifield
         frequencyText = String(format: "%.3f", spot.frequency)
         mode = spot.mode
         rstSent = defaultRST
         rstReceived = defaultRST
 
+        // Tapping a spot chooses its references, so correcting a misspotted callsign keeps them.
         if let ref = spot.potaReference {
             potaRefInput = POTAPark.normalize(ref)
+            markManualOverride("potaRef")
             validatePOTARef()
         }
         if let ref = spot.sotaReference {
             sotaRefInput = SOTASummit.normalize(ref)
+            markManualOverride("sotaRef")
             validateSOTARef()
         }
         callsignChanged()
@@ -680,25 +706,75 @@ final class QSOEntryViewModel {
         workedToday = 0
         isDupe = false
         grid = nil
-        previewKind = nil
+        appliedEntryRST = [:]
+        rstFromEntry = []
+        gridClearedByCorrection = false
         manualOverrides = []
         // frequency and mode persist between QSOs
     }
 
+    /// Forgets what was looked up for the callsign, keeping anything the operator typed.
+    /// The lookup for the next callsign refills the rest.
     private func clearLookupFields() {
         timesWorked = 0
         workedToday = 0
         isDupe = false
-        name = ""
-        qth = ""
         grid = nil
+        if !manualOverrides.contains("name") { name = "" }
+        if !manualOverrides.contains("qth") { qth = "" }
+    }
+
+    /// A correction names a different station, so also drop the references a spot lookup
+    /// filled and, when editing, the saved grid. Typed or chosen references stay.
+    private func clearDetailsForCorrectedCallsign() {
+        // The old callsign's lookup may still be waiting out its debounce; it must not refill
+        // what is about to belong to the new station.
+        lookupTask?.cancel()
+        clearLookupFields()
+        if !manualOverrides.contains("potaRef") {
+            potaRefInput = ""
+            potaRefFormatted = nil
+            potaRefName = nil
+            potaRefValid = false
+        }
+        if !manualOverrides.contains("sotaRef") {
+            sotaRefInput = ""
+            sotaRefFormatted = nil
+            sotaRefValid = false
+        }
+        // When editing, the pill holds the saved grid, which belonged to the old station.
+        if isEditing, gridInput == editingQSO?.grid ?? "" {
+            gridInput = ""
+            gridClearedByCorrection = true
+        }
     }
 
     // MARK: - CW Keyer
 
     /// RST with cut numbers for CW keyer (9 → N)
     private var rstForKeyer: String {
-        rstSent.replacingOccurrences(of: "9", with: "N")
+        // A first RST still being typed is sent as typed, without applying it to the chip.
+        let whole = OmniFieldParser.parse(entryText)
+        let rstWords = whole.tokens.filter { $0.kind == .rst }
+        let rst: String
+        if !entryText.hasSuffix(" "), whole.tokens.last?.kind == .rst, rstWords.count == 1,
+           let typed = whole.rstSent {
+            rst = expandRST(typed)
+        } else {
+            rst = rstSent
+        }
+        return rst.replacingOccurrences(of: "9", with: "N")
+    }
+
+    /// The callsign the CW keys send: a correction still being typed at the end (`K6ABC 55 W7X`
+    /// sends `W7X`), else the callsign as typed. Sending never changes the entry, so a key tapped
+    /// mid-call (`W7X` then `?`) leaves the cursor where it was to finish the call.
+    private var callsignForKeyer: String {
+        let tokens = OmniFieldParser.parse(entryText).tokens
+        if tokens.count > 1, let last = tokens.last, last.kind == .callsign {
+            return last.text.sanitizedCallsign
+        }
+        return parsedCallsign
     }
 
     /// Strip dashes from references for CW (slashes preserved as valid Morse prosign)
@@ -718,7 +794,7 @@ final class QSOEntryViewModel {
 
         var text = template
         text = text.replacingOccurrences(of: "{myCall}", with: log.myCallsign)
-        text = text.replacingOccurrences(of: "{call}", with: parsedCallsign)
+        text = text.replacingOccurrences(of: "{call}", with: callsignForKeyer)
         text = text.replacingOccurrences(of: "{rst}", with: rstForKeyer)
         text = text.replacingOccurrences(of: "{mySOTA}", with: Self.stripDashesForCW(log.sotaReference ?? ""))
         text = text.replacingOccurrences(of: "{myPOTA}", with: Self.stripDashesForCW(log.potaReference ?? ""))
@@ -743,7 +819,7 @@ final class QSOEntryViewModel {
         var text = template
         let substitutions: [(String, String)] = [
             ("{myCall}", log.myCallsign),
-            ("{call}", parsedCallsign),
+            ("{call}", callsignForKeyer),
             ("{rst}", rstForKeyer),
             ("{mySOTA}", Self.stripDashesForCW(log.sotaReference ?? "")),
             ("{myPOTA}", Self.stripDashesForCW(log.potaReference ?? "")),
@@ -793,7 +869,9 @@ final class QSOEntryViewModel {
         workedToday = 0
         isDupe = false
         grid = nil
-        previewKind = nil
+        appliedEntryRST = [:]
+        rstFromEntry = []
+        gridClearedByCorrection = false
         manualOverrides = []
         // frequency and mode persist between QSOs
     }
