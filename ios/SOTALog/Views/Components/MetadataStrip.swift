@@ -178,7 +178,7 @@ struct MetadataStrip: View {
     @ViewBuilder
     private var stationName: some View {
         if !name.isEmpty {
-            stationButton(name, field: .name)
+            stationButton(name, field: .name, underline: Color.appTextPrimary.opacity(0.25))
                 .font(.appStationName)
                 .foregroundStyle(Color.appTextPrimary)
                 .accessibilityLabel("Name, \(name)")
@@ -193,7 +193,7 @@ struct MetadataStrip: View {
         if !qth.isEmpty || !gridInput.isEmpty {
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 if !qth.isEmpty {
-                    stationButton(qth, field: .qth, sidePadding: Self.locationSidePadding)
+                    stationButton(qth, field: .qth, underline: Self.locationUnderline, sidePadding: Self.locationSidePadding)
                         .accessibilityLabel("QTH, \(qth)")
                 }
                 if !qth.isEmpty && !gridInput.isEmpty {
@@ -202,7 +202,7 @@ struct MetadataStrip: View {
                         .accessibilityHidden(true)
                 }
                 if !gridInput.isEmpty {
-                    stationButton(gridInput, field: .grid, sidePadding: Self.locationSidePadding)
+                    stationButton(gridInput, field: .grid, underline: Self.locationUnderline, sidePadding: Self.locationSidePadding)
                         .accessibilityLabel("Grid, \(gridInput)")
                 }
             }
@@ -213,12 +213,16 @@ struct MetadataStrip: View {
     }
 
     private static let locationSidePadding: CGFloat = 6
+    private static let locationUnderline = Color.appTextSecondary.opacity(0.55)
 
-    private func stationButton(_ text: String, field: EditField, sidePadding: CGFloat = 0) -> some View {
+    /// A faint dotted underline marks a value you can tap to edit, setting it
+    /// apart from the read-only list notes above.
+    private func stationButton(_ text: String, field: EditField, underline: Color, sidePadding: CGFloat = 0) -> some View {
         Button {
             beginEditing(field)
         } label: {
             Text(text)
+                .underline(pattern: .dot, color: underline)
                 .padding(.horizontal, sidePadding)
                 .padding(.vertical, 4)
                 .contentShape(Rectangle())
