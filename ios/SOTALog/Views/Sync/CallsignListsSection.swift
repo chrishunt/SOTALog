@@ -211,7 +211,7 @@ struct CallsignListEditorView: View {
                     Text(entry.callsign)
                         .font(.appCallsignRow)
                         .frame(minWidth: 72, alignment: .leading)
-                    Text(CallsignListFile.readable(note: entry.note))
+                    Text(viewModel.previewLine(for: entry))
                         .font(.appLabel)
                         .foregroundStyle(Color.appTextSecondary)
                         .lineLimit(1)

@@ -131,6 +131,15 @@ final class CallsignListsViewModelTests: XCTestCase {
         XCTAssertEqual(editor.emoji, "")
     }
 
+    func testThePreviewShowsEachNoteAsItWillReadWhileLogging() {
+        let editor = CallsignListEditorViewModel(database: db)
+        editor.emojiChanged("⭐")
+        editor.name = " Friends "
+        XCTAssertEqual(editor.previewLine(for: .init(callsign: "AC4NK", note: "🌊 Banks 📺 [Ryan Banks](https://example.com)")), "⭐ Banks 📺 Ryan Banks")
+        XCTAssertEqual(editor.previewLine(for: .init(callsign: "W6LG", note: "🌊")), "⭐ Friends")
+        XCTAssertEqual(editor.previewLine(for: .init(callsign: "K5OHY", note: "")), "⭐ Friends")
+    }
+
     // MARK: - Editing
 
     func testEditingSavesANewNameAndEmoji() async throws {

@@ -19,3 +19,10 @@ final class CallsignMarksStore {
         }
     }
 }
+
+extension CallsignMarks.Note {
+    /// The note as one line of text, such as "🌊 Ryan Banks".
+    var line: String {
+        [emoji, text].filter { !$0.isEmpty }.joined(separator: " ")
+    }
+}
