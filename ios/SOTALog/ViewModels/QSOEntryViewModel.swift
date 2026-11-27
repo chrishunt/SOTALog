@@ -38,6 +38,19 @@ final class QSOEntryViewModel {
     // Used to clear a previously previewed field when the operator types past it into a new kind.
     private var previewKind: ParsedEntry.TokenKind?
 
+    // The previewable fields as they were when the unconfirmed token was started, so a preview
+    // that turns out to be another kind (`VA` → `VA3` → `VA3XYZ`) puts back what the operator
+    // had typed instead of emptying it.
+    private struct PreviewBaseline {
+        var qth: String
+        var gridInput: String
+        var timeOnInput: String
+        var potaRefInput: String
+        var sotaRefInput: String
+        var manualOverrides: Set<String>
+    }
+    private var previewBaseline: PreviewBaseline?
+
     // Editing state
     var editingQSO: QSO?
     var isEditing: Bool { editingQSO != nil }
@@ -152,6 +165,13 @@ final class QSOEntryViewModel {
         // Clear stale previews when the last unconfirmed token flips kind.
         let endsWithSpace = entryText.hasSuffix(" ")
         let currentLastKind: ParsedEntry.TokenKind? = endsWithSpace ? nil : parsed.tokens.last?.kind
+        if previewKind == nil, currentLastKind != nil {
+            previewBaseline = PreviewBaseline(
+                qth: qth, gridInput: gridInput, timeOnInput: timeOnInput,
+                potaRefInput: potaRefInput, sotaRefInput: sotaRefInput,
+                manualOverrides: manualOverrides
+            )
+        }
         if let prev = previewKind, prev != currentLastKind {
             clearPreview(kind: prev)
         }
@@ -200,10 +220,19 @@ final class QSOEntryViewModel {
         consumeTokens(parsed)
     }
 
-    /// Clears a previously-previewed field when the operator types past it into a different kind.
-    /// Only applies to fields that show a live preview in the metadata strip. Also drops the
-    /// corresponding manualOverride so a subsequent auto-populate isn't suppressed.
+    /// Undoes a previously-previewed field when the operator types past it into a different kind.
+    /// Only applies to fields that show a live preview in the metadata strip. The field goes
+    /// back to what it held before the token was started, with its manualOverride, so a typed
+    /// QTH or reference survives and an empty one doesn't suppress a later auto-populate.
     private func clearPreview(kind: ParsedEntry.TokenKind) {
+        let baseline = previewBaseline
+        func restoreOverride(_ field: String) {
+            if baseline?.manualOverrides.contains(field) == true {
+                manualOverrides.insert(field)
+            } else {
+                manualOverrides.remove(field)
+            }
+        }
         switch kind {
         case .rst:
             // A partially-typed time or frequency ("14…") previews as RST until the
@@ -214,23 +243,20 @@ final class QSOEntryViewModel {
             manualOverrides.remove("rstSent")
             manualOverrides.remove("rstReceived")
         case .time:
-            timeOnInput = editingQSO?.timeOn ?? ""
+            timeOnInput = baseline?.timeOnInput ?? editingQSO?.timeOn ?? ""
         case .qth:
-            qth = ""
-            manualOverrides.remove("qth")
+            qth = baseline?.qth ?? ""
+            restoreOverride("qth")
         case .gridSquare:
-            gridInput = ""
+            gridInput = baseline?.gridInput ?? ""
         case .potaRef:
-            potaRefInput = ""
-            potaRefFormatted = nil
-            potaRefName = nil
-            potaRefValid = false
-            manualOverrides.remove("potaRef")
+            potaRefInput = baseline?.potaRefInput ?? ""
+            restoreOverride("potaRef")
+            validatePOTARef()
         case .sotaRef:
-            sotaRefInput = ""
-            sotaRefFormatted = nil
-            sotaRefValid = false
-            manualOverrides.remove("sotaRef")
+            sotaRefInput = baseline?.sotaRefInput ?? ""
+            restoreOverride("sotaRef")
+            validateSOTARef()
         default:
             break
         }
@@ -272,7 +298,7 @@ final class QSOEntryViewModel {
 
         if let corrected = correctedCallsign {
             if corrected.sanitizedCallsign != kept[0].sanitizedCallsign {
-                clearStationDetails()
+                clearDetailsForCorrectedCallsign()
             }
             kept[0] = corrected
         }
@@ -547,12 +573,16 @@ final class QSOEntryViewModel {
         }
         name = qso.name ?? ""
         qth = qso.qth ?? ""
+        // The saved references are where the station was, so fixing a misspelled
+        // callsign keeps them. Name, QTH and grid belong to the old callsign.
         if let ref = qso.potaRef {
             potaRefInput = POTAPark.normalize(ref)
+            markManualOverride("potaRef")
             validatePOTARef()
         }
         if let ref = qso.sotaRef {
             sotaRefInput = SOTASummit.normalize(ref)
+            markManualOverride("sotaRef")
             validateSOTARef()
         }
         // Restore saved grid into the pill so it's visible and editable during edit.
@@ -580,8 +610,14 @@ final class QSOEntryViewModel {
     // MARK: - Save QSO
 
     func saveQSO() async {
+        let typedCallsign = parsedCallsign
         applyPendingCorrection()
         let callsign = parsedCallsign
+        if callsign != typedCallsign {
+            // The debounced lookup never ran for a correction made on Send. Fill
+            // what the log and the prefix know, which works offline and is instant.
+            await resolveLocal(callsign)
+        }
         guard !callsign.isEmpty, let logId = log.id else { return }
 
         let frequency = Double(frequencyText)
@@ -670,12 +706,15 @@ final class QSOEntryViewModel {
         rstSent = defaultRST
         rstReceived = defaultRST
 
+        // Tapping a spot chooses its references, so correcting a misspotted callsign keeps them.
         if let ref = spot.potaReference {
             potaRefInput = POTAPark.normalize(ref)
+            markManualOverride("potaRef")
             validatePOTARef()
         }
         if let ref = spot.sotaReference {
             sotaRefInput = SOTASummit.normalize(ref)
+            markManualOverride("sotaRef")
             validateSOTARef()
         }
         callsignChanged()
@@ -702,13 +741,14 @@ final class QSOEntryViewModel {
         isDupe = false
         grid = nil
         previewKind = nil
+        previewBaseline = nil
         manualOverrides = []
         // frequency and mode persist between QSOs
     }
 
-    /// Forgets what was looked up for the previous callsign when a correction replaces it,
-    /// keeping anything the operator typed. The lookup for the new callsign refills the rest.
-    private func clearStationDetails() {
+    /// Forgets what was looked up for the callsign, keeping anything the operator typed.
+    /// The lookup for the next callsign refills the rest.
+    private func clearLookupFields() {
         timesWorked = 0
         workedToday = 0
         isDupe = false
@@ -717,13 +757,23 @@ final class QSOEntryViewModel {
         if !manualOverrides.contains("qth") { qth = "" }
     }
 
-    private func clearLookupFields() {
-        timesWorked = 0
-        workedToday = 0
-        isDupe = false
-        name = ""
-        qth = ""
-        grid = nil
+    /// A correction names a different station, so also drop the references a spot lookup
+    /// filled and, when editing, the saved grid. Typed or chosen references stay.
+    private func clearDetailsForCorrectedCallsign() {
+        clearLookupFields()
+        if !manualOverrides.contains("potaRef") {
+            potaRefInput = ""
+            potaRefFormatted = nil
+            potaRefName = nil
+            potaRefValid = false
+        }
+        if !manualOverrides.contains("sotaRef") {
+            sotaRefInput = ""
+            sotaRefFormatted = nil
+            sotaRefValid = false
+        }
+        // When editing, the pill holds the saved grid, which belonged to the old station.
+        if isEditing, gridInput == editingQSO?.grid ?? "" { gridInput = "" }
     }
 
     // MARK: - CW Keyer
@@ -826,6 +876,7 @@ final class QSOEntryViewModel {
         isDupe = false
         grid = nil
         previewKind = nil
+        previewBaseline = nil
         manualOverrides = []
         // frequency and mode persist between QSOs
     }

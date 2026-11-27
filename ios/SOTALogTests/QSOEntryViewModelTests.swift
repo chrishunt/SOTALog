@@ -397,6 +397,24 @@ final class QSOEntryViewModelTests: XCTestCase {
         let vm = makeVM()
         type("K6ABC 55 K6 ", into: vm)
         XCTAssertEqual(vm.parsedCallsign, "K6ABC")
+        XCTAssertEqual(vm.entryText, "K6ABC 55 K6 ")
+    }
+
+    func testShorthandAfterRSTDoesNotReplace() {
+        let vm = makeVM()
+        type("K6ABC 55 P2P ", into: vm)
+        XCTAssertEqual(vm.parsedCallsign, "K6ABC")
+    }
+
+    func testRetypingTheSameCallsignKeepsDetails() {
+        let vm = makeVM()
+        type("K6ABC 55 ", into: vm)
+        vm.name = "Jane"
+        vm.timesWorked = 3
+        type("K6ABC ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6ABC 55 ")
+        XCTAssertEqual(vm.name, "Jane")
+        XCTAssertEqual(vm.timesWorked, 3)
     }
 
     func testPortableRegionSuffixReplacesNotSummit() {
@@ -410,8 +428,91 @@ final class QSOEntryViewModelTests: XCTestCase {
         let vm = makeVM()
         type("K6ABC 55 CA ", into: vm)
         vm.name = "Jane"
+        vm.timesWorked = 3
+        vm.workedToday = 1
+        vm.isDupe = true
         type("W7XYZ ", into: vm)
         XCTAssertEqual(vm.name, "")
+        XCTAssertEqual(vm.qth, "CA")
+        XCTAssertEqual(vm.timesWorked, 0)
+        XCTAssertEqual(vm.workedToday, 0)
+        XCTAssertFalse(vm.isDupe)
+    }
+
+    func testCorrectionDropsReferenceFromOldCallsignsSpot() async throws {
+        let vm = makeVM()
+        vm.spotLookup = { call in
+            guard call == "K6ABC" else { return nil }
+            return makeSpot(callsign: "K6ABC", frequency: 14.062, sotaReference: "W6/CT-002")
+        }
+        type("K6ABC 55", into: vm)
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+        XCTAssertEqual(vm.sotaRefInput, "W6CT002")
+
+        type(" K6ABD ", into: vm)
+        XCTAssertEqual(vm.sotaRefInput, "")
+    }
+
+    func testCorrectionKeepsReferenceFromTappedSpot() {
+        let vm = makeVM()
+        vm.prefillFromSpot(makeSpot(callsign: "K3ABC", frequency: 14.062, sotaReference: "W4C/CM-001"))
+        type(" 55 K3ABD ", into: vm)
+        XCTAssertEqual(vm.entryText, "K3ABD 55 ")
+        XCTAssertEqual(vm.sotaRefInput, "W4CCM001")
+    }
+
+    func testCorrectionWhileEditingDropsSavedGridButKeepsReferences() async throws {
+        let vm = makeVM()
+        vm.loadForEditing(QSO(
+            id: 42, logId: log.id!, callsign: "K6ABC", date: "20240101", timeOn: "1234",
+            frequency: 14.062, band: "20m", mode: "CW", rstSent: "599", rstReceived: "599",
+            name: "Jane", qth: "CA", grid: "CM87", sotaRef: "W6/CT-002"
+        ))
+        type(" K6ABD ", into: vm)
+        XCTAssertEqual(vm.sotaRefInput, "W6CT002")
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertNil(vm.lastSavedQSO?.name)
+        XCTAssertNil(vm.lastSavedQSO?.grid)
+    }
+
+    func testCorrectionThroughAStatePrefixKeepsTypedQTH() {
+        let vm = makeVM()
+        type("K6ABC 55 CA ", into: vm)
+        type("VA3XYZ ", into: vm)
+        XCTAssertEqual(vm.entryText, "VA3XYZ 55 ")
+        XCTAssertEqual(vm.qth, "CA")
+        XCTAssertTrue(vm.hasManualOverride("qth"))
+    }
+
+    func testCorrectionThroughAParkShapeKeepsTypedPark() {
+        let vm = makeVM()
+        type("K6ABC 55 US-0041 ", into: vm)
+        type("KD9XYZ ", into: vm)
+        XCTAssertEqual(vm.entryText, "KD9XYZ 55 ")
+        XCTAssertEqual(vm.potaRefInput, "US-0041")
+    }
+
+    func testTokenPreviewingAnotherKindKeepsTypedFields() {
+        let vm = makeVM()
+        type("K6ABC NC ", into: vm)
+        type("CA-1234 ", into: vm)
+        XCTAssertEqual(vm.qth, "NC")
+
+        let other = makeVM()
+        type("K6ABC US-0041 ", into: other)
+        type("FN31 ", into: other)
+        XCTAssertEqual(other.potaRefInput, "US-0041")
+        XCTAssertEqual(other.gridInput, "FN31")
+    }
+
+    func testShorteningTheCallsignKeepsTypedQTH() {
+        let vm = makeVM()
+        type("K6ABC 55 CA ", into: vm)
+        vm.entryText = "K6 55 "
+        vm.parseEntry()
+        vm.callsignChanged()
         XCTAssertEqual(vm.qth, "CA")
     }
 
@@ -421,6 +522,19 @@ final class QSOEntryViewModelTests: XCTestCase {
         await vm.saveQSO()
         XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
         XCTAssertEqual(vm.lastSavedQSO?.rstSent, "559")
+    }
+
+    func testSendCorrectionFillsDetailsFromTheLog() async throws {
+        let vm = makeVM()
+        vm.entryText = "K6ABD"
+        vm.name = "Bob"
+        await vm.saveQSO()
+
+        type("K6ABC 55 K6ABD", into: vm)
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertEqual(vm.lastSavedQSO?.name, "Bob")
+        XCTAssertEqual(vm.lastSavedQSO?.qth, "CA")
     }
 
     func testSaveNewQSOWithTimeTokenBackTimes() async throws {
