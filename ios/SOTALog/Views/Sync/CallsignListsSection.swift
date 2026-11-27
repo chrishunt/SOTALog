@@ -7,8 +7,6 @@ struct CallsignListsSection: View {
     @State private var viewModel: CallsignListsViewModel
     @State private var editor: Editor?
     #if os(iOS)
-    /// The Sync list's edit mode, which this section's Edit button sets.
-    /// Only these rows can be deleted or moved, so only they change.
     @Environment(\.editMode) private var editMode
     private var isEditing: Bool { editMode?.wrappedValue.isEditing ?? false }
     private func setEditing(_ editing: Bool) { editMode?.wrappedValue = editing ? .active : .inactive }
@@ -91,8 +89,20 @@ struct CallsignListsSection: View {
         }
     }
 
-    @ViewBuilder
+    /// One List row per list, error included, so edit mode gives each list
+    /// one delete button and one reorder handle.
     private func row(_ list: CallsignList) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            listLine(list)
+            if let id = list.id, let error = viewModel.errors[id] {
+                Text(error)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appRed)
+            }
+        }
+    }
+
+    private func listLine(_ list: CallsignList) -> some View {
         HStack(spacing: 12) {
             Button {
                 editor = .edit(list)
@@ -118,21 +128,14 @@ struct CallsignListsSection: View {
             // VoiceOver reads every reorder handle as "Reorder Remove", so
             // each row also moves by name.
             .accessibilityActions {
-                if let index = viewModel.lists.firstIndex(where: { $0.id == list.id }) {
-                    if index > 0 {
-                        Button("Move Up") {
-                            Task { await viewModel.move(fromOffsets: [index], toOffset: index - 1) }
-                        }
-                    }
-                    if index < viewModel.lists.count - 1 {
-                        Button("Move Down") {
-                            Task { await viewModel.move(fromOffsets: [index], toOffset: index + 2) }
-                        }
-                    }
+                if viewModel.canMove(list, by: -1) {
+                    Button("Move Up") { Task { await viewModel.move(list, by: -1) } }
+                }
+                if viewModel.canMove(list, by: 1) {
+                    Button("Move Down") { Task { await viewModel.move(list, by: 1) } }
                 }
             }
 
-            // Hidden while editing, leaving only the delete and reorder controls.
             if !isEditing {
                 if let id = list.id, viewModel.refreshing.contains(id) {
                     ProgressView()
@@ -146,12 +149,6 @@ struct CallsignListsSection: View {
                     .accessibilityLabel("Refresh \(list.name)")
                 }
             }
-        }
-
-        if let id = list.id, let error = viewModel.errors[id] {
-            Text(error)
-                .font(.appLabel)
-                .foregroundStyle(Color.appRed)
         }
     }
 }

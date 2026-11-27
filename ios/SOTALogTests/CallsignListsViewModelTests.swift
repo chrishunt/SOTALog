@@ -218,7 +218,29 @@ final class CallsignListsViewModelTests: XCTestCase {
         await lists.move(fromOffsets: [1], toOffset: 0)
 
         XCTAssertEqual(lists.lists.map(\.emoji), ["🌊", "⭐"])
-        XCTAssertEqual(lists.reorderError?.hasPrefix("The new order wasn't saved: "), true)
+        XCTAssertEqual(lists.reorderError, "Couldn't save the new order. Try again.")
+
+        await lists.delete(lists.lists[0])
+        XCTAssertNil(lists.reorderError, "the message goes once the lists change")
+    }
+
+    func testMoveUpAndDownMoveOnePlace() async throws {
+        try await addLists(["🌊", "⭐", "🐛"])
+        let lists = CallsignListsViewModel(database: db)
+        await lists.load()
+        let (first, last) = (lists.lists[0], lists.lists[2])
+
+        XCTAssertFalse(lists.canMove(first, by: -1))
+        XCTAssertFalse(lists.canMove(last, by: 1))
+        await lists.move(first, by: 1)
+        XCTAssertEqual(lists.lists.map(\.emoji), ["⭐", "🌊", "🐛"])
+        await lists.move(last, by: -1)
+        XCTAssertEqual(lists.lists.map(\.emoji), ["⭐", "🐛", "🌊"])
+        await lists.move(lists.lists[2], by: 1)
+        XCTAssertEqual(lists.lists.map(\.emoji), ["⭐", "🐛", "🌊"], "the last list can't move down")
+
+        let stored = try await CallsignListRepository(database: db).fetchAll().map(\.emoji)
+        XCTAssertEqual(stored, ["⭐", "🐛", "🌊"])
     }
 
     func testTheRowSummarySaysHowManyCallsFromWhereAndWhen() {
