@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "git@github.com:chrishunt/ham-core.git",
       "state" : {
-        "revision" : "dc64cf883aa49423d46f5817691d33cad24caf2d",
-        "version" : "2.2.0"
+        "revision" : "e8e56f973c3fb1fe46e3bcbad0ef349d608cef15",
+        "version" : "2.3.0"
       }
     }
   ],
