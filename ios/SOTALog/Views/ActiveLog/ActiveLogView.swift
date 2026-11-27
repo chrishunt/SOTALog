@@ -8,6 +8,7 @@ struct ActiveLogView: View {
 
     @Environment(SpotRouter.self) private var spotRouter
     @Environment(SOTACatService.self) private var sotaCatService
+    @Environment(CallsignMarksStore.self) private var marksStore
     @State private var viewModel: ActiveLogViewModel
     @State private var editingQSO: QSO?
     @State private var showSpots = false
@@ -142,13 +143,13 @@ struct ActiveLogView: View {
 
             ForEach(viewModel.qsos) { qso in
                 if qso.syncedToQRZ {
-                    QSORowView(qso: qso)
+                    QSORowView(qso: qso, mark: marksStore.marks.mark(for: qso.callsign))
                         .listRowBackground(Color.clear)
                 } else {
                     Button {
                         editingQSO = qso
                     } label: {
-                        QSORowView(qso: qso)
+                        QSORowView(qso: qso, mark: marksStore.marks.mark(for: qso.callsign))
                     }
                     .buttonStyle(.plain)
                     .listRowBackground(Color.clear)

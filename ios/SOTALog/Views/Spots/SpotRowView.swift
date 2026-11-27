@@ -4,6 +4,8 @@ import HamCore
 struct SpotRowView: View {
     let spot: Spot
     var isWorked: Bool = false
+    /// One emoji per callsign list the activator is on.
+    var mark: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -11,6 +13,11 @@ struct SpotRowView: View {
                 Text(spot.activatorCallsign)
                     .font(.appCallsign)
                     .strikethrough(isWorked)
+
+                if let mark {
+                    Text(mark)
+                        .font(.subheadline)
+                }
 
                 Spacer()
 

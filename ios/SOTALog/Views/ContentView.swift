@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var spotRouter = SpotRouter()
     @State private var spotsViewModel = SpotsViewModel()
     @State private var sotaCatService = SOTACatService()
+    @State private var marksStore = CallsignMarksStore()
     @State private var selectedTab = Tab.activations
 
     enum Tab {
@@ -33,6 +34,8 @@ struct ContentView: View {
             .environment(spotRouter)
             .environment(spotsViewModel)
             .environment(sotaCatService)
+            .environment(marksStore)
+            .task { marksStore.start(database: db) }
             .task { await spotsViewModel.startAutoRefresh() }
             .task { sotaCatService.startMonitoring() }
             .onChange(of: spotRouter.pendingSpot) { _, newValue in

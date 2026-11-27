@@ -122,6 +122,19 @@ POTA and SOTA reference inputs validate against the local database. Valid refere
 
 The DUPE badge means saving would write a row that matches one already in this log on callsign, band, mode, and the other station's summit and park references. The same station worked again from a different summit or park is a new contact — S2S and P2P credit is per reference — so it is not a dupe. The badge is information, not gatekeeping; the operator can always save.
 
+### Callsign lists mark people, one emoji per list
+
+Club members and friends are marked wherever a callsign appears. The operator adds a list on the Sync tab by pasting a link to a file in Ham2K PoLo's callsign notes format, so one file serves both apps. Lists are stored for offline use and download only when added or when their row's refresh button is tapped, like the reference databases.
+
+Each list has one emoji, suggested from the file, and no two lists share one, so a mark always says which list someone is on. The emoji and name can be changed because they are the operator's own labels: a mark only works at a glance if it means something to them, and the suggestion just saves the step when it fits. The emoji goes in front of the person's name: on the name chip while logging, and on the name line of logged rows. Spots have no name, so it follows the callsign there. Nothing is attached to the callsign field, which changes with every keystroke, and nothing adds a row to the entry panel.
+
+Decided against:
+- **An emoji per entry**, as PoLo does: marks from different lists become impossible to tell apart.
+- **Showing the note while logging**: it mostly repeats the name and callsign, and its free-form text truncates into fragments.
+- **Pinning listed stations to the top of the spots sheet**: the emoji already makes them easy to find.
+- **Editing lists in the app**: a list is just a file at a link; a Gist does the job.
+- **Refreshing lists automatically**, even when the Sync tab opens: every other download waits for a tap.
+
 ### Activation thresholds
 
 POTA needs 10 QSOs; SOTA needs 4. The activation status shows progress and changes color on completion. This is information, not gatekeeping — the operator can always keep logging.

@@ -82,6 +82,8 @@ struct QRZSyncView: View {
                 }
             }
 
+            CallsignListsSection(database: database)
+
             // ADIF Export
             Section("Export") {
                 ShareLink(

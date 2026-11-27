@@ -14,6 +14,7 @@ struct QSOEntryView: View {
 
     @Environment(SpotsViewModel.self) private var spotsViewModel
     @Environment(SOTACatService.self) private var sotaCatService
+    @Environment(CallsignMarksStore.self) private var marksStore
     @State private var viewModel: QSOEntryViewModel
     @State private var qrzService: QRZLookupService
     @State private var cwMacros: [CWMacro] = []
@@ -155,6 +156,7 @@ struct QSOEntryView: View {
             frequencyText: $viewModel.frequencyText,
             mode: $viewModel.mode,
             name: $viewModel.name,
+            nameMark: nameMark,
             qth: $viewModel.qth,
             potaRefInput: $viewModel.potaRefInput,
             potaRefFormatted: viewModel.potaRefFormatted,
@@ -174,6 +176,13 @@ struct QSOEntryView: View {
             onFrequencyCommitted: { viewModel.pushFrequencyToRadio() },
             onSubmit: { focusedField = .callsign }
         )
+    }
+
+    /// Read live, so a list changed mid-entry shows at once. A partial
+    /// callsign is not looked up.
+    private var nameMark: String? {
+        let call = viewModel.parsedCallsign
+        return call.count >= 3 ? marksStore.marks.mark(for: call) : nil
     }
 
     // MARK: - Editing Banner
