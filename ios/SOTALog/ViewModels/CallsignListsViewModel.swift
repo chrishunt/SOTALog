@@ -105,6 +105,13 @@ final class CallsignListEditorViewModel {
         file.map { CallsignListsViewModel.callsText(Set($0.entries.map(\.callsign)).count) }
     }
 
+    /// A preview entry's note line as it will show while logging, with the
+    /// emoji and name as they now stand in the sheet.
+    func previewLine(for entry: CallsignListFile.Entry) -> String {
+        let listName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return CallsignMarks.Note(emoji: emoji, listName: listName, note: entry.note).line
+    }
+
     private var trimmedLink: String { link.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     /// More characters than this arriving at once is a paste, not typing.
@@ -123,13 +130,6 @@ final class CallsignListEditorViewModel {
         if inserted >= Self.pasteLength, CallsignListService.downloadURL(for: trimmedLink) != nil {
             await fetch()
         }
-    }
-
-    /// A note as it reads, with markdown such as `[name](link)` shown as its text.
-    static func plainText(_ note: String) -> String {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard let parsed = try? AttributedString(markdown: note, options: options) else { return note }
-        return String(parsed.characters)
     }
 
     /// Keeps only the last emoji typed, so the field always holds one.
