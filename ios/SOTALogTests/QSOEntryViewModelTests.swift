@@ -639,6 +639,67 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.lastSavedQSO?.rstSent, "449")
     }
 
+    func testRSTChipEditSurvivesLaterTypingAndDeletingTheWord() async throws {
+        let vm = makeVM()
+        type("W1AW 55 ", into: vm)
+        vm.rstSent = "449"
+        vm.markManualOverride("rstSent")
+        type("C", into: vm)
+        XCTAssertEqual(vm.rstSent, "449")
+        vm.entryText = "W1AW "
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "449")
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "449")
+    }
+
+    func testRetypedRSTWordAfterAChipEditApplies() {
+        let vm = makeVM()
+        type("W1AW 55 ", into: vm)
+        vm.rstSent = "449"
+        vm.markManualOverride("rstSent")
+        vm.entryText = "W1AW "
+        vm.parseEntry()
+        type("33 ", into: vm)
+        XCTAssertEqual(vm.rstSent, "339")
+    }
+
+    func testCallTypedInFrontOfTheOldOneIsKept() {
+        let vm = makeVM()
+        type("K6ABC 55", into: vm)
+        vm.entryText = "W7XYZ K6ABC 55"
+        vm.parseEntry()
+        XCTAssertEqual(vm.parsedCallsign, "W7XYZ")
+        XCTAssertEqual(vm.entryText, "W7XYZ K6ABC 55")
+        XCTAssertEqual(vm.expandTemplate("{call}"), "W7XYZ")
+
+        vm.entryText = "W7XYZ K6ABC 55 "
+        vm.parseEntry()
+        XCTAssertEqual(vm.parsedCallsign, "W7XYZ")
+    }
+
+    func testUndoingACorrectionWhileEditingKeepsAGrid() async throws {
+        let vm = makeVM()
+        vm.entryText = "K6ABC"
+        vm.gridInput = "CM87"
+        await vm.saveQSO()
+        let saved = try XCTUnwrap(vm.lastSavedQSO)
+
+        vm.loadForEditing(saved)
+        type(" K6ABD ", into: vm)
+        XCTAssertEqual(vm.gridInput, "")
+        type("K6ABC", into: vm) // undone on Send, which fills the grid from the log
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABC")
+        XCTAssertEqual(vm.lastSavedQSO?.grid, "CM87")
+    }
+
+    func testSpotCallsignIsSanitized() {
+        let vm = makeVM()
+        vm.prefillFromSpot(makeSpot(callsign: "\u{202E}k6abc", frequency: 14.062))
+        XCTAssertEqual(vm.entryText, "K6ABC")
+    }
+
     func testConfirmLeavesALoneCallsignToFinish() {
         let vm = makeVM()
         type("W7X", into: vm)

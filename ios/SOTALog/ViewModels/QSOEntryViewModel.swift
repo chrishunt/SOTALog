@@ -34,10 +34,13 @@ final class QSOEntryViewModel {
     // Tracks which fields were manually edited (not set by omnifield)
     private var manualOverrides: Set<String> = []
 
-    // Whether each RST came from a word in the entry field. RST words stay in the field, so
-    // deleting or retyping one puts its chip back to the default.
-    private var rstSentFromEntry = false
-    private var rstReceivedFromEntry = false
+    // The RST last applied from a word in the entry field, by override key.
+    private var appliedEntryRST: [String: String] = [:]
+    // The RSTs whose chip still shows the entry word's value, so deleting the word resets them.
+    private var rstFromEntry: Set<String> = []
+    // Whether a callsign correction emptied the grid pill while editing, so save uses the new
+    // station's looked-up grid instead of treating the empty pill as cleared by the operator.
+    private var gridClearedByCorrection = false
 
     // Editing state
     var editingQSO: QSO?
@@ -163,24 +166,8 @@ final class QSOEntryViewModel {
             updateRSTForMode()
         }
 
-        if let rst = finished.rstSent {
-            rstSent = expandRST(rst)
-            markManualOverride("rstSent")
-            rstSentFromEntry = true
-        } else if rstSentFromEntry {
-            rstSent = editingQSO?.rstSent ?? defaultRST
-            manualOverrides.remove("rstSent")
-            rstSentFromEntry = false
-        }
-        if let rst = finished.rstReceived {
-            rstReceived = expandRST(rst)
-            markManualOverride("rstReceived")
-            rstReceivedFromEntry = true
-        } else if rstReceivedFromEntry {
-            rstReceived = editingQSO?.rstReceived ?? defaultRST
-            manualOverrides.remove("rstReceived")
-            rstReceivedFromEntry = false
-        }
+        applyEntryRST(finished.rstSent, to: \.rstSent, key: "rstSent", saved: editingQSO?.rstSent)
+        applyEntryRST(finished.rstReceived, to: \.rstReceived, key: "rstReceived", saved: editingQSO?.rstReceived)
 
         if let freq = finished.frequency {
             frequencyText = freq
@@ -209,6 +196,25 @@ final class QSOEntryViewModel {
         }
 
         consumeTokens(parsed)
+    }
+
+    /// Applies an RST word only when it is new or changed, since RST words stay in the field
+    /// and are read again on every keystroke; an unchanged word must not undo a chip edit.
+    /// Deleting the word restores the default (or saved) RST, unless the chip was edited since.
+    private func applyEntryRST(
+        _ word: String?, to field: ReferenceWritableKeyPath<QSOEntryViewModel, String>, key: String, saved: String?
+    ) {
+        let value = word.map(expandRST)
+        guard value != appliedEntryRST[key] else { return }
+        appliedEntryRST[key] = value
+        if let value {
+            self[keyPath: field] = value
+            manualOverrides.insert(key)
+            rstFromEntry.insert(key)
+        } else if rstFromEntry.remove(key) != nil {
+            self[keyPath: field] = saved ?? defaultRST
+            manualOverrides.remove(key)
+        }
     }
 
     /// Finishes the word still being typed after the callsign, as a space would. Send and
@@ -241,7 +247,9 @@ final class QSOEntryViewModel {
             let isConfirmed = !isLast || endsWithSpace
 
             switch classified.kind {
-            case .callsign where index > 0 && isConfirmed:
+            // Only the word just finished at the end is a correction. A call further left is
+            // older text, such as the old call after a new one was typed in front of it.
+            case .callsign where index > 0 && isLast && endsWithSpace:
                 correctedCallsign = classified.text
             case .callsign, .rst, .unrecognized:
                 kept.append(classified.text)
@@ -277,6 +285,8 @@ final class QSOEntryViewModel {
 
     func markManualOverride(_ field: String) {
         manualOverrides.insert(field)
+        // A chip edit replaces the entry word's RST, so deleting the word no longer resets it.
+        rstFromEntry.remove(field)
     }
 
     func hasManualOverride(_ field: String) -> Bool {
@@ -514,7 +524,8 @@ final class QSOEntryViewModel {
     func loadForEditing(_ qso: QSO) {
         guard !qso.syncedToQRZ else { return }
         editingQSO = qso
-        entryText = qso.callsign
+        gridClearedByCorrection = false
+        entryText = qso.callsign.sanitizedOmnifield
         rstSent = qso.rstSent
         rstReceived = qso.rstReceived
         mode = qso.mode
@@ -579,12 +590,12 @@ final class QSOEntryViewModel {
 
         // Operator-typed grid wins. New QSO with empty input falls back to the hidden
         // auto-populated value; an empty pill during edit means the operator cleared it,
-        // unless the callsign was corrected, which emptied it for the new station's lookup.
+        // unless a callsign correction emptied it for the new station's lookup.
         // Invalid typed input persists as nil — ADIF GRIDSQUARE has a defined format and shouldn't carry junk.
         let resolvedGrid: String?
         if !gridInput.isEmpty {
             resolvedGrid = OmniFieldParser.parseGridSquare(gridInput)
-        } else if let editing = editingQSO, callsign.uppercased() == editing.callsign.uppercased() {
+        } else if editingQSO != nil, !gridClearedByCorrection {
             resolvedGrid = nil
         } else {
             resolvedGrid = grid
@@ -655,7 +666,7 @@ final class QSOEntryViewModel {
         // Clear all fields first so stale data from a previous spot doesn't persist
         clearFieldsForNextQSO()
 
-        entryText = spot.activatorCallsign.uppercased()
+        entryText = spot.activatorCallsign.sanitizedOmnifield
         frequencyText = String(format: "%.3f", spot.frequency)
         mode = spot.mode
         rstSent = defaultRST
@@ -695,8 +706,9 @@ final class QSOEntryViewModel {
         workedToday = 0
         isDupe = false
         grid = nil
-        rstSentFromEntry = false
-        rstReceivedFromEntry = false
+        appliedEntryRST = [:]
+        rstFromEntry = []
+        gridClearedByCorrection = false
         manualOverrides = []
         // frequency and mode persist between QSOs
     }
@@ -731,7 +743,10 @@ final class QSOEntryViewModel {
             sotaRefValid = false
         }
         // When editing, the pill holds the saved grid, which belonged to the old station.
-        if isEditing, gridInput == editingQSO?.grid ?? "" { gridInput = "" }
+        if isEditing, gridInput == editingQSO?.grid ?? "" {
+            gridInput = ""
+            gridClearedByCorrection = true
+        }
     }
 
     // MARK: - CW Keyer
@@ -751,12 +766,15 @@ final class QSOEntryViewModel {
         return rst.replacingOccurrences(of: "9", with: "N")
     }
 
-    /// The callsign the CW keys send: a correction still being typed (`K6ABC 55 W7X` sends
-    /// `W7X`), else the callsign as typed. Sending never changes the entry, so a key tapped
+    /// The callsign the CW keys send: a correction still being typed at the end (`K6ABC 55 W7X`
+    /// sends `W7X`), else the callsign as typed. Sending never changes the entry, so a key tapped
     /// mid-call (`W7X` then `?`) leaves the cursor where it was to finish the call.
     private var callsignForKeyer: String {
-        let corrections = OmniFieldParser.parse(entryText).tokens.dropFirst().filter { $0.kind == .callsign }
-        return corrections.last?.text.sanitizedCallsign ?? parsedCallsign
+        let tokens = OmniFieldParser.parse(entryText).tokens
+        if tokens.count > 1, let last = tokens.last, last.kind == .callsign {
+            return last.text.sanitizedCallsign
+        }
+        return parsedCallsign
     }
 
     /// Strip dashes from references for CW (slashes preserved as valid Morse prosign)
@@ -851,8 +869,9 @@ final class QSOEntryViewModel {
         workedToday = 0
         isDupe = false
         grid = nil
-        rstSentFromEntry = false
-        rstReceivedFromEntry = false
+        appliedEntryRST = [:]
+        rstFromEntry = []
+        gridClearedByCorrection = false
         manualOverrides = []
         // frequency and mode persist between QSOs
     }

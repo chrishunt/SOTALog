@@ -20,19 +20,9 @@ struct CallsignField: View {
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
-    /// Sanitizes as the text is set. Sanitizing afterwards in `onChange` would write
-    /// back the value it was handed, undoing any rewrite made in the meantime,
-    /// such as a corrected callsign.
-    private var sanitizedText: Binding<String> {
-        Binding(
-            get: { text },
-            set: { text = sanitizer?($0) ?? $0.sanitizedCallsign }
-        )
-    }
-
     var body: some View {
         HStack {
-            TextField("W1AW 59 59 CA W6SD133", text: sanitizedText)
+            TextField("W1AW 59 59 CA W6SD133", text: $text)
                 .font(.system(size: max(fontSize, 44), weight: .bold, design: .monospaced))
                 .foregroundStyle(Color.appTextPrimary)
                 .minimumScaleFactor(0.6)
@@ -42,6 +32,13 @@ struct CallsignField: View {
                 #if os(iOS)
                 .keyboardType(.asciiCapable)
                 #endif
+                // Sanitizes the current text, not the value handed in: by now the entry may
+                // have rewritten it (a corrected callsign), and writing the old value back
+                // would undo that. Writing only on a change keeps the field and text in step.
+                .onChange(of: text) { _, _ in
+                    let clean = sanitizer?(text) ?? text.sanitizedCallsign
+                    if clean != text { text = clean }
+                }
 
             if let badge = badgeText {
                 Text(badge)
