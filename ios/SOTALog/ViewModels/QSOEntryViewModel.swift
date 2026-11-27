@@ -7,7 +7,6 @@ final class QSOEntryViewModel {
     private let database: LogbookDatabase
     private let log: Log
     private let qsoRepo: QSORepository
-    private let historyRepo: CallsignHistoryRepository
     private let refRepo: ReferenceRepository
 
     // Omnifield input (space-separated tokens: callsign + optional overrides)
@@ -84,7 +83,6 @@ final class QSOEntryViewModel {
         self.database = database
         self.log = log
         self.qsoRepo = QSORepository(database: database)
-        self.historyRepo = CallsignHistoryRepository(database: database)
         self.refRepo = ReferenceRepository(database: database)
     }
 
@@ -322,13 +320,13 @@ final class QSOEntryViewModel {
 
     // MARK: - Lookup Sources
 
-    /// History + prefix resolver — LOW authority, only fills empty fields
+    /// The log, then the prefix resolver — LOW authority, only fills empty fields
     private func resolveLocal(_ call: String) async {
-        if let history = try? await historyRepo.fetch(callsign: call) {
+        if let details = try? await qsoRepo.details(forCallsign: call) {
             await MainActor.run {
-                if let n = history.name, !n.isEmpty, name.isEmpty { name = n }
-                if let q = history.qth, !q.isEmpty, qth.isEmpty { qth = q }
-                if let g = history.grid, !g.isEmpty, grid == nil { grid = g }
+                if let n = details.name, name.isEmpty { name = n }
+                if let q = details.qth, qth.isEmpty { qth = q }
+                if let g = details.grid, grid == nil { grid = g }
             }
         }
 
@@ -625,28 +623,6 @@ final class QSOEntryViewModel {
         do {
             try await qsoRepo.save(&qso)
             lastSavedQSO = qso
-
-            // Update callsign history. Editing an existing QSO must not bump the
-            // worked count — only refresh the contact's details.
-            do {
-                if isEditing {
-                    try await historyRepo.updateFromLookup(
-                        callsign: qso.callsign,
-                        name: qso.name,
-                        qth: qso.qth,
-                        grid: resolvedGrid
-                    )
-                } else {
-                    try await historyRepo.recordQSO(
-                        callsign: qso.callsign,
-                        name: qso.name,
-                        qth: qso.qth,
-                        grid: resolvedGrid
-                    )
-                }
-            } catch {
-                AppLog.database.error("Failed to record callsign history: \(error)")
-            }
 
             // Clear fields but keep frequency and mode
             await MainActor.run {

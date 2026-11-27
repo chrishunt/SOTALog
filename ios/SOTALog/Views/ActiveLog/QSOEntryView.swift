@@ -43,8 +43,7 @@ struct QSOEntryView: View {
         self.onFrequencyChanged = onFrequencyChanged
         self.onModeChanged = onModeChanged
         self._viewModel = State(initialValue: QSOEntryViewModel(database: database, log: log))
-        let historyRepo = CallsignHistoryRepository(database: database)
-        self._qrzService = State(initialValue: QRZLookupService(historyRepo: historyRepo, credentials: KeychainQRZCredentials(), client: .sotaLog))
+        self._qrzService = State(initialValue: QRZLookupService(credentials: KeychainQRZCredentials(), client: .sotaLog))
     }
 
     var body: some View {
