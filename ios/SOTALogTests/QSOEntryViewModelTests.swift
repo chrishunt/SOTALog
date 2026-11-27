@@ -16,6 +16,14 @@ final class QSOEntryViewModelTests: XCTestCase {
         QSOEntryViewModel(database: db, log: log)
     }
 
+    /// Types `text` one character at a time, parsing after each, as the field does.
+    private func type(_ text: String, into vm: QSOEntryViewModel) {
+        for character in text {
+            vm.entryText.append(character)
+            vm.parseEntry()
+        }
+    }
+
     // MARK: - Sensible Defaults
 
     func testFreshViewModelDefaults() {
@@ -401,14 +409,6 @@ final class QSOEntryViewModelTests: XCTestCase {
 
     // MARK: - Correcting the callsign by retyping it
 
-    /// Types `text` one character at a time, parsing after each, as the field does.
-    private func type(_ text: String, into vm: QSOEntryViewModel) {
-        for character in text {
-            vm.entryText.append(character)
-            vm.parseEntry()
-        }
-    }
-
     func testRetypedCallsignReplacesFirstAndKeepsRST() {
         let vm = makeVM()
         type("K6ABC 55 57 K6ABD ", into: vm)
@@ -543,6 +543,104 @@ final class QSOEntryViewModelTests: XCTestCase {
         type("FN31 ", into: other)
         XCTAssertEqual(other.potaRefInput, "US-0041")
         XCTAssertEqual(other.gridInput, "FN31")
+    }
+
+    func testCorrectionWhileEditingSavesTheNewStationsGridFromTheLog() async throws {
+        let vm = makeVM()
+        vm.entryText = "K6ABD"
+        vm.gridInput = "FN31"
+        await vm.saveQSO()
+
+        vm.loadForEditing(QSO(
+            id: 42, logId: log.id!, callsign: "K6ABC", date: "20240101", timeOn: "1234",
+            frequency: 14.062, band: "20m", mode: "CW", rstSent: "599", rstReceived: "599",
+            grid: "CM87"
+        ))
+        type(" K6ABD", into: vm)
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.callsign, "K6ABD")
+        XCTAssertEqual(vm.lastSavedQSO?.grid, "FN31")
+    }
+
+    func testDeletingATypedRSTWhileEditingRestoresTheSavedRST() {
+        let vm = makeVM()
+        vm.loadForEditing(QSO(
+            id: 42, logId: log.id!, callsign: "K6ABC", date: "20240101", timeOn: "1234",
+            frequency: 14.062, band: "20m", mode: "CW", rstSent: "449", rstReceived: "339"
+        ))
+        type(" 57 ", into: vm)
+        XCTAssertEqual(vm.rstSent, "579")
+        vm.entryText = "K6ABC "
+        vm.parseEntry()
+        XCTAssertEqual(vm.rstSent, "449")
+        XCTAssertEqual(vm.rstReceived, "339")
+    }
+
+    func testCallsignShapedPartialReplacesOnSpace() {
+        let vm = makeVM()
+        type("K6ABC 55 K6A ", into: vm)
+        XCTAssertEqual(vm.entryText, "K6A 55 ")
+    }
+
+    func testCWKeyMidCallLeavesTheCallToFinish() {
+        let vm = makeVM()
+        type("W7X", into: vm)
+        XCTAssertEqual(vm.expandTemplate("{call}?"), "W7X?")
+        vm.sendCWMacro("{call}?")
+        type("YZ", into: vm)
+        XCTAssertEqual(vm.entryText, "W7XYZ")
+        XCTAssertEqual(vm.parsedCallsign, "W7XYZ")
+    }
+
+    func testCWKeySendsTypedWordsWithoutApplyingThem() {
+        let vm = makeVM()
+        type("K6ABC 55 VA", into: vm)
+        vm.sendCWMacro("{call}?")
+        XCTAssertEqual(vm.entryText, "K6ABC 55 VA")
+        XCTAssertEqual(vm.qth, "")
+
+        let unfinishedRST = makeVM()
+        type("K6ABC 55", into: unfinishedRST)
+        XCTAssertEqual(unfinishedRST.expandTemplate("{call} UR {rst}"), "K6ABC UR 55N")
+        XCTAssertEqual(unfinishedRST.rstSent, "599")
+
+        let unfinishedCorrection = makeVM()
+        type("K6ABC 55 W7X", into: unfinishedCorrection)
+        XCTAssertEqual(unfinishedCorrection.expandTemplate("{call} UR {rst}"), "W7X UR 55N")
+        XCTAssertEqual(unfinishedCorrection.parsedCallsign, "K6ABC")
+    }
+
+    func testChipEditAfterAnUnfinishedWordWins() async throws {
+        let vm = makeVM()
+        type("W1AW 55 CA", into: vm)
+        vm.confirmEntry() // opening a chip finishes the word first
+        vm.qth = "OR"
+        vm.markManualOverride("qth")
+        vm.rstSent = "449"
+        vm.markManualOverride("rstSent")
+        await vm.saveQSO()
+        XCTAssertEqual(vm.lastSavedQSO?.qth, "OR")
+        XCTAssertEqual(vm.lastSavedQSO?.rstSent, "449")
+    }
+
+    func testConfirmLeavesALoneCallsignToFinish() {
+        let vm = makeVM()
+        type("W7X", into: vm)
+        vm.confirmEntry()
+        XCTAssertEqual(vm.entryText, "W7X")
+    }
+
+    func testCorrectionCancelsTheOldCallsignsPendingLookup() async throws {
+        let vm = makeVM()
+        vm.spotLookup = { call in
+            call == "K6ABC" ? makeSpot(callsign: "K6ABC", frequency: 14.062, potaReference: "US-0041") : nil
+        }
+        type("K6ABC 55 K6ABD", into: vm)
+        vm.callsignChanged()
+        vm.confirmEntry()
+        try await Task.sleep(for: .milliseconds(400))
+        XCTAssertEqual(vm.parsedCallsign, "K6ABD")
+        XCTAssertEqual(vm.potaRefInput, "")
     }
 
     func testShorteningTheCallsignKeepsTypedQTH() {

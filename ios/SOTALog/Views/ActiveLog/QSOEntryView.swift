@@ -179,7 +179,9 @@ struct QSOEntryView: View {
             isRadioConnected: sotaCatService.isConnected,
             onFrequencyChanged: { viewModel.frequencyChanged() },
             onFrequencyCommitted: { viewModel.pushFrequencyToRadio() },
-            onSubmit: { focusedField = .callsign }
+            onSubmit: { focusedField = .callsign },
+            // Finish the word being typed first, so the chip edit is the latest input and wins.
+            onBeginEditing: { viewModel.confirmEntry() }
         )
     }
 

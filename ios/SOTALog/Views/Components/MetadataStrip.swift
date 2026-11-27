@@ -33,6 +33,8 @@ struct MetadataStrip: View {
     var onFrequencyChanged: () -> Void
     var onFrequencyCommitted: () -> Void
     var onSubmit: () -> Void
+    /// Called when a chip opens for editing, before the operator changes it.
+    var onBeginEditing: () -> Void = {}
 
     @FocusState private var editFocus: EditField?
     @State private var editingField: EditField?
@@ -47,6 +49,11 @@ struct MetadataStrip: View {
                 editorField
             } else {
                 chipRows
+            }
+        }
+        .onChange(of: editingField) { oldValue, newValue in
+            if oldValue == nil, newValue != nil {
+                onBeginEditing()
             }
         }
         .onChange(of: editFocus) { _, newValue in

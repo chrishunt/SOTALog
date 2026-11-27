@@ -168,7 +168,7 @@ final class QSOEntryViewModel {
             markManualOverride("rstSent")
             rstSentFromEntry = true
         } else if rstSentFromEntry {
-            rstSent = defaultRST
+            rstSent = editingQSO?.rstSent ?? defaultRST
             manualOverrides.remove("rstSent")
             rstSentFromEntry = false
         }
@@ -177,7 +177,7 @@ final class QSOEntryViewModel {
             markManualOverride("rstReceived")
             rstReceivedFromEntry = true
         } else if rstReceivedFromEntry {
-            rstReceived = defaultRST
+            rstReceived = editingQSO?.rstReceived ?? defaultRST
             manualOverrides.remove("rstReceived")
             rstReceivedFromEntry = false
         }
@@ -211,10 +211,13 @@ final class QSOEntryViewModel {
         consumeTokens(parsed)
     }
 
-    /// Finishes the word still being typed, as a space would. Send and the CW message keys
-    /// call this so `K6ABC 55` uses the 55 without a trailing space.
+    /// Finishes the word still being typed after the callsign, as a space would. Send and
+    /// opening a chip call this, so `K6ABC 55` uses the 55 without a trailing space. A lone
+    /// callsign is left alone, so it can still be finished where the cursor is.
     func confirmEntry() {
-        guard !entryText.isEmpty, !entryText.hasSuffix(" ") else { return }
+        guard !entryText.hasSuffix(" "),
+              entryText.split(separator: " ").count > 1
+        else { return }
         entryText += " "
         parseEntry()
     }
@@ -317,6 +320,7 @@ final class QSOEntryViewModel {
     /// The log, then the prefix resolver — LOW authority, only fills empty fields
     private func resolveLocal(_ call: String) async {
         if let details = try? await qsoRepo.details(forCallsign: call) {
+            guard !Task.isCancelled else { return }
             await MainActor.run {
                 if let n = details.name, name.isEmpty { name = n }
                 if let q = details.qth, qth.isEmpty { qth = q }
@@ -363,7 +367,7 @@ final class QSOEntryViewModel {
 
     /// Spot lookup — populates references (not frequency or mode)
     private func resolveSpotData(_ call: String) async {
-        guard let spot = spotLookup?(call) else { return }
+        guard let spot = spotLookup?(call), !Task.isCancelled else { return }
         await MainActor.run {
             if let ref = spot.potaReference,
                !manualOverrides.contains("potaRef"), potaRefInput.isEmpty {
@@ -555,6 +559,8 @@ final class QSOEntryViewModel {
 
     // MARK: - Save QSO
 
+    /// Main actor because finishing the last word writes the entry and fields the view is bound to.
+    @MainActor
     func saveQSO() async {
         let typedCallsign = parsedCallsign
         confirmEntry()
@@ -570,12 +576,13 @@ final class QSOEntryViewModel {
         let band = frequency.flatMap { BandPlan.band(for: $0) } ?? "20m"
 
         // Operator-typed grid wins. New QSO with empty input falls back to the hidden
-        // auto-populated value; an empty pill during edit means the operator cleared it.
+        // auto-populated value; an empty pill during edit means the operator cleared it,
+        // unless the callsign was corrected, which emptied it for the new station's lookup.
         // Invalid typed input persists as nil — ADIF GRIDSQUARE has a defined format and shouldn't carry junk.
         let resolvedGrid: String?
         if !gridInput.isEmpty {
             resolvedGrid = OmniFieldParser.parseGridSquare(gridInput)
-        } else if isEditing {
+        } else if let editing = editingQSO, callsign.uppercased() == editing.callsign.uppercased() {
             resolvedGrid = nil
         } else {
             resolvedGrid = grid
@@ -706,6 +713,9 @@ final class QSOEntryViewModel {
     /// A correction names a different station, so also drop the references a spot lookup
     /// filled and, when editing, the saved grid. Typed or chosen references stay.
     private func clearDetailsForCorrectedCallsign() {
+        // The old callsign's lookup may still be waiting out its debounce; it must not refill
+        // what is about to belong to the new station.
+        lookupTask?.cancel()
         clearLookupFields()
         if !manualOverrides.contains("potaRef") {
             potaRefInput = ""
@@ -726,7 +736,25 @@ final class QSOEntryViewModel {
 
     /// RST with cut numbers for CW keyer (9 → N)
     private var rstForKeyer: String {
-        rstSent.replacingOccurrences(of: "9", with: "N")
+        // A first RST still being typed is sent as typed, without applying it to the chip.
+        let whole = OmniFieldParser.parse(entryText)
+        let rstWords = whole.tokens.filter { $0.kind == .rst }
+        let rst: String
+        if !entryText.hasSuffix(" "), whole.tokens.last?.kind == .rst, rstWords.count == 1,
+           let typed = whole.rstSent {
+            rst = expandRST(typed)
+        } else {
+            rst = rstSent
+        }
+        return rst.replacingOccurrences(of: "9", with: "N")
+    }
+
+    /// The callsign the CW keys send: a correction still being typed (`K6ABC 55 W7X` sends
+    /// `W7X`), else the callsign as typed. Sending never changes the entry, so a key tapped
+    /// mid-call (`W7X` then `?`) leaves the cursor where it was to finish the call.
+    private var callsignForKeyer: String {
+        let corrections = OmniFieldParser.parse(entryText).tokens.dropFirst().filter { $0.kind == .callsign }
+        return corrections.last?.text.sanitizedCallsign ?? parsedCallsign
     }
 
     /// Strip dashes from references for CW (slashes preserved as valid Morse prosign)
@@ -746,7 +774,7 @@ final class QSOEntryViewModel {
 
         var text = template
         text = text.replacingOccurrences(of: "{myCall}", with: log.myCallsign)
-        text = text.replacingOccurrences(of: "{call}", with: parsedCallsign)
+        text = text.replacingOccurrences(of: "{call}", with: callsignForKeyer)
         text = text.replacingOccurrences(of: "{rst}", with: rstForKeyer)
         text = text.replacingOccurrences(of: "{mySOTA}", with: Self.stripDashesForCW(log.sotaReference ?? ""))
         text = text.replacingOccurrences(of: "{myPOTA}", with: Self.stripDashesForCW(log.potaReference ?? ""))
@@ -771,7 +799,7 @@ final class QSOEntryViewModel {
         var text = template
         let substitutions: [(String, String)] = [
             ("{myCall}", log.myCallsign),
-            ("{call}", parsedCallsign),
+            ("{call}", callsignForKeyer),
             ("{rst}", rstForKeyer),
             ("{mySOTA}", Self.stripDashesForCW(log.sotaReference ?? "")),
             ("{myPOTA}", Self.stripDashesForCW(log.potaReference ?? "")),
@@ -788,7 +816,6 @@ final class QSOEntryViewModel {
     }
 
     func sendCWMacro(_ template: String) {
-        confirmEntry()
         let message = expandTemplate(template)
         guard !message.isEmpty else { return }
         Task {
