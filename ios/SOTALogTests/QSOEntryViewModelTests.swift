@@ -1267,7 +1267,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.parseEntry()
         XCTAssertEqual(vm.qth, "")
         XCTAssertFalse(vm.hasManualOverride("qth"),
-                       "Preview-clear must drop the override so QRZ/history can fill the empty field")
+                       "Preview-clear must drop the override so QRZ or the log can fill the empty field")
     }
 
     func testPOTAPreviewClearAlsoDropsManualOverride() {

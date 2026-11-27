@@ -72,7 +72,7 @@ final class QSOEntryViewModel {
     var sotaCatService: SOTACatService?
 
     private var lookupTask: Task<Void, Never>?
-    // Hidden auto-populated grid from QRZ/callsign history. Saved on the QSO and exported to ADIF,
+    // Hidden auto-populated grid from QRZ or the log. Saved on the QSO and exported to ADIF,
     // but never shown as a pill — the pill only appears when the operator types a grid.
     private var grid: String?
     private var frequencyPushTime: Date?
