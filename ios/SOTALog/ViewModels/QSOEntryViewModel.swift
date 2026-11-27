@@ -34,22 +34,10 @@ final class QSOEntryViewModel {
     // Tracks which fields were manually edited (not set by omnifield)
     private var manualOverrides: Set<String> = []
 
-    // Kind of the last unconfirmed (no trailing space) omnifield token from the prior parse.
-    // Used to clear a previously previewed field when the operator types past it into a new kind.
-    private var previewKind: ParsedEntry.TokenKind?
-
-    // The previewable fields as they were when the unconfirmed token was started, so a preview
-    // that turns out to be another kind (`VA` → `VA3` → `VA3XYZ`) puts back what the operator
-    // had typed instead of emptying it.
-    private struct PreviewBaseline {
-        var qth: String
-        var gridInput: String
-        var timeOnInput: String
-        var potaRefInput: String
-        var sotaRefInput: String
-        var manualOverrides: Set<String>
-    }
-    private var previewBaseline: PreviewBaseline?
+    // Whether each RST came from a word in the entry field. RST words stay in the field, so
+    // deleting or retyping one puts its chip back to the default.
+    private var rstSentFromEntry = false
+    private var rstReceivedFromEntry = false
 
     // Editing state
     var editingQSO: QSO?
@@ -159,107 +147,76 @@ final class QSOEntryViewModel {
 
     // MARK: - Omnifield Parsing
 
+    /// Applies the words the operator has finished: the ones followed by a space. The word
+    /// still being typed waits for a space or Send (`confirmEntry()`), so a half-typed word
+    /// never changes a field, as `VA3XYZ` would otherwise be read as a state at `VA`.
     func parseEntry() {
         let parsed = OmniFieldParser.parse(entryText)
+        let finishedText = entryText.hasSuffix(" ")
+            ? entryText
+            : entryText.split(separator: " ").dropLast().joined(separator: " ")
+        let finished = finishedText == entryText ? parsed : OmniFieldParser.parse(finishedText)
 
-        // Clear stale previews when the last unconfirmed token flips kind.
-        let endsWithSpace = entryText.hasSuffix(" ")
-        let currentLastKind: ParsedEntry.TokenKind? = endsWithSpace ? nil : parsed.tokens.last?.kind
-        if previewKind == nil, currentLastKind != nil {
-            previewBaseline = PreviewBaseline(
-                qth: qth, gridInput: gridInput, timeOnInput: timeOnInput,
-                potaRefInput: potaRefInput, sotaRefInput: sotaRefInput,
-                manualOverrides: manualOverrides
-            )
-        }
-        if let prev = previewKind, prev != currentLastKind {
-            clearPreview(kind: prev)
-        }
-        previewKind = currentLastKind
-
-        if let parsedMode = parsed.mode {
+        if let parsedMode = finished.mode {
             mode = parsedMode
             markManualOverride("mode")
             updateRSTForMode()
         }
 
-        if let rst = parsed.rstSent {
+        if let rst = finished.rstSent {
             rstSent = expandRST(rst)
             markManualOverride("rstSent")
+            rstSentFromEntry = true
+        } else if rstSentFromEntry {
+            rstSent = defaultRST
+            manualOverrides.remove("rstSent")
+            rstSentFromEntry = false
         }
-        if let rst = parsed.rstReceived {
+        if let rst = finished.rstReceived {
             rstReceived = expandRST(rst)
             markManualOverride("rstReceived")
+            rstReceivedFromEntry = true
+        } else if rstReceivedFromEntry {
+            rstReceived = defaultRST
+            manualOverrides.remove("rstReceived")
+            rstReceivedFromEntry = false
         }
-        if let freq = parsed.frequency {
+
+        if let freq = finished.frequency {
             frequencyText = freq
             markManualOverride("frequency")
             updateModeFromFrequency()
         }
-        if let q = parsed.qth {
+        if let q = finished.qth {
             qth = q
             markManualOverride("qth")
         }
-        if let g = parsed.gridSquare {
+        if let g = finished.gridSquare {
             gridInput = g
         }
-        if let ref = parsed.potaRef {
+        if let ref = finished.potaRef {
             potaRefInput = ref
             markManualOverride("potaRef")
             validatePOTARef()
         }
-        if let ref = parsed.sotaRef {
+        if let ref = finished.sotaRef {
             sotaRefInput = ref
             markManualOverride("sotaRef")
             validateSOTARef()
         }
-        if let time = parsed.timeOn {
+        if let time = finished.timeOn {
             timeOnInput = time
         }
 
         consumeTokens(parsed)
     }
 
-    /// Undoes a previously-previewed field when the operator types past it into a different kind.
-    /// Only applies to fields that show a live preview in the metadata strip. The field goes
-    /// back to what it held before the token was started, with its manualOverride, so a typed
-    /// QTH or reference survives and an empty one doesn't suppress a later auto-populate.
-    private func clearPreview(kind: ParsedEntry.TokenKind) {
-        let baseline = previewBaseline
-        func restoreOverride(_ field: String) {
-            if baseline?.manualOverrides.contains(field) == true {
-                manualOverrides.insert(field)
-            } else {
-                manualOverrides.remove(field)
-            }
-        }
-        switch kind {
-        case .rst:
-            // A partially-typed time or frequency ("14…") previews as RST until the
-            // trailing Z or decimal point flips its kind. Reset both RST fields; any
-            // real RST tokens stay in entryText and re-apply in the same parse.
-            rstSent = defaultRST
-            rstReceived = defaultRST
-            manualOverrides.remove("rstSent")
-            manualOverrides.remove("rstReceived")
-        case .time:
-            timeOnInput = baseline?.timeOnInput ?? editingQSO?.timeOn ?? ""
-        case .qth:
-            qth = baseline?.qth ?? ""
-            restoreOverride("qth")
-        case .gridSquare:
-            gridInput = baseline?.gridInput ?? ""
-        case .potaRef:
-            potaRefInput = baseline?.potaRefInput ?? ""
-            restoreOverride("potaRef")
-            validatePOTARef()
-        case .sotaRef:
-            sotaRefInput = baseline?.sotaRefInput ?? ""
-            restoreOverride("sotaRef")
-            validateSOTARef()
-        default:
-            break
-        }
+    /// Finishes the word still being typed, as a space would. Send and the CW message keys
+    /// call this so `K6ABC 55` uses the 55 without a trailing space.
+    func confirmEntry() {
+        guard !entryText.isEmpty, !entryText.hasSuffix(" ") else { return }
+        entryText += " "
+        parseEntry()
     }
 
     /// Strip consumed tokens (frequency, mode, QTH, grid, park ref, summit ref, time) from
@@ -313,17 +270,6 @@ final class QSOEntryViewModel {
         if consumedFrequency || consumedMode {
             pushFrequencyToRadio()
         }
-    }
-
-    /// Send while a corrected callsign is still being typed, with no trailing space yet,
-    /// saves the correction rather than the callsign it replaces.
-    private func applyPendingCorrection() {
-        guard !entryText.hasSuffix(" "),
-              let last = OmniFieldParser.parse(entryText).tokens.dropFirst().last,
-              last.kind == .callsign
-        else { return }
-        entryText += " "
-        parseEntry()
     }
 
     func markManualOverride(_ field: String) {
@@ -611,7 +557,7 @@ final class QSOEntryViewModel {
 
     func saveQSO() async {
         let typedCallsign = parsedCallsign
-        applyPendingCorrection()
+        confirmEntry()
         let callsign = parsedCallsign
         if callsign != typedCallsign {
             // The debounced lookup never ran for a correction made on Send. Fill
@@ -740,8 +686,8 @@ final class QSOEntryViewModel {
         workedToday = 0
         isDupe = false
         grid = nil
-        previewKind = nil
-        previewBaseline = nil
+        rstSentFromEntry = false
+        rstReceivedFromEntry = false
         manualOverrides = []
         // frequency and mode persist between QSOs
     }
@@ -842,6 +788,7 @@ final class QSOEntryViewModel {
     }
 
     func sendCWMacro(_ template: String) {
+        confirmEntry()
         let message = expandTemplate(template)
         guard !message.isEmpty else { return }
         Task {
@@ -875,8 +822,8 @@ final class QSOEntryViewModel {
         workedToday = 0
         isDupe = false
         grid = nil
-        previewKind = nil
-        previewBaseline = nil
+        rstSentFromEntry = false
+        rstReceivedFromEntry = false
         manualOverrides = []
         // frequency and mode persist between QSOs
     }
