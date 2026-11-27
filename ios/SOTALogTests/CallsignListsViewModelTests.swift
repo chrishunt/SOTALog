@@ -13,11 +13,24 @@ final class CallsignListsViewModelTests: XCTestCase {
 
     /// A service that answers every request with `status` and `body`, never touching the network.
     private func service(status: Int = 200, body: String) -> CallsignListService {
+        service(answers: [(status, body)])
+    }
+
+    /// A service that gives each answer in turn, then repeats the last, and counts requests.
+    private func service(answers: [(Int, String)], requests: Counter = Counter()) -> CallsignListService {
         let transport = HTTPTransport { request in
+            let (status, body) = answers[min(requests.next(), answers.count - 1)]
             let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
             return (Data(body.utf8), response)
         }
         return CallsignListService(client: APIClient(userAgent: "SOTALogTests", transport: transport))
+    }
+
+    final class Counter: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value = 0
+        var count: Int { lock.withLock { value } }
+        func next() -> Int { lock.withLock { defer { value += 1 }; return value } }
     }
 
     private let club = "# TITLE: CWO members\nAC4NK 🌊 Banks\nKI7QCF 🐛 Forrest\nK5OHY 🌊 Tim\n"
@@ -32,6 +45,7 @@ final class CallsignListsViewModelTests: XCTestCase {
         await editor.fetch()
 
         XCTAssertEqual(editor.file?.entries.count, 3)
+        XCTAssertEqual(editor.callsText, "3 calls")
         XCTAssertEqual(editor.name, "CWO members")
         XCTAssertEqual(editor.emoji, "🌊")
         XCTAssertTrue(editor.canSave)
@@ -65,6 +79,53 @@ final class CallsignListsViewModelTests: XCTestCase {
 
         XCTAssertFalse(saved)
         XCTAssertEqual(editor.saveError, CallsignListError.emojiInUse(listName: "Friends").localizedDescription)
+    }
+
+    func testAPastedLinkDownloadsAtOnceButTypingWaitsForGo() async {
+        let requests = Counter()
+        let editor = CallsignListEditorViewModel(database: db, service: service(answers: [(200, club)], requests: requests))
+
+        editor.link = "https://ditdit.c"
+        await editor.linkChanged(from: "https://ditdit.")
+        XCTAssertEqual(requests.count, 0, "one more character typed is not a paste")
+        XCTAssertNil(editor.fetchError)
+
+        editor.link = link
+        await editor.linkChanged(from: "")
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertNotNil(editor.file)
+    }
+
+    func testAFailedDownloadCanBeTriedAgain() async {
+        let editor = CallsignListEditorViewModel(database: db, service: service(answers: [(503, ""), (200, club)]))
+        editor.link = link
+
+        await editor.fetch()
+        XCTAssertNotNil(editor.fetchError)
+        XCTAssertFalse(editor.canSave)
+
+        await editor.fetch()
+        XCTAssertNil(editor.fetchError)
+        XCTAssertNotNil(editor.file)
+        XCTAssertTrue(editor.canSave)
+    }
+
+    func testChangingTheLinkAfterADownloadCannotSaveTheOldFile() async {
+        let editor = CallsignListEditorViewModel(database: db, service: service(body: club))
+        editor.link = link
+        await editor.fetch()
+        XCTAssertTrue(editor.canSave)
+
+        editor.link = "https://example.com/other.tx"
+        await editor.linkChanged(from: link)
+
+        XCTAssertNil(editor.file)
+        XCTAssertFalse(editor.canSave)
+    }
+
+    func testNotesReadAsPlainText() {
+        XCTAssertEqual(CallsignListEditorViewModel.plainText("🌊 Banks 📺 [Ryan Banks - AC4NK](https://www.youtube.com/@x)"), "🌊 Banks 📺 Ryan Banks - AC4NK")
+        XCTAssertEqual(CallsignListEditorViewModel.plainText("Ken |  | OH"), "Ken |  | OH")
     }
 
     func testTheEmojiFieldKeepsOnlyTheLastEmojiTyped() {
@@ -124,5 +185,6 @@ final class CallsignListsViewModelTests: XCTestCase {
 
         let one = CallsignList(link: "https://example.com/a", name: "A", emoji: "⭐", callsignCount: 1)
         XCTAssertEqual(CallsignListsViewModel.summary(of: one), "1 call · example.com")
+        XCTAssertEqual(CallsignListsViewModel.callsText(0), "0 calls")
     }
 }

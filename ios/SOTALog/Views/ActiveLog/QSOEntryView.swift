@@ -112,7 +112,6 @@ struct QSOEntryView: View {
         }
         .onAppear {
             viewModel.spotLookup = spotsViewModel.spotForCallsign
-            viewModel.markLookup = { [marksStore] in marksStore.marks.mark(for: $0) }
             viewModel.qrzLookup = qrzService
             viewModel.sotaCatService = sotaCatService
             if sotaCatService.isConnected {
@@ -157,7 +156,7 @@ struct QSOEntryView: View {
             frequencyText: $viewModel.frequencyText,
             mode: $viewModel.mode,
             name: $viewModel.name,
-            nameMark: viewModel.callsignMark,
+            nameMark: nameMark,
             qth: $viewModel.qth,
             potaRefInput: $viewModel.potaRefInput,
             potaRefFormatted: viewModel.potaRefFormatted,
@@ -177,6 +176,13 @@ struct QSOEntryView: View {
             onFrequencyCommitted: { viewModel.pushFrequencyToRadio() },
             onSubmit: { focusedField = .callsign }
         )
+    }
+
+    /// Read live, so a list changed mid-entry shows at once. A partial
+    /// callsign is not looked up.
+    private var nameMark: String? {
+        let call = viewModel.parsedCallsign
+        return call.count >= 3 ? marksStore.marks.mark(for: call) : nil
     }
 
     // MARK: - Editing Banner

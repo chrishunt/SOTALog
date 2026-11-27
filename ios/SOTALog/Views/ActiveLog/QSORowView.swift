@@ -3,7 +3,7 @@ import HamCore
 
 struct QSORowView: View {
     let qso: QSO
-    /// The emoji of every callsign list the station is on, shown before the name.
+    /// One emoji per callsign list the station is on.
     var mark: String? = nil
 
     var body: some View {

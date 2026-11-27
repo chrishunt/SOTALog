@@ -126,7 +126,7 @@ The DUPE badge means saving would write a row that matches one already in this l
 
 Club members and friends are marked wherever a callsign appears. The operator adds a list on the Sync tab by pasting a link to a file in Ham2K PoLo's callsign notes format, so one file serves both apps. Lists are stored for offline use and download only when added or when their row's refresh button is tapped, like the reference databases.
 
-Each list has one emoji, suggested from the file and changeable, and no two lists share one, so a mark always says which list someone is on. The emoji goes in front of the person's name: on the name chip while logging, and on the name line of logged rows. Spots have no name, so it follows the callsign there. Nothing is attached to the callsign field, which changes with every keystroke, and nothing adds a row to the entry panel.
+Each list has one emoji, suggested from the file, and no two lists share one, so a mark always says which list someone is on. The emoji and name can be changed because they are the operator's own labels: a mark only works at a glance if it means something to them, and the suggestion just saves the step when it fits. The emoji goes in front of the person's name: on the name chip while logging, and on the name line of logged rows. Spots have no name, so it follows the callsign there. Nothing is attached to the callsign field, which changes with every keystroke, and nothing adds a row to the entry panel.
 
 Decided against:
 - **An emoji per entry**, as PoLo does: marks from different lists become impossible to tell apart.

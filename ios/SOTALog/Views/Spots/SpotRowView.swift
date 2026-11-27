@@ -4,7 +4,7 @@ import HamCore
 struct SpotRowView: View {
     let spot: Spot
     var isWorked: Bool = false
-    /// The emoji of every callsign list the activator is on, shown after the callsign.
+    /// One emoji per callsign list the activator is on.
     var mark: String? = nil
 
     var body: some View {

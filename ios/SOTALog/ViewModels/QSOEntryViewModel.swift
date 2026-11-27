@@ -46,8 +46,6 @@ final class QSOEntryViewModel {
     var timesWorked: Int = 0
     var workedToday: Int = 0
     var isDupe: Bool = false
-    /// The emoji of every callsign list the station is on, shown before the name.
-    var callsignMark: String?
     var lastSavedQSO: QSO?
     var saveCount: Int = 0
 
@@ -70,7 +68,6 @@ final class QSOEntryViewModel {
     var keyerSendCount: Int = 0
 
     var spotLookup: ((String) -> Spot?)?
-    var markLookup: ((String) -> String?)?
     var qrzLookup: QRZLookupService?
     var sotaCatService: SOTACatService?
 
@@ -317,8 +314,7 @@ final class QSOEntryViewModel {
             async let spot: Void = resolveSpotData(call)
             async let today: Void = resolveWorkedToday(call)
             async let dupe: Void = resolveDupe(call)
-            async let mark: Void = resolveMark(call)
-            _ = await (local, worked, qrz, spot, today, dupe, mark)
+            _ = await (local, worked, qrz, spot, today, dupe)
         }
     }
 
@@ -386,12 +382,6 @@ final class QSOEntryViewModel {
                 validateSOTARef()
             }
         }
-    }
-
-    private func resolveMark(_ call: String) async {
-        let mark = markLookup?(call)
-        guard !Task.isCancelled else { return }
-        await MainActor.run { callsignMark = mark }
     }
 
     /// Check if this callsign+band+mode+references is a duplicate within the current activation.
@@ -687,7 +677,6 @@ final class QSOEntryViewModel {
         timesWorked = 0
         workedToday = 0
         isDupe = false
-        callsignMark = nil
         grid = nil
         previewKind = nil
         manualOverrides = []
@@ -698,7 +687,6 @@ final class QSOEntryViewModel {
         timesWorked = 0
         workedToday = 0
         isDupe = false
-        callsignMark = nil
         name = ""
         qth = ""
         grid = nil
@@ -802,7 +790,6 @@ final class QSOEntryViewModel {
         timesWorked = 0
         workedToday = 0
         isDupe = false
-        callsignMark = nil
         grid = nil
         previewKind = nil
         manualOverrides = []

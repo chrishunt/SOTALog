@@ -11,7 +11,8 @@ struct EmojiField: UIViewRepresentable {
 
     func makeUIView(context: Context) -> EmojiTextField {
         let field = EmojiTextField()
-        field.font = .systemFont(ofSize: 24)
+        field.font = .preferredFont(forTextStyle: .title2)
+        field.adjustsFontForContentSizeCategory = true
         field.textAlignment = .center
         field.tintColor = .clear
         field.addTarget(context.coordinator, action: #selector(Coordinator.editingChanged(_:)), for: .editingChanged)

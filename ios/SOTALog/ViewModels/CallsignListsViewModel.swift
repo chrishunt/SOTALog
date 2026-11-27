@@ -3,7 +3,7 @@ import HamCore
 import Observation
 
 /// The Sync tab's callsign lists: what is stored, which are downloading, and
-/// what went wrong. Lists download only when the operator adds or refreshes one.
+/// what went wrong.
 @Observable
 final class CallsignListsViewModel {
     private let repo: CallsignListRepository
@@ -47,10 +47,15 @@ final class CallsignListsViewModel {
 
     /// What a row says under the list's name, such as "66 calls · ditdit.club · Nov 27".
     static func summary(of list: CallsignList) -> String {
-        let calls = list.callsignCount == 1 ? "1 call" : "\(list.callsignCount.formatted()) calls"
+        let calls = callsText(list.callsignCount)
         let host = URL(string: list.link)?.host
         let date = list.lastRefreshed?.shortDateDisplay
         return [calls, host, date].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    /// "1 call" or "66 calls".
+    static func callsText(_ count: Int) -> String {
+        count == 1 ? "1 call" : "\(count.formatted()) calls"
     }
 }
 
@@ -87,9 +92,44 @@ final class CallsignListEditorViewModel {
 
     var isAdding: Bool { editing == nil }
 
+    /// Adding needs the file downloaded from the link as it reads now, so a
+    /// link changed after its download can't be saved with the old file.
     var canSave: Bool {
         let named = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        return named && emoji.emojis.count == 1 && (editing != nil || (file != nil && !isFetching))
+        let downloaded = file != nil && !isFetching && fetchedLink == trimmedLink
+        return named && !emoji.isEmpty && (editing != nil || downloaded)
+    }
+
+    /// How many calls the downloaded file holds, counted as a stored list's are.
+    var callsText: String? {
+        file.map { CallsignListsViewModel.callsText(Set($0.entries.map(\.callsign)).count) }
+    }
+
+    private var trimmedLink: String { link.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    /// More characters than this arriving at once is a paste, not typing.
+    private static let pasteLength = 10
+
+    /// The link field changed. A download for another link no longer applies,
+    /// and a whole link pasted in downloads at once; typing waits for Go.
+    @MainActor
+    func linkChanged(from oldLink: String) async {
+        guard isAdding else { return }
+        if trimmedLink != fetchedLink {
+            file = nil
+            fetchError = nil
+        }
+        let inserted = trimmedLink.count - oldLink.trimmingCharacters(in: .whitespacesAndNewlines).count
+        if inserted >= Self.pasteLength, CallsignListService.downloadURL(for: trimmedLink) != nil {
+            await fetch()
+        }
+    }
+
+    /// A note as it reads, with markdown such as `[name](link)` shown as its text.
+    static func plainText(_ note: String) -> String {
+        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        guard let parsed = try? AttributedString(markdown: note, options: options) else { return note }
+        return String(parsed.characters)
     }
 
     /// Keeps only the last emoji typed, so the field always holds one.
@@ -100,11 +140,12 @@ final class CallsignListEditorViewModel {
     }
 
     /// Downloads the link, unless it is blank or already downloaded, and
-    /// starts the name and emoji from what the file suggests.
+    /// starts the name and emoji from what the file suggests. A failed
+    /// download can be tried again.
     @MainActor
     func fetch() async {
-        let link = link.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard isAdding, link != fetchedLink else { return }
+        let link = trimmedLink
+        guard isAdding, !isFetching, link != fetchedLink else { return }
         fetchedLink = link
         file = nil
         fetchError = nil
@@ -115,12 +156,13 @@ final class CallsignListEditorViewModel {
         defer { isFetching = false }
         do {
             let file = try await service.fetch(link: link)
-            guard link == self.link.trimmingCharacters(in: .whitespacesAndNewlines) else { return }
+            guard link == trimmedLink else { return }
             self.file = file
             name = CallsignList.suggestedName(link: link, file: file)
-            emoji = (try? await repo.suggestedEmoji(for: file)) ?? "⭐"
+            emoji = (try? await repo.suggestedEmoji(for: file)) ?? ""
         } catch {
-            guard link == self.link.trimmingCharacters(in: .whitespacesAndNewlines) else { return }
+            fetchedLink = nil
+            guard link == trimmedLink, !(error is CancellationError) else { return }
             fetchError = error.localizedDescription
         }
     }
@@ -134,8 +176,8 @@ final class CallsignListEditorViewModel {
                 list.name = name
                 list.emoji = emoji
                 try await repo.updateNameAndEmoji(of: list)
-            } else if let file {
-                try await repo.add(link: link, name: name, emoji: emoji, file: file)
+            } else if let file, let fetchedLink {
+                try await repo.add(link: fetchedLink, name: name, emoji: emoji, file: file)
             }
             return true
         } catch {

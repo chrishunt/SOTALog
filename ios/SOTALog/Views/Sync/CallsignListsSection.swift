@@ -1,8 +1,7 @@
 import SwiftUI
 import HamCore
 
-/// The Sync tab's callsign lists. Each row downloads again only when its
-/// refresh button is tapped, like the reference databases.
+/// The Sync tab's callsign lists.
 struct CallsignListsSection: View {
     let database: LogbookDatabase
     @State private var viewModel: CallsignListsViewModel
@@ -109,6 +108,7 @@ struct CallsignListEditorView: View {
     @State var viewModel: CallsignListEditorViewModel
     @Environment(\.dismiss) private var dismiss
     @FocusState private var linkFocused: Bool
+    @ScaledMetric(relativeTo: .title2) private var emojiSide: CGFloat = 44
 
     var body: some View {
         NavigationStack {
@@ -141,11 +141,8 @@ struct CallsignListEditorView: View {
                     .disabled(!viewModel.canSave)
                 }
             }
-            .task(id: viewModel.link) {
-                guard viewModel.isAdding else { return }
-                try? await Task.sleep(for: .milliseconds(600))
-                guard !Task.isCancelled else { return }
-                await viewModel.fetch()
+            .onChange(of: viewModel.link) { oldLink, _ in
+                Task { await viewModel.linkChanged(from: oldLink) }
             }
             .onAppear { linkFocused = viewModel.isAdding }
         }
@@ -180,7 +177,7 @@ struct CallsignListEditorView: View {
             } else if let error = viewModel.fetchError {
                 Text(error).foregroundStyle(Color.appRed)
             } else if viewModel.isAdding {
-                Text("A PoLo callsign notes file. Share links from GitHub Gist, Dropbox and Google Drive work too.")
+                Text("A PoLo callsign notes file. Share links from GitHub Gist, Dropbox, Google Drive and Google Docs work too.")
             }
         }
     }
@@ -190,12 +187,12 @@ struct CallsignListEditorView: View {
             HStack(spacing: 12) {
                 #if os(iOS)
                 EmojiField(emoji: viewModel.emoji) { viewModel.emojiChanged($0) }
-                    .frame(width: 44, height: 36)
+                    .frame(width: emojiSide, height: emojiSide)
                     .background(Color.appTextSecondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
                 #endif
                 TextField("Name", text: $viewModel.name)
-                if let file = viewModel.file {
-                    Text(callCount(file))
+                if let callsText = viewModel.callsText {
+                    Text(callsText)
                         .font(.appLabel)
                         .foregroundStyle(Color.appTextSecondary)
                 }
@@ -216,7 +213,7 @@ struct CallsignListEditorView: View {
                     Text(entry.callsign)
                         .font(.appCallsignRow)
                         .frame(minWidth: 72, alignment: .leading)
-                    Text(Self.plainText(entry.note))
+                    Text(CallsignListEditorViewModel.plainText(entry.note))
                         .font(.appLabel)
                         .foregroundStyle(Color.appTextSecondary)
                         .lineLimit(1)
@@ -229,17 +226,5 @@ struct CallsignListEditorView: View {
                     .foregroundStyle(Color.appTextSecondary)
             }
         }
-    }
-
-    /// A note as it reads, with markdown such as `[name](link)` shown as its text.
-    static func plainText(_ note: String) -> String {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard let parsed = try? AttributedString(markdown: note, options: options) else { return note }
-        return String(parsed.characters)
-    }
-
-        private func callCount(_ file: CallsignListFile) -> String {
-        let count = Set(file.entries.map(\.callsign)).count
-        return count == 1 ? "1 call" : "\(count.formatted()) calls"
     }
 }
