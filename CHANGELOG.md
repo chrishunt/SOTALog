@@ -6,6 +6,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- Name, QTH and grid fill offline for every station in your log, including contacts brought in by a QRZ download. They come straight from the log, so edits and deletes show up immediately too, and QRZ lookups are no longer cached separately
+
 ### Changed
 - The domain layer — models, the GRDB database and repositories, ADIF, band plan, callsign utilities, and the SOTA, POTA and QRZ clients — now lives in the separate [`ham-core`](https://github.com/chrishunt/ham-core) Swift package, which the iOS app depends on. No user-facing change
 - ADIF exports record the app's actual version in `PROGRAMVERSION` instead of a fixed 1.0, and the SOTA, POTA and QRZ requests identify the app with its real version

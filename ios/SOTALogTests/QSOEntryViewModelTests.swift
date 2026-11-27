@@ -174,7 +174,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.lastSavedQSO?.band, "40m")
     }
 
-    func testSaveUpdatesCallsignHistory() async throws {
+    func testSavedDetailsAreLookedUpNextTime() async throws {
         let vm = makeVM()
         vm.entryText = "K3ABC"
         vm.name = "John"
@@ -182,11 +182,14 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         await vm.saveQSO()
 
-        // Count is derived from the QSO table; enrichment is cached in history.
+        // Both the count and the details are read back from the log.
         let count = try await QSORepository(database: db).countForCallsign("K3ABC")
         XCTAssertEqual(count, 1)
-        let history = try await CallsignHistoryRepository(database: db).fetch(callsign: "K3ABC")
-        XCTAssertEqual(history?.name, "John")
+        vm.entryText = "K3ABC"
+        vm.callsignChanged()
+        try await Task.sleep(for: .milliseconds(500))
+        XCTAssertEqual(vm.name, "John")
+        XCTAssertEqual(vm.qth, "PA")
     }
 
     func testSaveEmptyCallsignIsNoop() async throws {
@@ -436,7 +439,6 @@ final class QSOEntryViewModelTests: XCTestCase {
     func testEditingDoesNotIncrementWorkedCount() async throws {
         let vm = makeVM()
         let qsoRepo = QSORepository(database: db)
-        let historyRepo = CallsignHistoryRepository(database: db)
 
         // Log a brand-new QSO → derived worked count is 1
         vm.entryText = "K3ABC"
@@ -454,8 +456,8 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         count = try await qsoRepo.countForCallsign("K3ABC")
         XCTAssertEqual(count, 1, "Editing a QSO must not change the worked count")
-        let history = try await historyRepo.fetch(callsign: "K3ABC")
-        XCTAssertEqual(history?.name, "Johnny", "Edited details should still refresh history")
+        let details = try await qsoRepo.details(forCallsign: "K3ABC")
+        XCTAssertEqual(details?.name, "Johnny", "The next lookup should see the edited details")
     }
 
     func testChangingCallsignOnEditMovesTheCount() async throws {
@@ -603,14 +605,16 @@ final class QSOEntryViewModelTests: XCTestCase {
 
     // MARK: - Auto-populate Cascade
 
-    func testCallsignChangedPopulatesFromHistory() async throws {
-        // Enrichment (name/qth) is cached in history; the worked count is derived
-        // from an actual prior QSO in the log.
-        let historyRepo = CallsignHistoryRepository(database: db)
-        try await historyRepo.recordQSO(callsign: "W1AW", name: "Hiram", qth: "CT", grid: nil)
-        let qsoRepo = QSORepository(database: db)
-        var prior = QSO(logId: log.id!, callsign: "W1AW", date: "20240101", timeOn: "1234", band: "20m")
-        try await qsoRepo.save(&prior)
+    /// Saves a prior contact with W1AW, as a QRZ download would leave it: no log.
+    private func logPriorContact(date: String = "20240101", name: String?, qth: String?) async throws {
+        var prior = QSO(callsign: "W1AW", date: date, timeOn: "1234", band: "20m",
+                        name: name, qth: qth, syncedToQRZ: true)
+        try await QSORepository(database: db).save(&prior)
+    }
+
+    func testCallsignChangedPopulatesFromTheLog() async throws {
+        // Name, QTH and the worked count all come from prior contacts in the log.
+        try await logPriorContact(name: "Hiram", qth: "CT")
 
         let vm = makeVM()
         vm.entryText = "W1AW"
@@ -621,6 +625,20 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.name, "Hiram")
         XCTAssertEqual(vm.qth, "CT")
         XCTAssertEqual(vm.timesWorked, 1)
+    }
+
+    func testCallsignChangedTakesEachFieldFromTheNewestContactThatHasIt() async throws {
+        try await logPriorContact(date: "20240101", name: "Hiram Percy Maxim", qth: "CT")
+        try await logPriorContact(date: "20240301", name: "Hiram", qth: nil)
+
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        vm.callsignChanged()
+
+        try await Task.sleep(for: .milliseconds(500))
+
+        XCTAssertEqual(vm.name, "Hiram")
+        XCTAssertEqual(vm.qth, "CT")
     }
 
     func testCallsignChangedFallsBackToPrefix() async throws {
@@ -667,9 +685,8 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.frequencyText, "14.060")
     }
 
-    func testHistoryDoesNotOverwriteExistingFields() async throws {
-        let historyRepo = CallsignHistoryRepository(database: db)
-        try await historyRepo.recordQSO(callsign: "W1AW", name: "Hiram", qth: "CT", grid: nil)
+    func testTheLogDoesNotOverwriteExistingFields() async throws {
+        try await logPriorContact(name: "Hiram", qth: "CT")
 
         let vm = makeVM()
         vm.name = "Manual Name"
@@ -678,27 +695,12 @@ final class QSOEntryViewModelTests: XCTestCase {
 
         try await Task.sleep(for: .milliseconds(500))
 
-        // History is LOW authority — should not overwrite non-empty name
+        // The log is LOW authority — should not overwrite non-empty name
         XCTAssertEqual(vm.name, "Manual Name")
     }
 
-    func testSaveEnrichesHistory() async throws {
-        let vm = makeVM()
-        vm.entryText = "W1AW"
-        vm.name = "Hiram"
-        vm.qth = "CT"
-
-        await vm.saveQSO()
-
-        let history = try await CallsignHistoryRepository(database: db).fetch(callsign: "W1AW")
-        XCTAssertEqual(history?.name, "Hiram")
-        let count = try await QSORepository(database: db).countForCallsign("W1AW")
-        XCTAssertEqual(count, 1)
-    }
-
     func testShortCallsignClearsLookup() async throws {
-        let historyRepo = CallsignHistoryRepository(database: db)
-        try await historyRepo.recordQSO(callsign: "W1AW", name: "Hiram", qth: "CT", grid: nil)
+        try await logPriorContact(name: "Hiram", qth: "CT")
 
         let vm = makeVM()
         vm.entryText = "W1AW"
@@ -1265,7 +1267,7 @@ final class QSOEntryViewModelTests: XCTestCase {
         vm.parseEntry()
         XCTAssertEqual(vm.qth, "")
         XCTAssertFalse(vm.hasManualOverride("qth"),
-                       "Preview-clear must drop the override so QRZ/history can fill the empty field")
+                       "Preview-clear must drop the override so QRZ or the log can fill the empty field")
     }
 
     func testPOTAPreviewClearAlsoDropsManualOverride() {

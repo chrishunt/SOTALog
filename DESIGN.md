@@ -44,7 +44,7 @@ The operator is sitting on a cold summit or crouched at a picnic table in a park
 
 1. **Callsign entry** — The callsign field is auto-focused on appear. It's the dominant visual element — big, bold, monospaced. The operator types the callsign they just worked. Additional tokens (RST, frequency, QTH, references) can be space-separated in the same field via the OmniField. The placeholder shows a realistic example (`W1AW 59 59 CA W6SD133`) so operators discover the OmniField's capabilities.
 
-2. **Auto-populate** — Name and QTH fill from history of previous contacts. QTH fills from the callsign prefix if still empty. A "times worked" badge appears for repeat contacts.
+2. **Auto-populate** — Name, QTH and grid fill field by field, highest authority first: what the operator typed, a live QRZ lookup, the newest contact in the log that has the field, and for QTH the callsign prefix. Blanks never erase a lower source. Nothing is cached: the log is read directly, so a QRZ download, edit or delete is reflected at once and works offline. A "times worked" badge appears for repeat contacts.
 
 3. **Sensible defaults** — Frequency persists from the previous QSO (you're on the same frequency). Mode is derived from frequency (CW, SSB, or FM sub-band). RST defaults to 599 for CW, 59 for voice modes. Band is derived from frequency. Date and time are stamped at save.
 

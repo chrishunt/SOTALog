@@ -33,7 +33,7 @@ Built for summits and parks — cold hands, wind, rain. One text field. One tap 
 
 ◉ **Live spots** — Pull SOTA and POTA spots into a half-sheet overlay. Filter by program and mode. Tap a spot to prefill your QSO and tune your radio.
 
-✦ **Smart defaults** — Mode derives from frequency. RST defaults match mode. Frequency persists between contacts. Name and QTH auto-populate from history. Dupe detection per callsign+band.
+✦ **Smart defaults** — Mode derives from frequency. RST defaults match mode. Frequency persists between contacts. Name, QTH and grid auto-populate from your log. Dupe detection per callsign+band.
 
 ⇄ **QRZ sync** — Look up callsign info. Sync your log to QRZ Logbook. ADIF import/export.
 
