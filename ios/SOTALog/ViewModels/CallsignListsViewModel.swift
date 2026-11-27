@@ -125,13 +125,6 @@ final class CallsignListEditorViewModel {
         }
     }
 
-    /// A note as it reads, with markdown such as `[name](link)` shown as its text.
-    static func plainText(_ note: String) -> String {
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard let parsed = try? AttributedString(markdown: note, options: options) else { return note }
-        return String(parsed.characters)
-    }
-
     /// Keeps only the last emoji typed, so the field always holds one.
     func emojiChanged(_ newValue: String) {
         let kept = newValue.emojis.last ?? ""

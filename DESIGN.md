@@ -126,11 +126,13 @@ The DUPE badge means saving would write a row that matches one already in this l
 
 Club members and friends are marked wherever a callsign appears. The operator adds a list on the Sync tab by pasting a link to a file in Ham2K PoLo's callsign notes format, so one file serves both apps. Lists are stored for offline use and download only when added or when their row's refresh button is tapped, like the reference databases.
 
-Each list has one emoji, suggested from the file, and no two lists share one, so a mark always says which list someone is on. The emoji and name can be changed because they are the operator's own labels: a mark only works at a glance if it means something to them, and the suggestion just saves the step when it fits. The emoji goes in front of the person's name: on the name chip while logging, and on the name line of logged rows. Spots have no name, so it follows the callsign there. Nothing is attached to the callsign field, which changes with every keystroke, and nothing adds a row to the entry panel.
+Each list has one emoji, suggested from the file, and no two lists share one, so a mark always says which list someone is on. The emoji and name can be changed because they are the operator's own labels: a mark only works at a glance if it means something to them, and the suggestion just saves the step when it fits. While logging, the emoji and the list's note about the station sit on their own read-only line above the chips, one line per list. The note is what the list says about someone, which matters most offline with a station never worked, when there is no name from QRZ or the log. It is free-form, not a name, so it is only shown: never filled into the name or saved on the contact. A blank note shows the list's name, so an emoji is never unexplained. Each line is cut off rather than wrapped, so a long note can't push the chips around. On logged rows the emoji goes in front of the person's name, and spots have no name, so it follows the callsign there. Nothing is attached to the callsign field, which changes with every keystroke.
 
 Decided against:
 - **An emoji per entry**, as PoLo does: marks from different lists become impossible to tell apart.
-- **Showing the note while logging**: it mostly repeats the name and callsign, and its free-form text truncates into fragments.
+- **Using the note as the name when nothing else gives one**: it is free-form text, and would be saved, exported and uploaded as if it were a name.
+- **All lists' notes on one line**: the second list's note was cut off almost at once.
+- **Notes on logged rows and spots**: they are for the moment of logging, and would crowd every listed row.
 - **Pinning listed stations to the top of the spots sheet**: the emoji already makes them easy to find.
 - **Editing lists in the app**: a list is just a file at a link; a Gist does the job.
 - **Refreshing lists automatically**, even when the Sync tab opens: every other download waits for a tap.

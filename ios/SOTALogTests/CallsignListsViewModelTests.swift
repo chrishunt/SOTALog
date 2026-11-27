@@ -123,11 +123,6 @@ final class CallsignListsViewModelTests: XCTestCase {
         XCTAssertFalse(editor.canSave)
     }
 
-    func testNotesReadAsPlainText() {
-        XCTAssertEqual(CallsignListEditorViewModel.plainText("🌊 Banks 📺 [Ryan Banks - AC4NK](https://www.youtube.com/@x)"), "🌊 Banks 📺 Ryan Banks - AC4NK")
-        XCTAssertEqual(CallsignListEditorViewModel.plainText("Ken |  | OH"), "Ken |  | OH")
-    }
-
     func testTheEmojiFieldKeepsOnlyTheLastEmojiTyped() {
         let editor = CallsignListEditorViewModel(database: db)
         editor.emojiChanged("🌊🐛")

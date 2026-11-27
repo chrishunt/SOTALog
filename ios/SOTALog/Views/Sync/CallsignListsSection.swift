@@ -52,8 +52,6 @@ struct CallsignListsSection: View {
             }
         } header: {
             Text("Callsign Lists")
-        } footer: {
-            Text("Callsigns on these lists are marked when you log or see them spotted.")
         }
     }
 
@@ -213,7 +211,7 @@ struct CallsignListEditorView: View {
                     Text(entry.callsign)
                         .font(.appCallsignRow)
                         .frame(minWidth: 72, alignment: .leading)
-                    Text(CallsignListEditorViewModel.plainText(entry.note))
+                    Text(CallsignListFile.readable(note: entry.note))
                         .font(.appLabel)
                         .foregroundStyle(Color.appTextSecondary)
                         .lineLimit(1)

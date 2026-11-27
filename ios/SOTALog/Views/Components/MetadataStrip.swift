@@ -4,8 +4,6 @@ import HamCore
 /// Compact metadata display for QSO entry: a single cloud of chips in stable
 /// semantic order — [time] frequency, mode, RST sent, RST received,
 /// [park ref ✓], [summit ref ✓], then name, QTH, and grid when populated.
-/// The name chip leads with the emoji of every callsign list the station is
-/// on, and shows just the emoji until a name arrives.
 /// Tap any chip to edit inline. Send saves the QSO.
 /// The time chip appears when editing a QSO or after a time token ("1432Z") is typed.
 /// Chips keep their natural size and wrap to a new row when they don't fit.
@@ -17,7 +15,6 @@ struct MetadataStrip: View {
     @Binding var frequencyText: String
     @Binding var mode: String
     @Binding var name: String
-    var nameMark: String? = nil
     @Binding var qth: String
     @Binding var potaRefInput: String
     var potaRefFormatted: String?
@@ -90,8 +87,8 @@ struct MetadataStrip: View {
                 segment(sotaRefInput, field: .sotaRef)
             }
 
-            if !name.isEmpty || nameMark != nil {
-                segment([nameMark, name.isEmpty ? nil : name].compactMap { $0 }.joined(separator: " "), field: .name)
+            if !name.isEmpty {
+                segment(name, field: .name)
                     .layoutValue(key: FlowLayout.MaxWidthFraction.self, value: 0.6)
             }
 

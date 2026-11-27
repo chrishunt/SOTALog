@@ -53,6 +53,10 @@ struct QSOEntryView: View {
                 editingBanner
             }
 
+            if !listNotes.isEmpty {
+                listNoteLines
+            }
+
             metadataStrip
 
             if sotaCatService.isConnected && viewModel.mode == "CW" {
@@ -156,7 +160,6 @@ struct QSOEntryView: View {
             frequencyText: $viewModel.frequencyText,
             mode: $viewModel.mode,
             name: $viewModel.name,
-            nameMark: nameMark,
             qth: $viewModel.qth,
             potaRefInput: $viewModel.potaRefInput,
             potaRefFormatted: viewModel.potaRefFormatted,
@@ -178,11 +181,28 @@ struct QSOEntryView: View {
         )
     }
 
-    /// Read live, so a list changed mid-entry shows at once. A partial
-    /// callsign is not looked up.
-    private var nameMark: String? {
+    // MARK: - Callsign List Notes
+
+    /// One per list the station is on. Read live, so a list changed
+    /// mid-entry shows at once. A partial callsign is not looked up.
+    private var listNotes: [CallsignMarks.Note] {
         let call = viewModel.parsedCallsign
-        return call.count >= 3 ? marksStore.marks.mark(for: call) : nil
+        return call.count >= 3 ? marksStore.marks.notes(for: call) : []
+    }
+
+    /// Read-only, one line per list, cut off at the end rather than wrapping
+    /// so a long note can't push the chips around.
+    private var listNoteLines: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(listNotes, id: \.emoji) { note in
+                Text("\(note.emoji) \(note.text)")
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appTextSecondary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: - Editing Banner
