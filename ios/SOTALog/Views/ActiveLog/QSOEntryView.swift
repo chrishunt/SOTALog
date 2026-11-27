@@ -48,38 +48,35 @@ struct QSOEntryView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             if viewModel.isEditing {
-                editingBanner
-            }
-
-            if !listNotes.isEmpty {
-                listNoteLines
-                    .transition(.opacity)
+                editingStrip
             }
 
             metadataStrip
 
-            if sotaCatService.isConnected && viewModel.mode == "CW" {
-                cwMacroRow
-            }
-
-            callsignRow
-
-            #if os(iOS)
-            if focusedField == .callsign {
-                NumberKeyRow { key in
-                    insertKey(key)
+            VStack(spacing: 8) {
+                if sotaCatService.isConnected && viewModel.mode == "CW" {
+                    cwMacroRow
                 }
-                .padding(.horizontal, -13)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+
+                callsignRow
+
+                #if os(iOS)
+                if focusedField == .callsign {
+                    NumberKeyRow { key in
+                        insertKey(key)
+                    }
+                    .padding(.horizontal, -13)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                #endif
             }
-            #endif
+            .padding(.horizontal)
+            .padding(.top, 8)
         }
         .animation(.easeInOut(duration: 0.15), value: focusedField)
-        .animation(.easeInOut(duration: 0.15), value: listNotes)
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.bottom, 8)
         .background(Color.appSurface)
         .overlay(alignment: .top) { Divider() }
         #if os(iOS)
@@ -157,6 +154,7 @@ struct QSOEntryView: View {
 
     private var metadataStrip: some View {
         MetadataStrip(
+            notes: listNotes,
             rstSent: $viewModel.rstSent,
             rstReceived: $viewModel.rstReceived,
             frequencyText: $viewModel.frequencyText,
@@ -192,30 +190,14 @@ struct QSOEntryView: View {
         return call.count >= 3 ? marksStore.marks.notes(for: call) : []
     }
 
-    /// Read-only, one line per list, cut off at the end rather than wrapping
-    /// so a long note can't push the chips around.
-    private var listNoteLines: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            ForEach(listNotes, id: \.emoji) { note in
-                Text(note.line)
-                    .font(.appLabel)
-                    .foregroundStyle(Color.appTextSecondary)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
+    // MARK: - Editing Strip
 
-    // MARK: - Editing Banner
-
-    private var editingBanner: some View {
+    /// Full width across the top of the panel, the same shape as the station band.
+    private var editingStrip: some View {
         HStack {
             Image(systemName: "pencil.circle.fill")
-                .foregroundStyle(Color.appOrange)
-            Text("Editing: \(viewModel.parsedCallsign)")
+            Text("Editing")
                 .font(.subheadline.bold())
-                .foregroundStyle(Color.appOrange)
             Spacer()
             Button("Cancel") {
                 viewModel.cancelEditing()
@@ -223,11 +205,11 @@ struct QSOEntryView: View {
                 focusedField = .callsign
             }
             .font(.subheadline)
-            .foregroundStyle(Color.appOrange)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color.appOrange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+        .foregroundStyle(Color.appOrange)
+        .padding(.horizontal)
+        .padding(.vertical, 9)
+        .background(Color.appEditingTint)
     }
 
     // MARK: - CW Macro Row

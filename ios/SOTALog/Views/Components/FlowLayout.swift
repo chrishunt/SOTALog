@@ -9,13 +9,6 @@ struct FlowLayout: Layout {
     var spacing: CGFloat = 6
     var rowSpacing: CGFloat = 4
 
-    /// Fraction of the container width a subview may occupy before its text
-    /// truncates. Data chips keep the default 1; prose chips (e.g. a long name)
-    /// set a smaller cap so a single value can't hog a whole row.
-    struct MaxWidthFraction: LayoutValueKey {
-        static let defaultValue: CGFloat = 1
-    }
-
     struct Row: Equatable {
         var range: Range<Int>
         var width: CGFloat
@@ -75,10 +68,7 @@ struct FlowLayout: Layout {
     }
 
     private func chipSizes(_ subviews: Subviews, maxWidth: CGFloat) -> [CGSize] {
-        subviews.map { subview in
-            let cap = maxWidth.isFinite ? maxWidth * subview[MaxWidthFraction.self] : maxWidth
-            return clamped(subview.sizeThatFits(.unspecified), to: cap)
-        }
+        subviews.map { clamped($0.sizeThatFits(.unspecified), to: maxWidth) }
     }
 
     private func finiteWidth(from proposal: ProposedViewSize) -> CGFloat? {
