@@ -28,6 +28,7 @@ Explicit guardrails — if you're considering any of these, stop and reconsider:
 - **Decision points in the logging flow.** The operator's only job is: type callsign, press Send.
 - **Automatic background network requests.** The user controls when the radio goes online.
 - **Undo/confirmation dialogs in the save path.** Haptic feedback is the confirmation. Speed matters more than safety nets on a reversible action.
+- **An Android app.** We had one and dropped it: nobody used it, and keeping it in step with iOS cost a port of every change. The code is in git history.
 
 ---
 
