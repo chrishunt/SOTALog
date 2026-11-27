@@ -562,6 +562,8 @@ final class QSOEntryViewModel {
     /// Main actor because finishing the last word writes the entry and fields the view is bound to.
     @MainActor
     func saveQSO() async {
+        // Only a save that succeeds below may report a contact as saved.
+        lastSavedQSO = nil
         let typedCallsign = parsedCallsign
         confirmEntry()
         let callsign = parsedCallsign

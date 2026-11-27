@@ -80,4 +80,8 @@ extension Color {
     static let appTextSecondary = Color(red: 160/255, green: 160/255, blue: 160/255)
     static let appTextTertiary = Color(red: 120/255, green: 120/255, blue: 120/255)
     #endif
+
+    /// Behind whatever marks a logged contact as being edited: the panel's
+    /// Editing strip and that contact's row in the log.
+    static let appEditingTint = appOrange.opacity(0.14)
 }

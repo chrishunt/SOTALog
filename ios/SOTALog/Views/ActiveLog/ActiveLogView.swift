@@ -152,7 +152,7 @@ struct ActiveLogView: View {
                         QSORowView(qso: qso, mark: marksStore.marks.mark(for: qso.callsign))
                     }
                     .buttonStyle(.plain)
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(rowBackground(isEditing: qso.id != nil && qso.id == editingQSO?.id))
                 }
             }
             .onDelete { offsets in
@@ -167,5 +167,13 @@ struct ActiveLogView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+    }
+
+    /// The row being edited sits in one rounded tint, the same as the panel's
+    /// Editing strip, so it's clear which contact is changing.
+    private func rowBackground(isEditing: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 10)
+            .fill(isEditing ? Color.appEditingTint : Color.clear)
+            .padding(.horizontal, 8)
     }
 }

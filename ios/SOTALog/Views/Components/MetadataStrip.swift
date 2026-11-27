@@ -1,15 +1,23 @@
 import SwiftUI
 import HamCore
 
-/// Compact metadata display for QSO entry: a single cloud of chips in stable
-/// semantic order — [time] frequency, mode, RST sent, RST received,
-/// [park ref ✓], [summit ref ✓], then name, QTH, and grid when populated.
-/// Tap any chip to edit inline. Send saves the QSO.
-/// The time chip appears when editing a QSO or after a time token ("1432Z") is typed.
-/// Chips keep their natural size and wrap to a new row when they don't fit.
-/// Data is never truncated; prose (the name) is width-capped so one long value
-/// can't hog a whole row.
+/// The QSO entry fields above the callsign, in two parts.
+///
+/// The station band says who the other station is: each callsign list's note,
+/// then a line with the name, QTH and grid. It spans the panel's width on a
+/// raised surface and appears only when it has something to show.
+///
+/// Below it, a cloud of chips holds what is set for this contact, in stable
+/// order: [time] frequency, mode, RST sent, RST received, [park ref ✓],
+/// [summit ref ✓]. The time chip appears when editing a QSO or after a time
+/// token ("1432Z") is typed. Chips keep their natural size and wrap rather
+/// than truncate.
+///
+/// Tap any value to edit it inline: the line or chip row it sits on becomes a
+/// text field. Send saves the QSO.
 struct MetadataStrip: View {
+    /// What each callsign list says about the station, one line per list.
+    var notes: [CallsignMarks.Note] = []
     @Binding var rstSent: String
     @Binding var rstReceived: String
     @Binding var frequencyText: String
@@ -38,19 +46,39 @@ struct MetadataStrip: View {
 
     @FocusState private var editFocus: EditField?
     @State private var editingField: EditField?
+    @ScaledMetric(relativeTo: .footnote) private var noteEmojiWidth: CGFloat = 22
 
     private enum EditField: Hashable {
         case time, rstSent, rstReceived, frequency, name, qth, potaRef, sotaRef, grid
+
+        /// Fields about the other station, shown in the band rather than the chips.
+        var isStation: Bool { self == .name || self == .qth || self == .grid }
     }
 
+    private var isEditingStation: Bool { editingField?.isStation == true }
+    private var hasStationLine: Bool { !name.isEmpty || !qth.isEmpty || !gridInput.isEmpty }
+    private var showsBand: Bool { !notes.isEmpty || hasStationLine || isEditingStation }
+
     var body: some View {
-        Group {
-            if editingField != nil {
-                editorField
-            } else {
-                chipRows
+        VStack(spacing: 0) {
+            if showsBand {
+                stationBand
+                    .transition(.opacity)
             }
+
+            Group {
+                if editingField != nil && !isEditingStation {
+                    editorField
+                } else {
+                    chipRows
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.top, 8)
         }
+        .animation(.easeInOut(duration: 0.15), value: showsBand)
+        .animation(.easeInOut(duration: 0.15), value: notes)
         .onChange(of: editingField) { oldValue, newValue in
             if oldValue == nil, newValue != nil {
                 onBeginEditing()
@@ -93,23 +121,130 @@ struct MetadataStrip: View {
             } else if !sotaRefInput.isEmpty {
                 segment(sotaRefInput, field: .sotaRef)
             }
-
-            if !name.isEmpty {
-                segment(name, field: .name)
-                    .layoutValue(key: FlowLayout.MaxWidthFraction.self, value: 0.6)
-            }
-
-            if !qth.isEmpty {
-                segment(qth, field: .qth)
-            }
-
-            if !gridInput.isEmpty {
-                segment(gridInput, field: .grid)
-            }
         }
         .font(.appMetadata)
         .foregroundStyle(Color.appTextSecondary)
         .lineLimit(1)
+    }
+
+    // MARK: - Station Band
+
+    private var stationBand: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if !notes.isEmpty {
+                noteLines
+            }
+
+            if isEditingStation {
+                editorField
+            } else if hasStationLine {
+                stationLine
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color.appSurfaceRaised)
+        .overlay(alignment: .bottom) { Divider() }
+    }
+
+    /// One line per list, cut off rather than wrapped. Emoji sit in a fixed
+    /// column so the notes line up.
+    private var noteLines: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(notes, id: \.emoji) { note in
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    Text(note.emoji)
+                        .frame(width: noteEmojiWidth, alignment: .leading)
+                    Text(note.text)
+                }
+                .font(.appLabel)
+                .foregroundStyle(Color.appTextSecondary)
+                .lineLimit(1)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// The name, large, with QTH and grid beside it. They move under the name
+    /// when it is too long to share the line.
+    private var stationLine: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                stationName
+                stationLocation
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                stationName
+                stationLocation
+            }
+        }
+        .lineLimit(1)
+    }
+
+    @ViewBuilder
+    private var stationName: some View {
+        if !name.isEmpty {
+            stationButton(name, field: .name, underline: Color.appTextPrimary.opacity(0.25))
+                .font(.appStationName)
+                .foregroundStyle(Color.appTextPrimary)
+                .accessibilityLabel("Name, \(name)")
+        }
+    }
+
+    /// QTH and grid carry their own side padding so short values like "CA"
+    /// stay as easy to tap as the chips were; the negative leading padding
+    /// keeps the text aligned with the name.
+    @ViewBuilder
+    private var stationLocation: some View {
+        if !qth.isEmpty || !gridInput.isEmpty {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                if !qth.isEmpty {
+                    stationButton(qth, field: .qth, underline: Self.locationUnderline, sidePadding: Self.locationSidePadding)
+                        .accessibilityLabel("QTH, \(qth)")
+                }
+                if !qth.isEmpty && !gridInput.isEmpty {
+                    Text("·")
+                        .foregroundStyle(Color.appTextTertiary)
+                        .accessibilityHidden(true)
+                }
+                if !gridInput.isEmpty {
+                    stationButton(gridInput, field: .grid, underline: Self.locationUnderline, sidePadding: Self.locationSidePadding)
+                        .accessibilityLabel("Grid, \(gridInput)")
+                }
+            }
+            .padding(.leading, -Self.locationSidePadding)
+            .font(.appStationDetail)
+            .foregroundStyle(Color.appTextSecondary)
+        }
+    }
+
+    private static let locationSidePadding: CGFloat = 6
+    private static let locationUnderline = Color.appTextSecondary.opacity(0.55)
+
+    /// A faint dotted underline marks a value you can tap to edit, setting it
+    /// apart from the read-only list notes above.
+    private func stationButton(_ text: String, field: EditField, underline: Color, sidePadding: CGFloat = 0) -> some View {
+        Button {
+            beginEditing(field)
+        } label: {
+            Text(text)
+                .underline(pattern: .dot, color: underline)
+                .padding(.horizontal, sidePadding)
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Opens `field` for editing. A frequency or time edit still open is
+    /// committed first: focus moves straight to the new field without passing
+    /// through nil, so the commit in `onChange(of: editFocus)` never sees it.
+    private func beginEditing(_ field: EditField) {
+        if editingField == .frequency { onFrequencyCommitted() }
+        if editingField == .time { onTimeCommitted() }
+        editingField = field
+        editFocus = field
     }
 
     // MARK: - Editor
@@ -229,8 +364,7 @@ struct MetadataStrip: View {
 
     private var frequencySegment: some View {
         Button {
-            editingField = .frequency
-            editFocus = .frequency
+            beginEditing(.frequency)
         } label: {
             HStack(spacing: 3) {
                 Text(frequencyText)
@@ -248,8 +382,7 @@ struct MetadataStrip: View {
 
     private func segment(_ text: String, field: EditField) -> some View {
         Button {
-            editingField = field
-            editFocus = field
+            beginEditing(field)
         } label: {
             Text(text)
                 .padding(.horizontal, 6)
@@ -261,8 +394,7 @@ struct MetadataStrip: View {
 
     private func refSegment(_ text: String, field: EditField, color: Color) -> some View {
         Button {
-            editingField = field
-            editFocus = field
+            beginEditing(field)
         } label: {
             HStack(spacing: 3) {
                 Text(text)

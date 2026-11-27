@@ -255,6 +255,22 @@ final class QSOEntryViewModelTests: XCTestCase {
         XCTAssertEqual(vm.saveCount, 0)
     }
 
+    /// A save that doesn't happen must not report the previous contact as
+    /// saved, or the entry panel ends the edit while the contact is unchanged.
+    func testUnsavedEditDoesNotReportPreviousSave() async throws {
+        let vm = makeVM()
+        vm.entryText = "W1AW"
+        await vm.saveQSO()
+        let saved = try XCTUnwrap(vm.lastSavedQSO)
+
+        vm.loadForEditing(saved)
+        vm.entryText = ""
+        await vm.saveQSO()
+
+        XCTAssertNil(vm.lastSavedQSO)
+        XCTAssertTrue(vm.isEditing)
+    }
+
     func testSaveClearsFieldsButPreservesFrequency() async throws {
         let vm = makeVM()
         vm.entryText = "W1AW"
