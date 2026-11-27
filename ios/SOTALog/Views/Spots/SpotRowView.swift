@@ -13,10 +13,14 @@ struct SpotRowView: View {
                 Text(spot.activatorCallsign)
                     .font(.appCallsign)
                     .strikethrough(isWorked)
+                    .layoutPriority(1)
 
+                // A station can be on any number of lists, so a long call
+                // with many marks cuts the marks off rather than wrapping.
                 if let mark {
                     Text(mark)
                         .font(.subheadline)
+                        .lineLimit(1)
                 }
 
                 Spacer()

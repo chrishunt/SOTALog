@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - Callsign lists: add a club or friends list by link on the Sync tab, in the same format PoLo uses, and everyone on it is marked with the list's emoji when you log them or see them spotted. While logging, what each list says about the station shows above the entry fields, even offline
+- Put callsign lists in the order you want: tap Edit beside Callsign Lists on the Sync tab and drag. A station's marks and notes follow that order, and every list it's on shows
 - Correct a callsign without moving the cursor: type the right call at the end of the entry field and, after a space, it replaces the first one and keeps the signal reports. Works for tail-end catches too: `ABC 55 K6ABC` becomes `K6ABC 55`
 
 ### Fixed

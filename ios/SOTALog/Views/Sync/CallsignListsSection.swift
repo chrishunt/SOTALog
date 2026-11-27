@@ -6,6 +6,16 @@ struct CallsignListsSection: View {
     let database: LogbookDatabase
     @State private var viewModel: CallsignListsViewModel
     @State private var editor: Editor?
+    #if os(iOS)
+    /// The Sync list's edit mode, which this section's Edit button sets.
+    /// Only these rows can be deleted or moved, so only they change.
+    @Environment(\.editMode) private var editMode
+    private var isEditing: Bool { editMode?.wrappedValue.isEditing ?? false }
+    private func setEditing(_ editing: Bool) { editMode?.wrappedValue = editing ? .active : .inactive }
+    #else
+    private var isEditing: Bool { false }
+    private func setEditing(_ editing: Bool) {}
+    #endif
 
     private enum Editor: Identifiable {
         case add
@@ -33,6 +43,15 @@ struct CallsignListsSection: View {
                 let lists = offsets.map { viewModel.lists[$0] }
                 Task { for list in lists { await viewModel.delete(list) } }
             }
+            .onMove { source, destination in
+                Task { await viewModel.move(fromOffsets: source, toOffset: destination) }
+            }
+
+            if let error = viewModel.reorderError {
+                Text(error)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appRed)
+            }
 
             // Modifiers on a Section apply to every row, so the sheet and the
             // first load hang off this one row, which is always there.
@@ -51,7 +70,24 @@ struct CallsignListsSection: View {
                 }
             }
         } header: {
-            Text("Callsign Lists")
+            HStack {
+                Text("Callsign Lists")
+                Spacer()
+                if !viewModel.lists.isEmpty || isEditing {
+                    Button(isEditing ? "Done" : "Edit") {
+                        withAnimation { setEditing(!isEditing) }
+                    }
+                    .fontWeight(isEditing ? .semibold : .regular)
+                    .textCase(nil)
+                }
+            }
+        } footer: {
+            if viewModel.lists.count > 1 {
+                Text("Marks and notes show in this order.")
+            }
+        }
+        .onChange(of: viewModel.lists.isEmpty) { _, isEmpty in
+            if isEmpty { setEditing(false) }
         }
     }
 
@@ -79,17 +115,36 @@ struct CallsignListsSection: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("Change the emoji or name")
-
-            if let id = list.id, viewModel.refreshing.contains(id) {
-                ProgressView()
-            } else {
-                Button {
-                    Task { await viewModel.refresh(list) }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+            // VoiceOver reads every reorder handle as "Reorder Remove", so
+            // each row also moves by name.
+            .accessibilityActions {
+                if let index = viewModel.lists.firstIndex(where: { $0.id == list.id }) {
+                    if index > 0 {
+                        Button("Move Up") {
+                            Task { await viewModel.move(fromOffsets: [index], toOffset: index - 1) }
+                        }
+                    }
+                    if index < viewModel.lists.count - 1 {
+                        Button("Move Down") {
+                            Task { await viewModel.move(fromOffsets: [index], toOffset: index + 2) }
+                        }
+                    }
                 }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Refresh \(list.name)")
+            }
+
+            // Hidden while editing, leaving only the delete and reorder controls.
+            if !isEditing {
+                if let id = list.id, viewModel.refreshing.contains(id) {
+                    ProgressView()
+                } else {
+                    Button {
+                        Task { await viewModel.refresh(list) }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Refresh \(list.name)")
+                }
             }
         }
 

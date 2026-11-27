@@ -12,6 +12,8 @@ final class CallsignListsViewModel {
     private(set) var lists: [CallsignList] = []
     private(set) var refreshing: Set<Int64> = []
     private(set) var errors: [Int64: String] = [:]
+    /// Why the last reorder was not saved, shown under the lists.
+    private(set) var reorderError: String?
 
     init(database: LogbookDatabase, service: CallsignListService = CallsignListService(client: .sotaLog)) {
         self.repo = CallsignListRepository(database: database)
@@ -36,6 +38,21 @@ final class CallsignListsViewModel {
         }
         refreshing.remove(id)
         await load()
+    }
+
+    /// Moves lists as a drag did, at once on screen, then saves the order,
+    /// which is the order of each station's marks and notes. A failed save
+    /// puts back the stored order and says why.
+    @MainActor
+    func move(fromOffsets source: IndexSet, toOffset destination: Int) async {
+        lists.move(fromOffsets: source, toOffset: destination)
+        reorderError = nil
+        do {
+            try await repo.reorder(lists.compactMap(\.id))
+        } catch {
+            reorderError = "The new order wasn't saved: \(error.localizedDescription)"
+            await load()
+        }
     }
 
     @MainActor

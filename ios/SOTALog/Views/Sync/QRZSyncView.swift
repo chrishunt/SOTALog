@@ -8,6 +8,11 @@ struct QRZSyncView: View {
     @State private var showCallsignSignIn = false
     @State private var showLogbookSignOut = false
     @State private var showCallsignSignOut = false
+    #if os(iOS)
+    /// Edit mode takes effect only on the whole List; the callsign lists
+    /// section's Edit button sets it, and only that section has rows to edit.
+    @State private var editMode: EditMode = .inactive
+    #endif
 
     init(database: LogbookDatabase) {
         self.database = database
@@ -105,6 +110,7 @@ struct QRZSyncView: View {
         .navigationBarTitleDisplayMode(.large)
         #if os(iOS)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
+        .environment(\.editMode, $editMode)
         #endif
         }
         .sheet(isPresented: $showLogbookSignIn) {
