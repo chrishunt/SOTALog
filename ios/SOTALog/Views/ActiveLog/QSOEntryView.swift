@@ -209,7 +209,7 @@ struct QSOEntryView: View {
         .foregroundStyle(Color.appOrange)
         .padding(.horizontal)
         .padding(.vertical, 9)
-        .background(Color.appOrange.opacity(0.14))
+        .background(Color.appEditingTint)
     }
 
     // MARK: - CW Macro Row

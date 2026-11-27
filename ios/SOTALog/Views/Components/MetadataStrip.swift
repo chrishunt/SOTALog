@@ -141,8 +141,7 @@ struct MetadataStrip: View {
         .overlay(alignment: .bottom) { Divider() }
     }
 
-    /// Read-only, one line per list, cut off at the end rather than wrapping
-    /// so a long note can't push the panel around. Emoji sit in a fixed
+    /// One line per list, cut off rather than wrapped. Emoji sit in a fixed
     /// column so the notes line up.
     private var noteLines: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -186,12 +185,15 @@ struct MetadataStrip: View {
         }
     }
 
+    /// QTH and grid carry their own side padding so short values like "CA"
+    /// stay as easy to tap as the chips were; the negative leading padding
+    /// keeps the text aligned with the name.
     @ViewBuilder
     private var stationLocation: some View {
         if !qth.isEmpty || !gridInput.isEmpty {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
                 if !qth.isEmpty {
-                    stationButton(qth, field: .qth)
+                    stationButton(qth, field: .qth, sidePadding: Self.locationSidePadding)
                         .accessibilityLabel("QTH, \(qth)")
                 }
                 if !qth.isEmpty && !gridInput.isEmpty {
@@ -200,25 +202,38 @@ struct MetadataStrip: View {
                         .accessibilityHidden(true)
                 }
                 if !gridInput.isEmpty {
-                    stationButton(gridInput, field: .grid)
+                    stationButton(gridInput, field: .grid, sidePadding: Self.locationSidePadding)
                         .accessibilityLabel("Grid, \(gridInput)")
                 }
             }
+            .padding(.leading, -Self.locationSidePadding)
             .font(.appStationDetail)
             .foregroundStyle(Color.appTextSecondary)
         }
     }
 
-    private func stationButton(_ text: String, field: EditField) -> some View {
+    private static let locationSidePadding: CGFloat = 6
+
+    private func stationButton(_ text: String, field: EditField, sidePadding: CGFloat = 0) -> some View {
         Button {
-            editingField = field
-            editFocus = field
+            beginEditing(field)
         } label: {
             Text(text)
-                .padding(.vertical, 2)
+                .padding(.horizontal, sidePadding)
+                .padding(.vertical, 4)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    /// Opens `field` for editing. A frequency or time edit still open is
+    /// committed first: focus moves straight to the new field without passing
+    /// through nil, so the commit in `onChange(of: editFocus)` never sees it.
+    private func beginEditing(_ field: EditField) {
+        if editingField == .frequency { onFrequencyCommitted() }
+        if editingField == .time { onTimeCommitted() }
+        editingField = field
+        editFocus = field
     }
 
     // MARK: - Editor
@@ -338,8 +353,7 @@ struct MetadataStrip: View {
 
     private var frequencySegment: some View {
         Button {
-            editingField = .frequency
-            editFocus = .frequency
+            beginEditing(.frequency)
         } label: {
             HStack(spacing: 3) {
                 Text(frequencyText)
@@ -357,8 +371,7 @@ struct MetadataStrip: View {
 
     private func segment(_ text: String, field: EditField) -> some View {
         Button {
-            editingField = field
-            editFocus = field
+            beginEditing(field)
         } label: {
             Text(text)
                 .padding(.horizontal, 6)
@@ -370,8 +383,7 @@ struct MetadataStrip: View {
 
     private func refSegment(_ text: String, field: EditField, color: Color) -> some View {
         Button {
-            editingField = field
-            editFocus = field
+            beginEditing(field)
         } label: {
             HStack(spacing: 3) {
                 Text(text)

@@ -558,6 +558,8 @@ final class QSOEntryViewModel {
     // MARK: - Save QSO
 
     func saveQSO() async {
+        // Only a save that succeeds below may report a contact as saved.
+        lastSavedQSO = nil
         let callsign = parsedCallsign
         guard !callsign.isEmpty, let logId = log.id else { return }
 

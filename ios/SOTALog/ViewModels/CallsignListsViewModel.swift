@@ -105,8 +105,8 @@ final class CallsignListEditorViewModel {
         file.map { CallsignListsViewModel.callsText(Set($0.entries.map(\.callsign)).count) }
     }
 
-    /// A preview entry's note line as it will show while logging, with the
-    /// emoji and name as they now stand in the sheet.
+    /// A preview entry's note with the same emoji and words it will show while
+    /// logging, using the emoji and name as they now stand in the sheet.
     func previewLine(for entry: CallsignListFile.Entry) -> String {
         let listName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return CallsignMarks.Note(emoji: emoji, listName: listName, note: entry.note).line
