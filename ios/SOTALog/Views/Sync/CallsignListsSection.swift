@@ -6,6 +6,14 @@ struct CallsignListsSection: View {
     let database: LogbookDatabase
     @State private var viewModel: CallsignListsViewModel
     @State private var editor: Editor?
+    #if os(iOS)
+    @Environment(\.editMode) private var editMode
+    private var isEditing: Bool { editMode?.wrappedValue.isEditing ?? false }
+    private func setEditing(_ editing: Bool) { editMode?.wrappedValue = editing ? .active : .inactive }
+    #else
+    private var isEditing: Bool { false }
+    private func setEditing(_ editing: Bool) {}
+    #endif
 
     private enum Editor: Identifiable {
         case add
@@ -33,6 +41,15 @@ struct CallsignListsSection: View {
                 let lists = offsets.map { viewModel.lists[$0] }
                 Task { for list in lists { await viewModel.delete(list) } }
             }
+            .onMove { source, destination in
+                Task { await viewModel.move(fromOffsets: source, toOffset: destination) }
+            }
+
+            if let error = viewModel.reorderError {
+                Text(error)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appRed)
+            }
 
             // Modifiers on a Section apply to every row, so the sheet and the
             // first load hang off this one row, which is always there.
@@ -51,12 +68,37 @@ struct CallsignListsSection: View {
                 }
             }
         } header: {
-            Text("Callsign Lists")
+            HStack {
+                Text("Callsign Lists")
+                Spacer()
+                if !viewModel.lists.isEmpty || isEditing {
+                    Button(isEditing ? "Done" : "Edit") {
+                        withAnimation { setEditing(!isEditing) }
+                    }
+                    .fontWeight(isEditing ? .semibold : .regular)
+                    .textCase(nil)
+                }
+            }
+        }
+        .onChange(of: viewModel.lists.isEmpty) { _, isEmpty in
+            if isEmpty { setEditing(false) }
         }
     }
 
-    @ViewBuilder
+    /// One List row per list, error included, so edit mode gives each list
+    /// one delete button and one reorder handle.
     private func row(_ list: CallsignList) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            listLine(list)
+            if let id = list.id, let error = viewModel.errors[id] {
+                Text(error)
+                    .font(.appLabel)
+                    .foregroundStyle(Color.appRed)
+            }
+        }
+    }
+
+    private func listLine(_ list: CallsignList) -> some View {
         HStack(spacing: 12) {
             Button {
                 editor = .edit(list)
@@ -79,24 +121,30 @@ struct CallsignListsSection: View {
             }
             .buttonStyle(.plain)
             .accessibilityHint("Change the emoji or name")
-
-            if let id = list.id, viewModel.refreshing.contains(id) {
-                ProgressView()
-            } else {
-                Button {
-                    Task { await viewModel.refresh(list) }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+            // VoiceOver reads every reorder handle as "Reorder Remove", so
+            // each row also moves by name.
+            .accessibilityActions {
+                if viewModel.canMove(list, by: -1) {
+                    Button("Move Up") { Task { await viewModel.move(list, by: -1) } }
                 }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Refresh \(list.name)")
+                if viewModel.canMove(list, by: 1) {
+                    Button("Move Down") { Task { await viewModel.move(list, by: 1) } }
+                }
             }
-        }
 
-        if let id = list.id, let error = viewModel.errors[id] {
-            Text(error)
-                .font(.appLabel)
-                .foregroundStyle(Color.appRed)
+            if !isEditing {
+                if let id = list.id, viewModel.refreshing.contains(id) {
+                    ProgressView()
+                } else {
+                    Button {
+                        Task { await viewModel.refresh(list) }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Refresh \(list.name)")
+                }
+            }
         }
     }
 }

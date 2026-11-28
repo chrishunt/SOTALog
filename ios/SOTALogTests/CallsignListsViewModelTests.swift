@@ -182,6 +182,67 @@ final class CallsignListsViewModelTests: XCTestCase {
         XCTAssertNil(lists.errors[list.id!])
     }
 
+    // MARK: - Ordering
+
+    private func addLists(_ emojis: [String]) async throws {
+        let repo = CallsignListRepository(database: db)
+        for (index, emoji) in emojis.enumerated() {
+            try await repo.add(link: "https://example.com/\(index)", name: "List \(index)", emoji: emoji, file: CallsignListFile(parsing: club))
+        }
+    }
+
+    func testMovingAListSavesTheOrder() async throws {
+        try await addLists(["🌊", "⭐", "🐛"])
+        let lists = CallsignListsViewModel(database: db)
+        await lists.load()
+
+        await lists.move(fromOffsets: [2], toOffset: 0)
+
+        XCTAssertEqual(lists.lists.map(\.emoji), ["🐛", "🌊", "⭐"])
+        XCTAssertNil(lists.reorderError)
+        let stored = try await CallsignListRepository(database: db).fetchAll().map(\.emoji)
+        XCTAssertEqual(stored, ["🐛", "🌊", "⭐"])
+    }
+
+    func testAFailedMovePutsBackTheStoredOrderAndSaysWhy() async throws {
+        try await addLists(["🌊", "⭐"])
+        try await db.dbWriter.write { db in
+            try db.execute(sql: """
+                CREATE TRIGGER refuseReorder BEFORE UPDATE OF position ON callsignList
+                BEGIN SELECT RAISE(ABORT, 'disk full'); END
+                """)
+        }
+        let lists = CallsignListsViewModel(database: db)
+        await lists.load()
+
+        await lists.move(fromOffsets: [1], toOffset: 0)
+
+        XCTAssertEqual(lists.lists.map(\.emoji), ["🌊", "⭐"])
+        XCTAssertEqual(lists.reorderError, "Couldn't save the new order. Try again.")
+
+        await lists.delete(lists.lists[0])
+        XCTAssertNil(lists.reorderError, "the message goes once the lists change")
+    }
+
+    func testMoveUpAndDownMoveOnePlace() async throws {
+        try await addLists(["🌊", "⭐", "🐛"])
+        let lists = CallsignListsViewModel(database: db)
+        await lists.load()
+        let (first, last) = (lists.lists[0], lists.lists[2])
+
+        XCTAssertFalse(lists.canMove(first, by: -1))
+        XCTAssertFalse(lists.canMove(last, by: 1))
+        await lists.move(first, by: 1)
+        XCTAssertEqual(lists.lists.map(\.emoji), ["⭐", "🌊", "🐛"])
+        await lists.move(last, by: -1)
+        XCTAssertEqual(lists.lists.map(\.emoji), ["⭐", "🐛", "🌊"])
+        await lists.move(lists.lists[2], by: 1)
+        XCTAssertEqual(lists.lists.map(\.emoji), ["⭐", "🐛", "🌊"], "the last list can't move down")
+
+        let stored = try await CallsignListRepository(database: db).fetchAll().map(\.emoji)
+        XCTAssertEqual(stored, ["⭐", "🐛", "🌊"])
+    }
+
     func testTheRowSummarySaysHowManyCallsFromWhereAndWhen() {
         let date = Date(timeIntervalSince1970: 1_795_000_000)
         let list = CallsignList(link: "https://ditdit.club/data/members.txt", name: "CWO", emoji: "🌊", callsignCount: 1_066, lastRefreshed: date)

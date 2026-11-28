@@ -12,14 +12,19 @@ final class CallsignListsViewModel {
     private(set) var lists: [CallsignList] = []
     private(set) var refreshing: Set<Int64> = []
     private(set) var errors: [Int64: String] = [:]
+    /// Why the last reorder was not saved, shown under the lists.
+    private(set) var reorderError: String?
 
     init(database: LogbookDatabase, service: CallsignListService = CallsignListService(client: .sotaLog)) {
         self.repo = CallsignListRepository(database: database)
         self.service = service
     }
 
+    /// Reads the lists as stored. Anything else changing the lists comes
+    /// through here, so it also clears a failed reorder's message.
     @MainActor
     func load() async {
+        reorderError = nil
         lists = (try? await repo.fetchAll()) ?? []
     }
 
@@ -36,6 +41,38 @@ final class CallsignListsViewModel {
         }
         refreshing.remove(id)
         await load()
+    }
+
+    /// Moves lists as a drag did, at once on screen, then saves the order,
+    /// which is the order of each station's marks and notes. It then reads
+    /// the order back, so a load that overlapped the save can't leave the
+    /// screen on the old one. A failed save puts back the stored order and
+    /// says so.
+    @MainActor
+    func move(fromOffsets source: IndexSet, toOffset destination: Int) async {
+        lists.move(fromOffsets: source, toOffset: destination)
+        do {
+            try await repo.reorder(lists.compactMap(\.id))
+            await load()
+        } catch {
+            await load()
+            reorderError = "Couldn't save the new order. Try again."
+        }
+    }
+
+    /// Whether `list` can move `step` places, up when negative, and stay in the lists.
+    func canMove(_ list: CallsignList, by step: Int) -> Bool {
+        guard let index = lists.firstIndex(where: { $0.id == list.id }) else { return false }
+        return lists.indices.contains(index + step)
+    }
+
+    /// Moves `list` `step` places, up when negative, as Move Up and Move Down do.
+    @MainActor
+    func move(_ list: CallsignList, by step: Int) async {
+        guard step != 0, canMove(list, by: step),
+              let index = lists.firstIndex(where: { $0.id == list.id }) else { return }
+        // A move's destination counts places before the move, so going down skips the list itself.
+        await move(fromOffsets: [index], toOffset: step > 0 ? index + step + 1 : index + step)
     }
 
     @MainActor
