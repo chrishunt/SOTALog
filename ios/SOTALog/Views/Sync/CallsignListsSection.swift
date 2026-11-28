@@ -79,10 +79,6 @@ struct CallsignListsSection: View {
                     .textCase(nil)
                 }
             }
-        } footer: {
-            if viewModel.lists.count > 1 {
-                Text("Marks and notes show in this order.")
-            }
         }
         .onChange(of: viewModel.lists.isEmpty) { _, isEmpty in
             if isEmpty { setEditing(false) }
